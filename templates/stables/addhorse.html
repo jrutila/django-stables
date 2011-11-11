@@ -1,0 +1,7 @@
+{% extends "site_base.html" %}
+{% block main %}
+<form action="{% url stables.views.add_horse %}" method="POST">{% csrf_token %}
+{{ form.as_p }}
+<input type="submit" />
+</form>
+{% endblock main %}
