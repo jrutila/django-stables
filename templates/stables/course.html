@@ -1,0 +1,19 @@
+{% extends "site_base.html" %}
+{% load i18n %}
+{% load tags %}
+{% block body %}
+{{ request.user.get_profile }}
+<h1>{{ course.name }}</h1>
+{% blocktrans with course.start as start and course.end as end %}From {{ start }} to {{ end }}{% endblocktrans %}
+<ul>
+    {% for c, p in occurrences %}
+    <li>
+        {{ p.state.1 }}
+        {% blocktrans with c.start.date|date:"l" as weekday and c.start.date|date as day and c.start.time as start and c.end.time as end %}on {{ weekday }}, {{ day }} from {{ start }} to {{ end }}{% endblocktrans %}
+        {% if not c.is_past %}
+            {% participate_button request.user.get_profile course forloop.counter0 p %}
+        {% endif %}
+    </li>
+    {% endfor %}
+</ul>
+{% endblock body %}

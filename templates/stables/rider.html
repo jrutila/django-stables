@@ -1,0 +1,9 @@
+{% extends "site_base.html" %}
+{% block body %}
+<h1>{{ rider }}</h1>
+<ul>
+    {% for p in rider.get_next_participations %}
+    <li>{{ p }}</li>
+    {% endfor %}
+</ul>
+{% endblock body %}

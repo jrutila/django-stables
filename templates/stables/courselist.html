@@ -1,0 +1,10 @@
+{% extends "site_base.html" %}
+{% load i18n %}
+{% block body %}
+<h1>{% trans "courses"|capfirst %}</h1>
+<ul>
+    {% for c in courses %}
+    <li><a href="{{ c.get_absolute_url }}">{{ c.name }}</a></li>
+    {% endfor %}
+</ul>
+{% endblock body %}

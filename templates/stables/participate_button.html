@@ -1,0 +1,10 @@
+{% for b in buttons %}
+    {% if b.action %}
+    <form method='POST' action="{{ b.action }}" style='display: inline;'>
+        <input type='hidden' name='occurrence_index' value='{{ b.occurrence_index }}'/>
+        <input type='hidden' name='participation_id' value='{{ b.participation_id }}'/>
+        <input type='submit' value='{{ b.button_text }}' />
+        {% csrf_token %}
+    </form>
+    {% endif %}
+{% endfor %}
