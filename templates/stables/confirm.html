@@ -1,0 +1,15 @@
+{% extends "site_base.html" %}
+{% load i18n %}
+{% block body %}
+<h1>{{ title }}</h1>
+<form method='POST' action='{{ action }}'>
+{% for key, value in context.items %}
+{% for v in value %}
+<input type="hidden" name="{{ key }}" value="{{ v }}" />
+{% endfor %}
+{% endfor %}
+{% csrf_token %}
+<input type='submit' value='OK'/>
+<a href='{{ back }}'>&lt;-</a>
+</form>
+{% endblock body %}

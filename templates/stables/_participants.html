@@ -1,0 +1,14 @@
+{% load stablestags %}
+<ul>
+    {% for p in participations %}
+    <li>
+        {{ p }}
+        {% if not c.is_past and p.participant == rider %}
+            {% participate_button rider course occurrence %}
+        {% endif %}
+    </li>
+    {% endfor %}
+    {% if mypart %}
+    <li>{% participate_button rider course occurrence %}</li>
+    {% endif %}
+</ul>

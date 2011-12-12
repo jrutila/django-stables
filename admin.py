@@ -1,6 +1,7 @@
 from stables.models import Horse, UserProfile, RiderInfo, CustomerInfo
 from stables.models import CustomerForm, CourseForm
 from stables.models import Course, Participation, Enroll
+from stables.models import Transaction, Ticket, ParticipationTransactionActivator
 from django import forms
 from django.contrib import admin
 
@@ -40,5 +41,7 @@ admin.site.register(UserProfile, UserProfileAdmin)
 admin.site.register(RiderInfo)
 admin.site.register(CustomerInfo, CustomerInfoAdmin)
 admin.site.register(Participation, ParticipationAdmin)
-admin.site.register(Enroll)
+admin.site.register(Ticket)
+admin.site.register(Transaction)
 admin.site.register(Course, CourseAdmin)
+admin.site.register(ParticipationTransactionActivator)

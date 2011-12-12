@@ -1,0 +1,19 @@
+{% extends "site_base.html" %}
+{% load i18n %}
+{% load stablestags %}
+{% block body %}
+<h1>{{ course }}</h1>
+{% if occurrence %}
+{{ occurrence.start }} - {{ occurrence.end }}
+<ul>
+    {% for p in participations %}
+    <li>{{ p }}{% participate_button p.participant course occurrence %}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+<ul>
+{% for u in users %}
+    <li>{{ u }}{% participate_button u course occurrence %}</li>
+{% endfor %}
+</ul>
+{% endblock body %}

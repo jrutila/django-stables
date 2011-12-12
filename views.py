@@ -1,14 +1,25 @@
 from models import HorseForm, Horse, Course, Participation, PARTICIPATION_STATES
-from django.shortcuts import render_to_response, redirect, render
-from django.http import HttpResponse, HttpResponseRedirect
+from models import UserProfile
+from models import Transaction
+from django.shortcuts import render_to_response, redirect, render, get_object_or_404
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.template import RequestContext
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext, ugettext_lazy as _
 import datetime
+from django.contrib.auth.decorators import permission_required
+from django.views.decorators.http import require_POST
+import models as enum
 
 def render_response(req, *args, **kwargs):
     kwargs['context_instance'] = RequestContext(req)
     return render_to_response(*args, **kwargs)
+
+@require_POST
+def confirm(request, action):
+    context = dict(request.POST)
+    del context[u'csrfmiddlewaretoken']
+    return render(request, 'stables/confirm.html', { 'action': action, 'title': request.GET['title'],'back': request.META['HTTP_REFERER'], 'context': context })
 
 def add_horse(request):
     if request.method == "POST":
@@ -30,32 +41,73 @@ def list_course(request):
             { 'courses': courses })
 
 def view_course(request, course_id):
-    user = request.user.get_profile()
     course = Course.objects.get(pk=course_id)
     occurrences = course.get_occurrences()
-    user_participations = Participation.objects.filter(participant=user)
-    participations = [] 
-    for o in occurrences:
-        parti = { 'state': { '1': _('Not attending') }}
-        for p in user_participations:
-            if p.get_occurrence() == o:
-                parti = p
-                parti.state = PARTICIPATION_STATES[p.state]
-        participations.append((o, parti))
     return render_response(request, 'stables/course.html',
-            { 'course': course, 'occurrences': participations })
+            { 'course': course, 'occurrences': occurrences })
+
+def get_user_or_404(request, username, perm):
+    if username and perm:
+        return User.objects.filter(username=username)[0].get_profile()
+    elif username != request.user.username:
+        raise Http404
+    return request.user.get_profile()
 
 def attend_course(request, course_id):
+    user = get_user_or_404(request, request.POST.get('username'), request.user.has_perm('stables.change_participation'))
     course = Course.objects.get(pk=course_id)
     occurrence = course.get_occurrences()[int(request.POST.get('occurrence_index'))]
-    course.attend(request.user.get_profile(), occurrence)
+    course.attend(user, occurrence)
     return redirect('stables.views.view_course', course_id=int(course_id))
 
 def cancel_participation(request, course_id):
+    user = get_user_or_404(request, request.POST.get('username'), request.user.has_perm('stables.change_participation'))
     participation = Participation.objects.get(pk=request.POST.get('participation_id'))
     participation.cancel()
     return redirect('stables.views.view_course', course_id=int(course_id))
 
+def view_account(request):
+    user = request.user.get_profile()
+    return render(request, 'stables/account.html', { 'user': user })
+
 def view_rider(request, username):
     rider = User.objects.filter(username=username)[0].get_profile()
-    return render_response(request, 'stables/rider.html', { 'rider': rider })
+    saldo = None
+    if rider.customer and (request.user.has_perm('stables.can_view_saldo') or rider.customer.userprofile.user == request.user):
+        saldo = rider.customer.saldo()
+    return render_response(request, 'stables/rider.html', { 'rider': rider, 'saldo': saldo })
+
+def view_customer(request, username):
+    user = User.objects.filter(username=username)[0]
+    customer = user.get_profile().customer
+    if not customer:
+        raise Http404
+    if user != request.user and not request.user.has_perm('stables.view_transaction'):
+        raise Http404
+    trans = Transaction.objects.filter(active=True, customer=customer).order_by('-created_on')
+    saldo = customer.saldo()
+    return render_response(request, 'stables/customer.html', { 'customer': customer, 'transactions': trans, 'saldo': saldo })
+
+@permission_required('stables.change_participation')
+def modify_participations(request, course_id, occurrence_index=None):
+    course = get_object_or_404(Course, pk=course_id)
+    occurrence = None
+    participations = None
+    users = UserProfile.objects.filter(rider__isnull=False)
+    if occurrence_index:
+        occurrence = course.get_occurrences()[int(occurrence_index)]
+        participations = Participation.objects.get_participations(occurrence)
+        excl_users = []
+        attending = []
+        others = []
+        reserved = []
+        for p in participations:
+            if p.state == enum.ATTENDING or p.state == enum.ATTENDED:
+                attending.append(p)
+            elif p.state == enum.RESERVED:
+                reserved.append(p)
+            else:
+                others.append(p)
+            excl_users.append(p.participant.user)
+        users = users.exclude(user__in=excl_users)
+    return render(request, 'stables/participations.html', { 'course': course, 'occurrence': occurrence, 'participations': attending + reserved + others, 'users': users })

@@ -1,0 +1,23 @@
+{% extends "site_base.html" %}
+{% load i18n %}
+{% block body %}
+<h1>{{ customer }}</h1>
+{% if saldo %}
+{% blocktrans with saldo as saldo %}
+Saldo: {{ saldo }}
+{% endblocktrans %}
+{% endif %}
+<ul>
+{% for t in transactions %}
+<li>
+    {{ t.source }} {{ t.amount }}
+    {% if t.ticket_set.count %}
+    T
+    {% for ti in t.ticket_set.all %}
+    {{ ti.id }}
+    {% endfor %}
+    {% endif %}
+</li>
+{% endfor %}
+</ul>
+{% endblock body %}

@@ -1,18 +1,19 @@
 {% extends "site_base.html" %}
 {% load i18n %}
-{% load tags %}
+{% load stablestags %}
 {% block body %}
-{{ request.user.get_profile }}
 <h1>{{ course.name }}</h1>
 {% blocktrans with course.start as start and course.end as end %}From {{ start }} to {{ end }}{% endblocktrans %}
 <ul>
-    {% for c, p in occurrences %}
-    <li>
-        {{ p.state.1 }}
-        {% blocktrans with c.start.date|date:"l" as weekday and c.start.date|date as day and c.start.time as start and c.end.time as end %}on {{ weekday }}, {{ day }} from {{ start }} to {{ end }}{% endblocktrans %}
-        {% if not c.is_past %}
-            {% participate_button request.user.get_profile course forloop.counter0 p %}
+    {% for c in occurrences %}
+    <li class="vevent">
+        {% blocktrans with c.start.date|date:"l" as weekday and c.start.date|date as day and c.start.time as start and c.end.time as end and course.name as summary and c.start.isoformat as dtstart and c.end.isoformat as dtend %}
+        <span class="summary">{{ summary }}</span> on <abbr class="dtstart" title="{{ dtstart }}">{{ weekday }}, {{ day }} from {{ start }}</abbr> to <abbr class="dtend" title="{{ dtend }}">{{ end }}</abbr>
+        {% endblocktrans %}
+        {% if perms.stables.change_participation %}
+        <a href="{% url stables.views.modify_participations course_id=course.id occurrence_index=forloop.counter0 %}">{% trans "Modify participations" %}</a>
         {% endif %}
+        {% participants course c %}
     </li>
     {% endfor %}
 </ul>

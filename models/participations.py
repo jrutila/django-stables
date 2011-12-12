@@ -1,90 +1,17 @@
 from django.db import models
 from django.contrib.auth.models import User
 from schedule.models import Calendar, Event, Rule, Occurrence
+from user import UserProfile
+from financial import CurrencyField, TicketType
 from django import forms
 from django.template.defaultfilters import slugify
 import datetime
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.template.defaultfilters import date, time
-from django.db.models.signals import post_save
 from django.core.exceptions import ObjectDoesNotExist
 import reversion
 
 import logging
-
-from south.modelsinspector import add_introspection_rules
-add_introspection_rules([], ["^stables\.models\.CurrencyField"])
-
-class CurrencyField(models.DecimalField):
-    def __init__(self, *args, **kwargs):
-        kwargs['max_digits'] = 10
-        kwargs['decimal_places'] = 2
-        models.DecimalField.__init__(self, *args, **kwargs)
-
-class UserManager(models.Manager):
-    def participate(self, rider, occurrence):
-        part = Participation()
-        part.participant = rider
-        part.event = occurrence.event
-        part.start = occurrence.start
-        part.end = occurrence.end
-        part.save()
-
-class UserProfile(models.Model):
-    def __unicode__(self):
-        return self.user.first_name + ' ' + self.user.last_name
-    objects = UserManager()
-    user = models.OneToOneField(User)
-    rider = models.OneToOneField('RiderInfo', null=True, blank=True)
-    customer = models.OneToOneField('CustomerInfo', null=True, blank=True)
-
-    def get_participations(self):
-        return Participation.objects.filter(participant=self).order_by('start')
-
-    def get_next_participations(self):
-        return self.get_participations().filter(state=0)[:3]
-
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        UserProfile.objects.create(user=instance)
-
-post_save.connect(create_user_profile, sender=User)
-
-class RiderInfo(models.Model):
-    def __unicode__(self):
-        return str(self.id) + ": " + str(self.level)
-    level = models.IntegerField(default=0)
-
-class CustomerInfo(models.Model):
-    address = models.CharField(max_length=500)
-
-class CustomerForm(forms.ModelForm):
-    class Meta:
-        model = CustomerInfo
-    address = forms.CharField(widget=forms.Textarea)
-
-class Horse(models.Model):
-    def __unicode__(self):
-        return self.name
-    name = models.CharField(max_length=500)
-    birthday = models.DateField()
-    #owner = models.ForeignKey(Owner)
-
-    @models.permalink
-    def get_absolute_url(self):
-        return ('stables.views.view_horse', (), { 'horse_id': self.id })
-
-class HorseForm(forms.ModelForm):
-    class Meta:
-        model = Horse
-
-    def save(self):
-        if not self.instance.id:
-            logging.debug('Create calendar with name %s' % self.cleaned_data['name'])
-            horse = forms.ModelForm.save(self)
-        if not horse:
-            horse = forms.ModelForm.save(self)
-        return horse
 
 class AlreadyAttendingError(Exception):
     pass
@@ -107,6 +34,10 @@ class Course(models.Model):
     class Meta:
         verbose_name = _('course')
         verbose_name_plural = _('courses')
+        app_label = "stables"
+        permissions = (
+            ('view_participations', "Can see detailed participations"),
+        )
     def __unicode__(self):
         return self.name
     name = models.CharField(max_length=500)
@@ -117,6 +48,7 @@ class Course(models.Model):
     created_on = models.DateTimeField(default = datetime.datetime.now)
     max_participants = models.IntegerField(default=7)
     default_participation_fee = CurrencyField(default=0.00)
+    ticket_type = models.ManyToManyField(TicketType)
 
     def get_occurrences(self):
         occurrences = []
@@ -128,6 +60,11 @@ class Course(models.Model):
                 occurrences.append(c)
         occurrences.sort(key=lambda occ: occ.start)
         return occurrences
+
+    def get_occurrence(self, occurrence):
+        for (i, c) in enumerate(self.get_occurrences()):
+            if c == occurrence:
+                return (i, c)
 
     def _is_full(self, occurrence):
         p_amnt = Participation.objects.get_participations(occurrence).filter(state__in=[0,5]).count()
@@ -269,6 +206,7 @@ class Course(models.Model):
         >>> p2.state
         0
         """
+        from financial import ParticipationTransactionActivator
         pstates = self.get_possible_states(rider, occurrence)
         if not 0 in pstates and not 5 in pstates:
             raise AlreadyAttendingError()
@@ -289,6 +227,7 @@ class Course(models.Model):
             parti.state = 5
             reversion.set_comment("Reserved")
         parti.save()
+        ParticipationTransactionActivator.objects.try_create(parti, self.default_participation_fee, self.ticket_type.all())
         return parti
 
     @models.permalink
@@ -323,14 +262,6 @@ class CourseForm(forms.ModelForm):
     def save_m2m(self, *args, **kwargs):
         pass
 
-TRANSACTION_CHOICES = (
-    (-1, 'Kredit'),
-    (1, 'Debet')
-)
-class Transaction(models.Model):
-    type = models.IntegerField(choices=TRANSACTION_CHOICES)
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-
 class ParticipationManager(models.Manager):
     def get_participation(self, rider, occurrence):
         parts = self.filter(participant=rider, start=occurrence.original_start, end=occurrence.original_end)
@@ -341,15 +272,23 @@ class ParticipationManager(models.Manager):
     def get_participations(self, occurrence):
         return self.filter(start=occurrence.original_start, end=occurrence.original_end, ).order_by('last_state_change_on')
 
+ATTENDING = 0
+ATTENDED = 1
+SKIPPED = 2
+CANCELED = 3
+REJECTED = 4
+RESERVED = 5
 PARTICIPATION_STATES = (
-    (0, _('Attending')),
-    (1, _('Attended')),
-    (2, _('Skipped')),
-    (3, _('Canceled')),
-    (4, _('Rejected')),
-    (5, _('Reserved')),
+    (ATTENDING, _('Attending')),
+    (ATTENDED, _('Attended')),
+    (SKIPPED, _('Skipped')),
+    (CANCELED, _('Canceled')),
+    (REJECTED, _('Rejected')),
+    (RESERVED, _('Reserved')),
 )
 class Participation(models.Model):
+    class Meta:
+        app_label = 'stables'
     def __unicode__(self):
         date_format = u'l, %s' % ugettext("DATE_FORMAT")
         time_format = u'%s' % ugettext("TIME_FORMAT")
@@ -419,7 +358,6 @@ class Participation(models.Model):
             return occ
         return Occurrence.objects.get(event = self.event, original_start = self.start)
 
-
 ENROLL_STATES = (
     (0, 'Attending'),
     (1, 'Approved'),
@@ -429,6 +367,8 @@ ENROLL_STATES = (
     (5, 'Reserved'),
 )
 class Enroll(models.Model):
+    class Meta:
+        app_label = 'schedule'
     course = models.ForeignKey(Course)
     rider = models.ForeignKey(UserProfile)
     state = models.IntegerField(choices=ENROLL_STATES, default=0)
