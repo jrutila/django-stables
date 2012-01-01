@@ -2,7 +2,7 @@
 <ul>
     {% for p in participations %}
     <li>
-        {{ p }}
+        {{ p.short }}
         {% if not c.is_past and p.participant == rider %}
             {% participate_button rider course occurrence %}
         {% endif %}

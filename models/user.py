@@ -13,6 +13,14 @@ class UserManager(models.Manager):
         part.end = occurrence.end
         part.save()
 
+class RiderLevel(models.Model):
+    class Meta:
+        app_label = 'stables'
+    def __unicode__(self):
+        return self.name
+    name = models.CharField(max_length=30)
+    includes = models.ManyToManyField('self', null=True, blank=True, symmetrical=False)
+
 class UserProfile(models.Model):
     class Meta:
         app_label = 'stables'
@@ -56,10 +64,10 @@ class RiderInfo(models.Model):
         app_label = 'stables'
     def __unicode__(self):
         try:
-            return UserProfile.objects.filter(rider=self)[0].__unicode__()
+            return UserProfile.objects.filter(rider=self)[0].__unicode__() + ": " + ','.join(str(n) for n in self.levels.all())
         except:
-            return str(self.id) + ": " + str(self.level)
-    level = models.IntegerField(default=0)
+            return str(self.id) + ": " + str(self.levels)
+    levels = models.ManyToManyField(RiderLevel, related_name='+')
     customer = models.ForeignKey(CustomerInfo)
 
     def _get_unused_tickets(self):

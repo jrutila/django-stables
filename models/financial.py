@@ -83,6 +83,23 @@ class ParticipationTransactionActivator(TransactionActivator):
             self.delete()
         return t
 
+from participations import Enroll
+class CourseTransactionActivator(TransactionActivator):
+    class Meta:
+        app_label = 'stables'
+    def __unicode__(self):
+        return str(self.enroll) + ": " + str(self.fee)
+    enroll = models.ForeignKey(Enroll)
+    fee = CurrencyField()
+
+    def try_activate(self):
+        t = Transaction()
+        t.amount = self.fee*-1
+        t.customer = self.enroll.rider.customer
+        t.source = self.enroll
+        t.save()
+        self.delete()
+
 class Transaction(models.Model):
     class Meta:
         app_label = 'stables'
@@ -90,8 +107,8 @@ class Transaction(models.Model):
             ('can_view_saldo', "Can see transactions and saldo"),
         )
     def __unicode__(self):
-        if self.source:
-            name = self.source.__unicode__() 
+        #if self.source:
+            #name = self.source.__unicode__() 
         name = self.customer.__unicode__() + ': ' + str(self.amount)
         return name
     active = models.BooleanField(default=True)

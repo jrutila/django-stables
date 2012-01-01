@@ -1,6 +1,8 @@
 from models import HorseForm, Horse, Course, Participation, PARTICIPATION_STATES
+from models import Enroll
 from models import UserProfile
 from models import Transaction
+from schedule.models import Occurrence
 from django.shortcuts import render_to_response, redirect, render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.template import RequestContext
@@ -56,14 +58,25 @@ def get_user_or_404(request, username, perm):
 def attend_course(request, course_id):
     user = get_user_or_404(request, request.POST.get('username'), request.user.has_perm('stables.change_participation'))
     course = Course.objects.get(pk=course_id)
-    occurrence = course.get_occurrences()[int(request.POST.get('occurrence_index'))]
+    pid = int(request.POST.get('occurrence_index'))
+    if pid > 0:
+        occurrence = course.get_occurrences()[pid]
+    else:
+        occurrence = course.get_occurrence(Occurrence(start=request.POST.get('start'), end=request.POST.get('end')))
     course.attend(user, occurrence)
     return redirect('stables.views.view_course', course_id=int(course_id))
 
 def cancel_participation(request, course_id):
+    # Only user that has right to change permission
     user = get_user_or_404(request, request.POST.get('username'), request.user.has_perm('stables.change_participation'))
-    participation = Participation.objects.get(pk=request.POST.get('participation_id'))
-    participation.cancel()
+    pid = int(request.POST.get('participation_id'))
+    if pid > 0:
+        participation = Participation.objects.get(pk=pid)
+        participation.cancel()
+    else:
+        course = Course.objects.get(pk=course_id)
+        occurrence = course.get_occurrences()[int(request.POST.get('occurrence_index'))]
+        participation = course.create_participation(user, occurrence, enum.CANCELED)
     return redirect('stables.views.view_course', course_id=int(course_id))
 
 def view_account(request):
@@ -96,18 +109,5 @@ def modify_participations(request, course_id, occurrence_index=None):
     users = UserProfile.objects.filter(rider__isnull=False)
     if occurrence_index:
         occurrence = course.get_occurrences()[int(occurrence_index)]
-        participations = Participation.objects.get_participations(occurrence)
-        excl_users = []
-        attending = []
-        others = []
-        reserved = []
-        for p in participations:
-            if p.state == enum.ATTENDING or p.state == enum.ATTENDED:
-                attending.append(p)
-            elif p.state == enum.RESERVED:
-                reserved.append(p)
-            else:
-                others.append(p)
-            excl_users.append(p.participant.user)
-        users = users.exclude(user__in=excl_users)
-    return render(request, 'stables/participations.html', { 'course': course, 'occurrence': occurrence, 'participations': attending + reserved + others, 'users': users })
+        attnd = course.full_rider(occurrence, nolimit=True, include_states=True)
+    return render(request, 'stables/participations.html', { 'course': course, 'occurrence': occurrence, 'participations': attnd, 'users': set(users) - set(attnd) })

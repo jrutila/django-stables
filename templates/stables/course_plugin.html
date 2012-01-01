@@ -1,0 +1,3 @@
+{% for c in instance.courses.all %}
+<a href="{{ c.get_absolute_url }}">{{ c }}</a>
+{% endfor %}

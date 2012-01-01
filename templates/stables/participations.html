@@ -3,15 +3,14 @@
 {% load stablestags %}
 {% block body %}
 <h1>{{ course }}</h1>
+<ul>
 {% if occurrence %}
 {{ occurrence.start }} - {{ occurrence.end }}
-<ul>
     {% for p in participations %}
-    <li>{{ p }}{% participate_button p.participant course occurrence %}</li>
+    <li>{{ p.0 }} {{ p.1 }} {% participate_button p.0 course occurrence %}</li>
     {% endfor %}
-</ul>
 {% endif %}
-<ul>
+<li>No part</li>
 {% for u in users %}
     <li>{{ u }}{% participate_button u course occurrence %}</li>
 {% endfor %}

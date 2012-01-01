@@ -1,7 +1,9 @@
 from django.db import models
+from django.db.models import Q
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
 from schedule.models import Calendar, Event, Rule, Occurrence
-from user import UserProfile
+from user import UserProfile, RiderLevel, RiderInfo
 from financial import CurrencyField, TicketType
 from django import forms
 from django.template.defaultfilters import slugify
@@ -13,7 +15,7 @@ import reversion
 
 import logging
 
-class AlreadyAttendingError(Exception):
+class ParticipationError(Exception):
     pass
 
 class Course(models.Model):
@@ -44,11 +46,13 @@ class Course(models.Model):
     start = models.DateField()
     end = models.DateField()
     events = models.ManyToManyField(Event, blank=True, null=True)
-    creator = models.ForeignKey(User, null = True)
+    creator = models.ForeignKey(User, null=True)
     created_on = models.DateTimeField(default = datetime.datetime.now)
     max_participants = models.IntegerField(default=7)
     default_participation_fee = CurrencyField(default=0.00)
-    ticket_type = models.ManyToManyField(TicketType)
+    course_fee = CurrencyField(default=0.00)
+    ticket_type = models.ManyToManyField(TicketType, blank=True)
+    allowed_levels = models.ManyToManyField(RiderLevel, blank=True)
 
     def get_occurrences(self):
         occurrences = []
@@ -66,103 +70,80 @@ class Course(models.Model):
             if c == occurrence:
                 return (i, c)
 
-    def _is_full(self, occurrence):
-        p_amnt = Participation.objects.get_participations(occurrence).filter(state__in=[0,5]).count()
-        return p_amnt >= self.max_participants
+    def full_rider(self, occurrence, nolimit=False, include_states=False):
+        p_query = Participation.objects.get_participations(occurrence).order_by('last_state_change_on')
+        e_query = Enroll.objects.filter(course=self).exclude(participant__in=(x.participant for x in p_query))
+        e_attnd = e_query.filter(state=ATTENDING)
+        p_attnd = p_query.filter(state=ATTENDING)
+        all = list(p_attnd) + list(e_attnd)
+        if include_states:
+            all = list((y.participant, y.state) for y in sorted(all, key=lambda x: x.last_state_change_on))
+        else:
+            all = list(y.participant for y in sorted(all, key=lambda x: x.last_state_change_on))
+        if nolimit or len(all) < self.max_participants:
+            p_resvd = p_query.filter(state=RESERVED)
+            e_resvd = e_query.filter(state=RESERVED)
+            more = list(p_resvd) + list(e_resvd)
+            if include_states:
+                more = list((y.participant, y.state) for y in sorted(more, key=lambda x: x.last_state_change_on))
+            else:
+                more = list(y.participant for y in sorted(more, key=lambda x: x.last_state_change_on))
+            all = all + more
+        if not nolimit:
+            all = all[:self.max_participants]
+        return all
+
+    def is_full(self, occurrence):
+        p_part = Participation.objects.get_participations(occurrence).values_list('participant', flat=True)
+        p_attnd = Participation.objects.get_participations(occurrence).filter(Q(state=ATTENDING) | Q(state=RESERVED)).count()
+        c_attnd = Enroll.objects.filter(Q(state=ATTENDING) | Q(state=RESERVED), course=self).exclude(participant__in=p_part).count()
+        return p_attnd+c_attnd >= self.max_participants
 
     def get_possible_states(self, rider, occurrence):
-        """
-        >>> course = Course.objects.get(pk=1)
-        >>> user = User.objects.filter(username='user')[0]
-        >>> user = user.get_profile()
-        >>> occ = course.get_occurrences()[0] #Past occurrence
-        >>> Participation.objects.all().delete()
-        >>> course.get_possible_states(user, occ)
-        []
-        >>> occ = course.get_occurrences()[1]
-        >>> course.get_possible_states(user, occ)
-        [0]
-        >>> cuser = User.objects.get_or_create(username='cuser', first_name='Second', last_name='Guy')[0].get_profile()
-        >>> duser = User.objects.get_or_create(username='duser', first_name='Third', last_name='Guy')[0].get_profile()
-        >>> occ = course.get_occurrences()[3]
-        >>> p1 = course.attend(cuser, occ)
-        >>> p1.state 
-        0
-        >>> course.get_possible_states(user, occ)
-        [0]
-        >>> course.max_participants = 1 
-        >>> course.get_possible_states(user, occ)
-        [5]
-        >>> p = course.attend(user, occ)
-        >>> p.state # There was no room for user -> Reserved
-        5
-        >>> course.get_possible_states(user, occ) # Reserved, can cancel
-        [3]
-        >>> p1.state = 3 # Cancel cuser to make space for user
-        >>> p1.save()
-        >>> course.get_possible_states(user, occ) # Reserved, and there is space
-        [0,3]
-        >>> p = course.attend(user, occ)
-        >>> p.state
-        0
-        >>> course.get_possible_states(user, occ) # Can cancel when attending
-        [3]
-        >>> p.cancel()
-        >>> p.state
-        3
-        >>> p1 = course.attend(cuser, occ)
-        >>> p2 = course.attend(duser, occ)
-        >>> p1.state = 5
-        >>> p1.last_state_change_on = datetime.datetime.now()-datetime.timedelta(days=2)
-        >>> p1.save(True)
-        >>> p2.state = 5
-        >>> p2.last_state_change_on = datetime.datetime.now()-datetime.timedelta(days=1)
-        >>> p2.save(True)
-        >>> course.get_possible_states(user, occ) # Canceled, but others were first, so can only reserve
-        [5]
-        >>> p2.state = 3 # Make some space
-        >>> p2.save(True)
-        >>> p2.state
-        3
-        >>> p1.state
-        5
-        >>> p.state
-        3
-        >>> course._is_full(occ)
-        True
-        >>> course.get_possible_states(user, occ) # Canceled, and there is space
-        [5]
-        >>> p1.state = 3
-        >>> p1.save(True)
-        >>> course.get_possible_states(user, occ) # Canceled, and there is space
-        [0]
-        """
         # If this course is in the past (end date gone), can't do anything
         if occurrence.end < datetime.datetime.now():
             return []
+
+        enroll = self.enroll_set.filter(participant=rider)
+        isfull = self.is_full(occurrence)
+        riders = self.full_rider(occurrence)
         p = Participation.objects.get_participation(rider, occurrence)
-        # If user is already attending, can cancel
-        if p and p.state == 0:
-            return [3]
-        # If there is space, but others are first
-        parts = Participation.objects.get_participations(occurrence)
-        amnt = 0
-        if self._is_full(occurrence):
-            for pa in parts:
-                # If user has reserved and is top enough, can attend or cancel
-                if pa.participant == rider and pa.state == 5:
-                    return [0, 3]
-                # count only reservers and attenders
-                if pa.state == 0 or pa.state == 5:
-                    amnt = amnt + 1
-                if amnt >= self.max_participants:
-                    # If user has reserved and the occ is full, can cancel
-                    if p and p.state == 5:
-                        return [3]
-                    # Otherwise, user can reserve
-                    return [5]
-        # Otherwise, can attend
-        return [0]
+        me = None
+
+        # If user is attending, can cancel
+        if p and p.state == ATTENDING:
+            return [CANCELED]
+
+        # If user has reserved and is in the list, can confirm or cancel
+        if p and p.state == RESERVED and rider in riders:
+            return [ATTENDING, CANCELED]
+        elif p and p.state == RESERVED:
+            return [CANCELED]
+
+        if p and p.state == CANCELED and isfull:
+            return [RESERVED]
+
+        if not enroll:
+            # If user is not enrolled and is not in the list
+            if isfull and rider not in riders:
+                return [RESERVED]
+            elif not isfull:
+                return [ATTENDING]
+        else:
+            enroll = enroll[0]
+            if not p:
+                if enroll.actual_state == ATTENDING:
+                    return [CANCELED]
+                elif enroll.actual_state == RESERVED:
+                    if rider not in riders:
+                        return [CANCELED]
+                    else:
+                        return [ATTENDING, CANCELED]
+
+        if not isfull:
+            return [ATTENDING]
+        else:
+            return [RESERVED]
 
     def attend(self, rider, occurrence):
         """
@@ -206,11 +187,10 @@ class Course(models.Model):
         >>> p2.state
         0
         """
-        from financial import ParticipationTransactionActivator
-        pstates = self.get_possible_states(rider, occurrence)
-        if not 0 in pstates and not 5 in pstates:
-            raise AlreadyAttendingError()
+        return self.create_participation(rider, occurrence, ATTENDING)
 
+    def create_participation(self, rider, occurrence, state, force=False):
+        pstates = self.get_possible_states(rider, occurrence)
         parti = Participation.objects.get_participation(rider, occurrence)
         if not parti:
             parti = Participation()
@@ -219,20 +199,67 @@ class Course(models.Model):
             parti.start = occurrence.original_start
             parti.end = occurrence.original_end
 
-        if 0 in pstates:
-            # Max attending, set to queue, reserved
-            parti.state = 0
-            reversion.set_comment("Attending")
-        elif 5 in pstates:
-            parti.state = 5
-            reversion.set_comment("Reserved")
+        if state in pstates or force:
+            parti.state = state
+            #TODO: update reversion
+            #reversion.set_comment("Attending")
+        elif state == ATTENDING and RESERVED in pstates:
+            parti.state = RESERVED
+        else:
+            raise ParticipationError
+
         parti.save()
-        ParticipationTransactionActivator.objects.try_create(parti, self.default_participation_fee, self.ticket_type.all())
+        if state == ATTENDING:
+            from financial import ParticipationTransactionActivator
+            ParticipationTransactionActivator.objects.try_create(parti, self.default_participation_fee, self.ticket_type.all())
         return parti
 
     @models.permalink
     def get_absolute_url(self):
         return ('stables.views.view_course', (), { 'course_id': self.id })
+
+ATTENDING = 0
+ATTENDED = 1
+SKIPPED = 2
+CANCELED = 3
+REJECTED = 4
+RESERVED = 5
+WAITFORPAY = 6
+PARTICIPATION_STATES = (
+    (ATTENDING, _('Attending')),
+    (ATTENDED, _('Attended')),
+    (SKIPPED, _('Skipped')),
+    (CANCELED, _('Canceled')),
+    (REJECTED, _('Rejected')),
+    (RESERVED, _('Reserved')),
+)
+ENROLL_STATES = (
+    (WAITFORPAY, _('Waiting for payment')),
+    (ATTENDING, _('Attending')),
+    (CANCELED, _('Canceled')),
+    (REJECTED, _('Rejected')),
+    (RESERVED, _('Reserved')),
+)
+class Enroll(models.Model):
+    class Meta:
+        app_label = 'stables'
+    def __unicode__(self):
+        return str(self.course) + ": " + str(self.participant)
+    course = models.ForeignKey(Course)
+    participant = models.ForeignKey(UserProfile)
+    state = models.IntegerField(choices=ENROLL_STATES, default=WAITFORPAY)
+    last_state_change_on = models.DateTimeField(default=datetime.datetime.now())
+    
+    def _get_actual_state(self):
+        if self.state == WAITFORPAY:
+            type = ContentType.objects.get_for_model(self)
+            from django.db.models import Sum
+            from financial import Transaction
+            sum = Transaction.objects.filter(object_id=self.id, content_type=type).aggregate(Sum('amount'))['amount__sum']
+            if sum >= 0:
+                return ATTENDING
+        return self.state
+    actual_state = property(_get_actual_state)
 
 logger = logging.getLogger(__name__)
 
@@ -272,20 +299,6 @@ class ParticipationManager(models.Manager):
     def get_participations(self, occurrence):
         return self.filter(start=occurrence.original_start, end=occurrence.original_end, ).order_by('last_state_change_on')
 
-ATTENDING = 0
-ATTENDED = 1
-SKIPPED = 2
-CANCELED = 3
-REJECTED = 4
-RESERVED = 5
-PARTICIPATION_STATES = (
-    (ATTENDING, _('Attending')),
-    (ATTENDED, _('Attended')),
-    (SKIPPED, _('Skipped')),
-    (CANCELED, _('Canceled')),
-    (REJECTED, _('Rejected')),
-    (RESERVED, _('Reserved')),
-)
 class Participation(models.Model):
     class Meta:
         app_label = 'stables'
@@ -299,6 +312,11 @@ class Participation(models.Model):
             'start': date(self.get_occurrence().start.date(), date_format),
             'starttime': time(self.get_occurrence().start.time(), time_format),
             'endtime': time(self.get_occurrence().end.time(), time_format),
+        }
+    def short(self):
+        return ugettext('%(name)s %(state)s') % {
+            'name': self.participant,
+            'state': PARTICIPATION_STATES[self.state][1],
         }
     state = models.IntegerField(choices=PARTICIPATION_STATES,default=0)
     participant = models.ForeignKey(UserProfile)
@@ -318,7 +336,8 @@ class Participation(models.Model):
 
     def cancel(self):
         self.state = 3
-        reversion.set_comment("Canceled")
+        #TODO: update reversion
+        #reversion.set_comment("Canceled")
         self.save()
 
     def get_occurrence(self):
@@ -358,18 +377,5 @@ class Participation(models.Model):
             return occ
         return Occurrence.objects.get(event = self.event, original_start = self.start)
 
-ENROLL_STATES = (
-    (0, 'Attending'),
-    (1, 'Approved'),
-    (2, 'Canceled'),
-    (3, 'Skipped'),
-    (4, 'Rejected'),
-    (5, 'Reserved'),
-)
-class Enroll(models.Model):
-    class Meta:
-        app_label = 'schedule'
-    course = models.ForeignKey(Course)
-    rider = models.ForeignKey(UserProfile)
-    state = models.IntegerField(choices=ENROLL_STATES, default=0)
-    attended_on = models.DateTimeField(default=datetime.datetime.now())
+#class RiderEvent(models.Model):
+    #allowed_levels = models.CharField(max_length=20, choices=RIDER_LEVELS)
