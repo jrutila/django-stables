@@ -6,6 +6,9 @@ from urllib import urlencode
 from django.contrib.auth.decorators import permission_required
 from django.contrib.contenttypes.models import ContentType
 from stables.models import Transaction
+
+from django.core.exceptions import ObjectDoesNotExist
+
 import stables.models as enum
 register = template.Library()
 
@@ -48,12 +51,16 @@ def participants(context, course, occurrence):
     otherparts = []
     mypart = None
     ownpart = False
+    rider = None
     if user.is_authenticated():
-        rider = user.get_profile()
+        try:
+          rider = user.get_profile()
+        except ObjectDoesNotExist:
+          pass
         if user.has_perm('stables.course_view_participants'):
             # Admin can view all
             parts = Participation.objects.get_participations(occurrence)
-            if not parts.filter(participant=rider):
+            if rider and not parts.filter(participant=rider):
                 ownpart = True
             for e in Enroll.objects.filter(course=course, state=enum.ATTENDING).order_by('last_state_change_on'):
                 epart = Participation()
@@ -63,7 +70,7 @@ def participants(context, course, occurrence):
                 epart.event = occurrence.event
                 if not parts.filter(participant=epart.participant):
                     otherparts.append(epart)
-                if epart.participant == rider:
+                if rider and epart.participant == rider:
                     ownpart = False
         else:
             parts = [Participation.objects.get_participation(rider, occurrence)]

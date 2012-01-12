@@ -34,13 +34,33 @@ class CustomerInfoAdmin(admin.ModelAdmin):
 class RiderInfoInline(admin.StackedInline):
     model = RiderInfo
 
-#class UserProfileAdmin(reversion.VersionAdmin):
+class UserProfileAdminForm(forms.ModelForm):
+  # TODO: These could be fetched from RiderInfo and CustomerInfo
+  levels = forms.ModelMultipleChoiceField(queryset=RiderLevel.objects.all())
+  address = forms.CharField(max_length=500, widget=forms.Textarea)
+
+  class Meta:
+    model = UserProfile
+
+  def save(self, force_insert=False, force_update=False, commit=True):
+    instance = super(UserProfileAdminForm, self).save(commit=False)
+    c = CustomerInfo.objects.create(address=self.cleaned_data['address'])
+    r = RiderInfo.objects.create(customer=c)
+    r.levels = self.cleaned_data['levels']
+    instance.rider = r
+    instance.customer = c
+    instance.save()
+    return instance
+
+class UserProfileAdmin(admin.ModelAdmin):
+  form = UserProfileAdminForm
+  exclude = ['rider', 'customer']
     #inlines = []
 
 #admin.site.register(Horse, HorseAdmin)
 admin.site.register(Horse)
 #admin.site.register(UserProfile, UserProfileAdmin)
-admin.site.register(UserProfile)
+admin.site.register(UserProfile, UserProfileAdmin)
 admin.site.register(RiderInfo)
 admin.site.register(CustomerInfo, CustomerInfoAdmin)
 #admin.site.register(Participation, ParticipationAdmin)
