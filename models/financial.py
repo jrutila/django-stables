@@ -4,6 +4,8 @@ import datetime
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 from south.modelsinspector import add_introspection_rules
 add_introspection_rules([], ["^stables\.models\.financial\.CurrencyField"])
@@ -40,7 +42,7 @@ class TransactionActivator(models.Model):
         app_label = 'stables'
         abstract = True
 
-from participations import Participation
+from participations import Course, Participation
 import participations
 class ParticipationTransactionActivatorManager(models.Manager):
     def try_create(self, participation, fee, ticket_type=None):
@@ -82,6 +84,15 @@ class ParticipationTransactionActivator(TransactionActivator):
                     ticket.save()
             self.delete()
         return t
+
+
+@receiver(post_save, sender=Participation)
+def handle_Participation_save(sender, **kwargs):
+    parti = kwargs['instance']
+    # Only if the user is attending
+    if parti.state == participations.ATTENDING:
+        course = Course.objects.filter(events__in=[parti.event])[0]
+        ParticipationTransactionActivator.objects.try_create(parti, course.default_participation_fee, course.ticket_type.all())
 
 from participations import Enroll
 class CourseTransactionActivator(TransactionActivator):

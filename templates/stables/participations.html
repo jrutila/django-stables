@@ -10,7 +10,6 @@
     <li>{{ p.0 }} {{ p.1 }} {% participate_button p.0 course occurrence %}</li>
     {% endfor %}
 {% endif %}
-<li>No part</li>
 {% for u in users %}
     <li>{{ u }}{% participate_button u course occurrence %}</li>
 {% endfor %}

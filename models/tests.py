@@ -1,8 +1,11 @@
 from django.utils import unittest
 from stables.models import Participation, Enroll
 from stables.models import ParticipationTransactionActivator
+from stables.models import CourseParticipationActivator
 from stables.models import Ticket, TicketType, Transaction
 from stables.models import RiderInfo, CustomerInfo
+from stables.models import Course
+from schedule.models import Calendar, Event, Rule
 from django.contrib.auth.models import User
 import datetime
 from stables.models import ATTENDING, CANCELED, RESERVED
@@ -21,6 +24,43 @@ def setupRider(name):
     profile.save()
 
     return user
+
+def setupCourse(name, start, end, starttime, endtime):
+    cal, created = Calendar.objects.get_or_create(name="Main Calendar", slug="main")
+    rule, created = Rule.objects.get_or_create(name="Weekly", frequency="WEEKLY")
+    course = Course()
+    course.name='course1'
+    course.start=start
+    course.end=end
+    course.save()
+    event = Event(calendar=cal, rule=rule, start=datetime.datetime.combine(course.start, starttime), end=datetime.datetime.combine(start, endtime))
+    if end:
+      event.end_recurring_period=datetime.datetime.combine(end, endtime)
+    event.save()
+    course.events.add(event)
+    course.save()
+    return course
+
+class CourseOccurrenceTest(unittest.TestCase):
+    def testCourseOccurrences(self):
+        # Four weeks course
+        start=datetime.date.today()
+        end=datetime.date.today()+datetime.timedelta(days=21)
+        starttime=datetime.time(11,00)
+        endtime=datetime.time(12,00)
+        course = setupCourse('course1', start, end, starttime, endtime)
+
+        occs = course.get_occurrences()
+        self.assertEqual(len(occs), 4)
+
+    def testCourseOccurrencesWithoutEnd(self):
+        start=datetime.date.today()
+        starttime=datetime.time(11,00)
+        endtime=datetime.time(12,00)
+        course = setupCourse('course1', start, None, starttime, endtime)
+
+        occs = course.get_occurrences()
+        self.assertEqual(len(occs), 52)
 
 class TicketTestCase(unittest.TestCase):
     @classmethod
@@ -49,7 +89,6 @@ class TicketTestCase(unittest.TestCase):
 class ActivatorTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        from schedule.models import Calendar, Rule, Event
         from django.contrib.auth.models import User
         cal = Calendar()
         cal.save()
@@ -67,12 +106,76 @@ class ActivatorTestCase(unittest.TestCase):
         rider.customer = customer
         rider.save()
         prof.rider = rider
+        prof.customer = customer
         prof.save()
 
         cls.user = user
         cls.event = event
 
-    def testActivation(self):
+    def testCourseParticipationActivator(self):
+        user = self.user
+        now = datetime.datetime.now()
+        ss = now+datetime.timedelta(hours=5)
+        ee = now+datetime.timedelta(hours=6)
+        starttime = ss.time()
+        endtime = ee.time()
+        start = ss.date()-datetime.timedelta(days=7)
+        course = setupCourse('course1', start, None, starttime, endtime)
+        enroll = Enroll.objects.create(course=course, participant=user.get_profile(), state=RESERVED)
+        pa = CourseParticipationActivator.objects.filter(enroll=enroll)
+
+        # No CETA yet
+        self.assertEqual(pa.count(), 0)
+
+        enroll.state = ATTENDING
+        enroll.save()
+
+        # Should create a new CETA
+        self.assertEqual(pa.count(), 1)
+
+        self.assertEqual(pa[0].enroll, enroll)
+
+    def testCourseParticipationActivation(self):
+        user = self.user
+        now = datetime.datetime.now()
+        ss = now+datetime.timedelta(hours=5)
+        ee = now+datetime.timedelta(hours=6)
+        starttime = ss.time()
+        endtime = ee.time()
+        start = ss.date()-datetime.timedelta(days=7)
+        course = setupCourse('course1', start, None, starttime, endtime)
+        enroll = Enroll.objects.create(course=course, participant=user.get_profile(), state=ATTENDING)
+        ca = CourseParticipationActivator.objects.filter(enroll=enroll)[0]
+        pa = Participation.objects.filter(event=course.events.all()[0])
+
+        self.assertEqual(pa.count(), 0)
+
+        ca.try_activate()
+
+        self.assertEqual(pa.count(), 1)
+
+    def testParticipationTransactionCreation(self):
+        user = self.user
+        now = datetime.datetime.now()
+        ss = now+datetime.timedelta(hours=5)
+        ee = now+datetime.timedelta(hours=6)
+        starttime = ss.time()
+        endtime = ee.time()
+        start = ss.date()-datetime.timedelta(days=7)
+        course = setupCourse('course1', start, None, starttime, endtime)
+        course.default_participation_fee=45.16
+        course.save()
+        o = course.get_occurrences()[1]
+        pa = ParticipationTransactionActivator.objects.filter()
+
+        self.assertEqual(pa.count(), 0)
+
+        p = course.create_participation(user.get_profile(), o, ATTENDING, True)
+
+        self.assertEqual(pa.count(), 1)
+        self.assertEqual(pa[0].fee, 45.16)
+
+    def testParticipationTransactionActivation(self):
         user = self.user
         event = self.event
         Participation.objects.all().delete()
@@ -120,7 +223,7 @@ class ActivatorTestCase(unittest.TestCase):
 
 
 from stables.models import CourseForm
-class CourseTest(unittest.TestCase):
+class CourseParticipationTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         user = setupRider('user')

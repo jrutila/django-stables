@@ -12,6 +12,8 @@ from django.utils.translation import ugettext, ugettext_lazy as _
 from django.template.defaultfilters import date, time
 from django.core.exceptions import ObjectDoesNotExist
 import reversion
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 import logging
 
@@ -44,7 +46,7 @@ class Course(models.Model):
         return self.name
     name = models.CharField(max_length=500)
     start = models.DateField()
-    end = models.DateField()
+    end = models.DateField(blank=True, null=True)
     events = models.ManyToManyField(Event, blank=True, null=True)
     creator = models.ForeignKey(User, null=True)
     created_on = models.DateTimeField(default = datetime.datetime.now)
@@ -57,9 +59,13 @@ class Course(models.Model):
     def get_occurrences(self):
         occurrences = []
         for e in self.events.all():
+            endd = self.end
+            if endd == None:
+                # TODO: get 365 from somewhere else than 52*7
+                endd = self.start+datetime.timedelta(days=51*7)
             occs = e.get_occurrences(
                 datetime.datetime.combine(self.start, datetime.time(0,0)),
-                datetime.datetime.combine(self.end, datetime.time(23,59)))
+                datetime.datetime.combine(endd, datetime.time(23,59)))
             for c in occs:
                 occurrences.append(c)
         occurrences.sort(key=lambda occ: occ.start)
@@ -69,6 +75,14 @@ class Course(models.Model):
         for (i, c) in enumerate(self.get_occurrences()):
             if c == occurrence:
                 return (i, c)
+
+    def get_next_occurrence(self):
+        occurrences = []
+        for e in self.events.all():
+            occ = e.next_occurrence()
+            occurrences.append(occ)
+        occurrences.sort(key=lambda occ: occ.start)
+        return occurrences[0]
 
     def full_rider(self, occurrence, nolimit=False, include_states=False):
         p_query = Participation.objects.get_participations(occurrence).order_by('last_state_change_on')
@@ -209,9 +223,6 @@ class Course(models.Model):
             raise ParticipationError
 
         parti.save()
-        if state == ATTENDING:
-            from financial import ParticipationTransactionActivator
-            ParticipationTransactionActivator.objects.try_create(parti, self.default_participation_fee, self.ticket_type.all())
         return parti
 
     @models.permalink
@@ -281,13 +292,38 @@ class CourseForm(forms.ModelForm):
             e.creator = self.cleaned_data['creator']
             e.created_on = self.cleaned_data['created_on']
             e.rule = Rule.objects.get(pk=1)
-            e.end_recurring_period = datetime.datetime.combine(self.cleaned_data['end'], self.cleaned_data['endtime'])
+            if self.cleaned_data['end']:
+              e.end_recurring_period = datetime.datetime.combine(self.cleaned_data['end'], self.cleaned_data['endtime'])
             e.save()
             course.events.add(e)
         return course
 
     def save_m2m(self, *args, **kwargs):
         pass
+
+class CourseParticipationActivator(models.Model):
+    class Meta:
+        app_label='stables'
+    enroll = models.ForeignKey(Enroll)
+    activate_before_hours = models.IntegerField()
+
+    def try_activate(self):
+        pass
+        if self.enroll.state != ATTENDING:
+            self.delete()
+            return None
+        p = None
+        occ = self.enroll.course.get_next_occurrence()
+        if occ.start-datetime.timedelta(hours=self.activate_before_hours) < datetime.datetime.now() and not Participation.objects.filter(participant=self.enroll.participant, start=occ.original_start):
+          p = self.enroll.course.create_participation(self.enroll.participant, occ, self.enroll.state, force=True)
+        return p
+
+@receiver(post_save, sender=Enroll)
+def handle_Enroll_save(sender, **kwargs):
+    enroll = kwargs['instance']
+    if enroll.state == ATTENDING and not CourseParticipationActivator.objects.filter(enroll=enroll).exists():
+        # TODO: get the 24 from somewhere else
+        CourseParticipationActivator.objects.create(enroll=enroll, activate_before_hours=24)
 
 class ParticipationManager(models.Manager):
     def get_participation(self, rider, occurrence):

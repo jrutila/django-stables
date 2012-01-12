@@ -38,7 +38,7 @@ def view_horse(request, horse_id):
     return render_response(request, 'stables/horse.html', { 'horse': horse })
 
 def list_course(request):
-    courses = Course.objects.filter(end__gt=datetime.date.today())
+    courses = Course.objects.exclude(end__lte=datetime.date.today())
     return render_response(request, 'stables/courselist.html',
             { 'courses': courses })
 
@@ -107,7 +107,7 @@ def modify_participations(request, course_id, occurrence_index=None):
     occurrence = None
     participations = None
     users = UserProfile.objects.filter(rider__isnull=False)
-    if occurrence_index:
+    if occurrence_index >= 0:
         occurrence = course.get_occurrences()[int(occurrence_index)]
         attnd = course.full_rider(occurrence, nolimit=True, include_states=True)
-    return render(request, 'stables/participations.html', { 'course': course, 'occurrence': occurrence, 'participations': attnd, 'users': set(users) - set(attnd) })
+    return render(request, 'stables/participations.html', { 'course': course, 'occurrence': occurrence, 'participations': attnd, 'users': set(users) - set([k for k,v in attnd]) })
