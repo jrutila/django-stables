@@ -56,15 +56,20 @@ class Course(models.Model):
     ticket_type = models.ManyToManyField(TicketType, blank=True)
     allowed_levels = models.ManyToManyField(RiderLevel, blank=True)
 
-    def get_occurrences(self):
+    def get_occurrences(self, delta=None, start=None):
+        if not start:
+          start = self.start
         occurrences = []
+        # TODO: get 365 from somewhere else than 52*7
         for e in self.events.all():
-            endd = self.end
+            if delta:
+                endd = start+delta
+            else:
+                endd = self.end
             if endd == None:
-                # TODO: get 365 from somewhere else than 52*7
-                endd = self.start+datetime.timedelta(days=51*7)
+                endd = start+datetime.timedelta(days=51*7)
             occs = e.get_occurrences(
-                datetime.datetime.combine(self.start, datetime.time(0,0)),
+                datetime.datetime.combine(start, datetime.time(0,0)),
                 datetime.datetime.combine(endd, datetime.time(23,59)))
             for c in occs:
                 occurrences.append(c)

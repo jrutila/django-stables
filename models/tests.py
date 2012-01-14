@@ -62,6 +62,16 @@ class CourseOccurrenceTest(unittest.TestCase):
         occs = course.get_occurrences()
         self.assertEqual(len(occs), 52)
 
+    def testCourseOccurrencesWithDelta(self):
+        start=datetime.date.today()
+        end=datetime.date.today()+datetime.timedelta(days=21)
+        starttime=datetime.time(11,00)
+        endtime=datetime.time(12,00)
+        course = setupCourse('course1', start, end, starttime, endtime)
+
+        occs = course.get_occurrences(delta=datetime.timedelta(days=14))
+        self.assertEqual(len(occs), 3)
+
 class TicketTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

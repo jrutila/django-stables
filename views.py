@@ -39,12 +39,25 @@ def view_horse(request, horse_id):
 
 def list_course(request):
     courses = Course.objects.exclude(end__lte=datetime.date.today())
+    occs = {}
+    for c in courses:
+      for o in c.get_occurrences(delta=datetime.timedelta(days=6), start=datetime.date.today()):
+        if not occs.has_key(o.start.hour):
+          occs[o.start.hour] = {}
+          for i in range(0,7):
+            occs[o.start.hour][i] = []
+        occs[o.start.hour][o.start.weekday()].append(c)
+    week = {}
+    today = datetime.date.today()
+    while today < datetime.date.today()+datetime.timedelta(days=7):
+      week[today.weekday()] = (today, today.strftime('%a'))
+      today = today+datetime.timedelta(days=1)
     return render_response(request, 'stables/courselist.html',
-            { 'courses': courses })
+            { 'courses': courses, 'occurrences': occs, 'week': week })
 
 def view_course(request, course_id):
     course = Course.objects.get(pk=course_id)
-    occurrences = course.get_occurrences()
+    occurrences = course.get_occurrences(start=datetime.date.today())
     return render_response(request, 'stables/course.html',
             { 'course': course, 'occurrences': occurrences })
 

@@ -2,6 +2,30 @@
 {% load i18n %}
 {% block body %}
 <h1>{% trans "courses"|capfirst %}</h1>
+<table>
+  <thead>
+    <tr>
+    <th></th>
+    {% for i,d in week.items %}
+      <th>{{ d.1 }}</th>
+    {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for t,o in occurrences.items %}
+    <tr>
+      <td>{{ t }}</td>
+      {% for i, d in o.items %}
+        <td>
+        {% for c in d %}
+          <a href="{{ c.get_absolute_url }}">{{ c.name }}</a>
+        {% endfor %}
+        </td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
 <ul>
     {% for c in courses %}
     <li><a href="{{ c.get_absolute_url }}">{{ c.name }}</a></li>
