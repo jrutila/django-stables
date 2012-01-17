@@ -36,25 +36,34 @@ class RiderInfoInline(admin.StackedInline):
 
 class UserProfileAdminForm(forms.ModelForm):
   # TODO: These could be fetched from RiderInfo and CustomerInfo
-  levels = forms.ModelMultipleChoiceField(queryset=RiderLevel.objects.all())
-  address = forms.CharField(max_length=500, widget=forms.Textarea)
+  levels = forms.ModelMultipleChoiceField(queryset=RiderLevel.objects.all(), required=False)
+  address = forms.CharField(max_length=500, widget=forms.Textarea, required=False)
 
   class Meta:
     model = UserProfile
 
   def save(self, force_insert=False, force_update=False, commit=True):
     instance = super(UserProfileAdminForm, self).save(commit=False)
-    c = CustomerInfo.objects.create(address=self.cleaned_data['address'])
-    r = RiderInfo.objects.create(customer=c)
-    r.levels = self.cleaned_data['levels']
-    instance.rider = r
-    instance.customer = c
+    if self.cleaned_data['address']:
+      if not instance.customer:
+        c = CustomerInfo.objects.create(address=self.cleaned_data['address'])
+        instance.customer = c
+      instance.customer.address = self.cleaned_data['address']
+    if self.cleaned_data['levels']:
+      if not instance.rider:
+        r = RiderInfo.objects.create(customer=c)
+        instance.rider = r
+      instance.rider.levels = self.cleaned_data['levels']
     instance.save()
+    instance.customer.save()
+    instance.rider.save()
     return instance
 
 class UserProfileAdmin(admin.ModelAdmin):
   form = UserProfileAdminForm
-  exclude = ['rider', 'customer']
+  #exclude = ['rider', 'customer']
+  #inlines = [RiderInfoInline]
+  #inline_type = 'tabular'
     #inlines = []
 
 #admin.site.register(Horse, HorseAdmin)
