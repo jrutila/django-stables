@@ -76,10 +76,8 @@ class Course(models.Model):
         occurrences.sort(key=lambda occ: occ.start)
         return occurrences
 
-    def get_occurrence(self, occurrence):
-        for (i, c) in enumerate(self.get_occurrences()):
-            if c == occurrence:
-                return (i, c)
+    def get_occurrence(self, start):
+        return self.get_occurrences(start=start)[0]
 
     def get_next_occurrence(self):
         occurrences = []

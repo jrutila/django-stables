@@ -1,7 +1,8 @@
 {% for b in buttons %}
     {% if b.action %}
     <form method='POST' action="{{ b.action }}" style='display: inline;'>
-        <input type='hidden' name='occurrence_index' value='{{ b.occurrence_index }}'/>
+        <input type='hidden' name='start' value='{{ b.start.isoformat }}'/>
+        <input type='hidden' name='end' value='{{ b.end.isoformat }}'/>
         <input type='hidden' name='participation_id' value='{{ b.participation_id }}'/>
         {% if b.username %}
             <input type='hidden' name='username' value='{{ b.username }}'/>

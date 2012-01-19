@@ -14,7 +14,7 @@ register = template.Library()
 
 @register.inclusion_tag('stables/participate_button.html')
 def participate_button(user, course, occurrence):
-    index, occ = course.get_occurrence(occurrence)
+    occ = occurrence
     states = course.get_possible_states(user, occ)
     buttons = []
 
@@ -41,7 +41,7 @@ def participate_button(user, course, occurrence):
         elif s == 5:
             btn_text = _('Reserve')
             action = reverse('stables.views.attend_course', args=[course.id])
-        buttons.append({ 'occurrence_index': index, 'action': action, 'button_text': btn_text, 'participation_id': participation_id, 'username': user.user.username})
+        buttons.append({ 'start': occ.start, 'end': occ.end, 'action': action, 'button_text': btn_text, 'participation_id': participation_id, 'username': user.user.username})
 
     return { 'buttons': buttons }
 

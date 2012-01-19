@@ -70,12 +70,8 @@ def get_user_or_404(request, username, perm):
 
 def attend_course(request, course_id):
     user = get_user_or_404(request, request.POST.get('username'), request.user.has_perm('stables.change_participation'))
-    course = Course.objects.get(pk=course_id)
-    pid = int(request.POST.get('occurrence_index'))
-    if pid > 0:
-        occurrence = course.get_occurrences()[pid]
-    else:
-        occurrence = course.get_occurrence(Occurrence(start=request.POST.get('start'), end=request.POST.get('end')))
+    course = get_object_or_404(Course, pk=course_id)
+    occurrence = course.get_occurrence(Occurrence(start=request.POST.get('start'), end=request.POST.get('end')))
     course.attend(user, occurrence)
     return redirect('stables.views.view_course', course_id=int(course_id))
 
@@ -84,11 +80,12 @@ def cancel_participation(request, course_id):
     user = get_user_or_404(request, request.POST.get('username'), request.user.has_perm('stables.change_participation'))
     pid = int(request.POST.get('participation_id'))
     if pid > 0:
-        participation = Participation.objects.get(pk=pid)
+        participation = get_object_or_404(Participation, pk=pid)
         participation.cancel()
     else:
-        course = Course.objects.get(pk=course_id)
-        occurrence = course.get_occurrences()[int(request.POST.get('occurrence_index'))]
+        course = get_object_or_404(Course, pk=course_id)
+        import dateutil.parser
+        occurrence = course.get_occurrence(start=dateutil.parser.parse(request.POST.get('start'))) #, end=request.POST.get('end')))
         participation = course.create_participation(user, occurrence, enum.CANCELED)
     return redirect('stables.views.view_course', course_id=int(course_id))
 
