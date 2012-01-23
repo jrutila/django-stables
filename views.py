@@ -135,11 +135,13 @@ def update_rider_levels(request):
     if form.is_valid():
       for r in UserProfile.objects.filter(id__in=ids):
         if not r.rider:
-          r.rider = RiderInfo()
-          r.rider.save()
-        r.rider.levels = form.cleaned_data['levels']
+          rider = RiderInfo.objects.create(customer=r.customer)
+	  rider.levels = form.cleaned_data['levels']
+	  r.rider = rider
+	  r.save()
+	else:
+	  r.rider.levels = form.cleaned_data['levels']
         r.rider.save()
-        r.save()
       return HttpResponseRedirect('/admin/stables/riderinfo')
   else:
     ids = request.GET.get('ids').split(',')
