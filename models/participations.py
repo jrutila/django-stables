@@ -87,22 +87,22 @@ class Course(models.Model):
         occurrences.sort(key=lambda occ: occ.start)
         return occurrences[0]
 
-    def full_rider(self, occurrence, nolimit=False, include_states=False):
+    def full_rider(self, occurrence, nolimit=False, include_statenames=False):
         p_query = Participation.objects.get_participations(occurrence).order_by('last_state_change_on')
         e_query = Enroll.objects.filter(course=self).exclude(participant__in=(x.participant for x in p_query))
         e_attnd = e_query.filter(state=ATTENDING)
         p_attnd = p_query.filter(state=ATTENDING)
         all = list(p_attnd) + list(e_attnd)
-        if include_states:
-            all = list((y.participant, y.state) for y in sorted(all, key=lambda x: x.last_state_change_on))
+        if include_statenames:
+            all = list((y.participant, PARTICIPATION_STATES[y.state][1]) for y in sorted(all, key=lambda x: x.last_state_change_on))
         else:
             all = list(y.participant for y in sorted(all, key=lambda x: x.last_state_change_on))
         if nolimit or len(all) < self.max_participants:
             p_resvd = p_query.filter(state=RESERVED)
             e_resvd = e_query.filter(state=RESERVED)
             more = list(p_resvd) + list(e_resvd)
-            if include_states:
-                more = list((y.participant, y.state) for y in sorted(more, key=lambda x: x.last_state_change_on))
+            if include_statenames:
+                more = list((y.participant, PARTICIPATION_STATES[y.state][1]) for y in sorted(more, key=lambda x: x.last_state_change_on))
             else:
                 more = list(y.participant for y in sorted(more, key=lambda x: x.last_state_change_on))
             all = all + more

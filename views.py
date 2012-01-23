@@ -121,7 +121,7 @@ def modify_participations(request, course_id, occurrence_start):
     users = UserProfile.objects.filter(rider__isnull=False)
     if occurrence_start:
         occurrence = course.get_occurrence(start=dateutil.parser.parse(occurrence_start))
-        attnd = course.full_rider(occurrence, nolimit=True, include_states=True)
+        attnd = course.full_rider(occurrence, nolimit=True, include_statenames=True)
     return render(request, 'stables/participations.html', { 'course': course, 'occurrence': occurrence, 'participations': attnd, 'users': set(users) - set([k for k,v in attnd]) })
 
 from models import admin, RiderInfo
