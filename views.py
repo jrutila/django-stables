@@ -112,14 +112,15 @@ def view_customer(request, username):
     saldo = customer.saldo()
     return render_response(request, 'stables/customer.html', { 'customer': customer, 'transactions': trans, 'saldo': saldo })
 
+import dateutil.parser
 @permission_required('stables.change_participation')
-def modify_participations(request, course_id, occurrence_index=None):
+def modify_participations(request, course_id, occurrence_start):
     course = get_object_or_404(Course, pk=course_id)
     occurrence = None
     participations = None
     users = UserProfile.objects.filter(rider__isnull=False)
-    if occurrence_index >= 0:
-        occurrence = course.get_occurrences()[int(occurrence_index)]
+    if occurrence_start:
+        occurrence = course.get_occurrence(start=dateutil.parser.parse(occurrence_start))
         attnd = course.full_rider(occurrence, nolimit=True, include_states=True)
     return render(request, 'stables/participations.html', { 'course': course, 'occurrence': occurrence, 'participations': attnd, 'users': set(users) - set([k for k,v in attnd]) })
 

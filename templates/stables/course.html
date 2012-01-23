@@ -11,7 +11,7 @@
         <span class="summary">{{ summary }}</span> on <abbr class="dtstart" title="{{ dtstart }}">{{ weekday }}, {{ day }} from {{ start }}</abbr> to <abbr class="dtend" title="{{ dtend }}">{{ end }}</abbr>
         {% endblocktrans %}
         {% if perms.stables.change_participation %}
-        <a href="{% url stables.views.modify_participations course_id=course.id occurrence_index=forloop.counter0 %}">{% trans "Modify participations" %}</a>
+        <a href="{% url stables.views.modify_participations course_id=course.id occurrence_start=c.start.isoformat %}">{% trans "Modify participations" %}</a>
         {% endif %}
         {% participants course c %}
     </li>
