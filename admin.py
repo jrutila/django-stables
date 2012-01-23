@@ -5,12 +5,13 @@ from stables.models import Transaction, Ticket, ParticipationTransactionActivato
 from stables.models import RiderLevel
 from django import forms
 from django.contrib import admin
+from django.core.urlresolvers import reverse
+from django.http import HttpResponseRedirect
 
 import reversion
 
 #class HorseAdmin(reversion.VersionAdmin):
     #pass
-
 class CourseAdmin(admin.ModelAdmin):
     form =  CourseForm
 
@@ -64,7 +65,12 @@ class UserProfileAdmin(admin.ModelAdmin):
   #exclude = ['rider', 'customer']
   #inlines = [RiderInfoInline]
   #inline_type = 'tabular'
-    #inlines = []
+  #inlines = []
+  actions = ['update_riderlevels']
+
+  def update_riderlevels(self, request, queryset):
+    selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
+    return HttpResponseRedirect(reverse('stables.views.update_rider_levels')+'?ids='+','.join(selected))
 
 #admin.site.register(Horse, HorseAdmin)
 admin.site.register(Horse)

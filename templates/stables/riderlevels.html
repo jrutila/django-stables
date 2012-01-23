@@ -1,0 +1,9 @@
+<form method='POST' action="{{ act }}">
+{% csrf_token %}
+{{ form.as_p }}
+{% for r in riders %}
+  <input type='hidden' name='id' value='{{ r }}' />
+{% endfor %}
+<input type='submit'/>
+</form>
+

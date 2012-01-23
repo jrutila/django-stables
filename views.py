@@ -10,6 +10,7 @@ from django.contrib.auth.models import User
 from django.utils.translation import ugettext, ugettext_lazy as _
 import datetime
 from django.contrib.auth.decorators import permission_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.http import require_POST
 import models as enum
 
@@ -121,3 +122,25 @@ def modify_participations(request, course_id, occurrence_index=None):
         occurrence = course.get_occurrences()[int(occurrence_index)]
         attnd = course.full_rider(occurrence, nolimit=True, include_states=True)
     return render(request, 'stables/participations.html', { 'course': course, 'occurrence': occurrence, 'participations': attnd, 'users': set(users) - set([k for k,v in attnd]) })
+
+from models import admin, RiderInfo
+from django.core.urlresolvers import reverse
+from django.http import HttpResponseRedirect
+
+@staff_member_required
+def update_rider_levels(request):
+  if request.method == 'POST':
+    ids = request.POST.getlist('id')
+    form = admin.RiderLevelForm(request.POST)
+    if form.is_valid():
+      for r in UserProfile.objects.filter(id__in=ids):
+        if not r.rider:
+          r.rider = RiderInfo()
+        r.rider.levels = form.cleaned_data['levels']
+        r.rider.save()
+        r.save()
+      return HttpResponseRedirect('/admin/stables/riderinfo')
+  else:
+    ids = request.GET.get('ids').split(',')
+    form = admin.RiderLevelForm()
+  return render(request, 'stables/riderlevels.html', { 'form': form, 'act': reverse('stables.views.update_rider_levels'), 'riders': ids })

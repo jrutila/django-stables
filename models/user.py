@@ -67,7 +67,7 @@ class RiderInfo(models.Model):
             return UserProfile.objects.filter(rider=self)[0].__unicode__() + ": " + ','.join(str(n) for n in self.levels.all())
         except:
             return str(self.id) + ": " + str(self.levels)
-    levels = models.ManyToManyField(RiderLevel, related_name='+')
+    levels = models.ManyToManyField(RiderLevel, related_name='+', blank=True)
     customer = models.ForeignKey(CustomerInfo)
 
     def _get_unused_tickets(self):
