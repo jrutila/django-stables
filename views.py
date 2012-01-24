@@ -76,7 +76,7 @@ def get_user_or_404(request, username, perm):
 def attend_course(request, course_id):
     user = get_user_or_404(request, request.POST.get('username'), request.user.has_perm('stables.change_participation'))
     course = get_object_or_404(Course, pk=course_id)
-    occurrence = course.get_occurrence(Occurrence(start=request.POST.get('start'), end=request.POST.get('end')))
+    occurrence = course.get_occurrence(start=dateutil.parser.parse(request.POST.get('start'))) #, end=request.POST.get('end')))
     course.attend(user, occurrence)
     return redirect('stables.views.view_course', course_id=int(course_id))
 
