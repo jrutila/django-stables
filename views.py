@@ -13,6 +13,7 @@ from django.contrib.auth.decorators import permission_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.http import require_POST
 import models as enum
+import dateutil.parser
 
 def render_response(req, *args, **kwargs):
     kwargs['context_instance'] = RequestContext(req)
@@ -47,7 +48,10 @@ def list_course(request):
           occs[o.start.hour] = {}
           for i in range(0,7):
             occs[o.start.hour][i] = []
-        occs[o.start.hour][o.start.weekday()].append(c)
+        full = _("Space")
+        if c.is_full(o):
+          full = _("Full")
+        occs[o.start.hour][o.start.weekday()].append((c, full))
     week = {}
     today = datetime.date.today()
     while today < datetime.date.today()+datetime.timedelta(days=7):
@@ -85,7 +89,6 @@ def cancel_participation(request, course_id):
         participation.cancel()
     else:
         course = get_object_or_404(Course, pk=course_id)
-        import dateutil.parser
         occurrence = course.get_occurrence(start=dateutil.parser.parse(request.POST.get('start'))) #, end=request.POST.get('end')))
         participation = course.create_participation(user, occurrence, enum.CANCELED)
     return redirect('stables.views.view_course', course_id=int(course_id))

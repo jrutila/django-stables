@@ -17,8 +17,15 @@
       <td>{{ t }}</td>
       {% for i, d in o.items %}
         <td>
-        {% for c in d %}
+        {% for c, f in d %}
           <a href="{{ c.get_absolute_url }}">{{ c.name }}</a>
+          <span>
+          {% if c.is_full %}
+            {{ f }}
+          {% else %}
+            {{ f }}
+          {% endif %}
+          </span>
         {% endfor %}
         </td>
       {% endfor %}
