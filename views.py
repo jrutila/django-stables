@@ -76,22 +76,39 @@ def get_user_or_404(request, username, perm):
 def attend_course(request, course_id):
     user = get_user_or_404(request, request.POST.get('username'), request.user.has_perm('stables.change_participation'))
     course = get_object_or_404(Course, pk=course_id)
-    occurrence = course.get_occurrence(start=dateutil.parser.parse(request.POST.get('start'))) #, end=request.POST.get('end')))
+    start=dateutil.parser.parse(request.POST.get('start'))
+    occurrence = course.get_occurrence(start=start) #, end=request.POST.get('end')))
     course.attend(user, occurrence)
-    return redirect('stables.views.view_course', course_id=int(course_id))
+    return redirect('stables.views.modify_participations', course_id=int(course_id), occurrence_start=start.isoformat())
 
-def cancel_participation(request, course_id):
+def enroll_course(request, course_id):
+    user = get_user_or_404(request, request.POST.get('username'), request.user.has_perm('stables.change_participation'))
+    course = get_object_or_404(Course, pk=course_id)
+    course.enroll(user)
+    return redirect('stables.views.modify_enrolls', course_id=int(course_id))
+
+def cancel(request, course_id):
     # Only user that has right to change permission
     user = get_user_or_404(request, request.POST.get('username'), request.user.has_perm('stables.change_participation'))
-    pid = int(request.POST.get('participation_id'))
-    if pid > 0:
+    pid = request.POST.get('participation_id')
+    start = request.POST.get('start')
+    if start:
+        start = dateutil.parser.parse(start)
+    if pid and int(pid) > 0:
+        pid = int(pid)
         participation = get_object_or_404(Participation, pk=pid)
         participation.cancel()
-    else:
+        return redirect('stables.views.modify_participations', course_id=int(course_id), occurrence_start=start.isoformat())
+    elif start:
         course = get_object_or_404(Course, pk=course_id)
-        occurrence = course.get_occurrence(start=dateutil.parser.parse(request.POST.get('start'))) #, end=request.POST.get('end')))
+        occurrence = course.get_occurrence(start=start) #, end=request.POST.get('end')))
         participation = course.create_participation(user, occurrence, enum.CANCELED)
-    return redirect('stables.views.view_course', course_id=int(course_id))
+        return redirect('stables.views.modify_participations', course_id=int(course_id), occurrence_start=start.isoformat())
+    else:
+        enroll = Enroll.objects.filter(course=course_id, participant=user)[0]
+        enroll.cancel()
+        return redirect('stables.views.modify_enrolls', course_id=int(course_id))
+    raise Http404
 
 def view_account(request):
     user = request.user.get_profile()
@@ -126,6 +143,17 @@ def modify_participations(request, course_id, occurrence_start):
         occurrence = course.get_occurrence(start=dateutil.parser.parse(occurrence_start))
         attnd = course.full_rider(occurrence, nolimit=True, include_statenames=True)
     return render(request, 'stables/participations.html', { 'course': course, 'occurrence': occurrence, 'participations': attnd, 'users': set(users) - set([k for k,v in attnd]) })
+
+@permission_required('stables.change_participation')
+def modify_enrolls(request, course_id):
+    course = get_object_or_404(Course, pk=course_id)
+    enrolls = Enroll.objects.filter(course=course)
+    en_users = [e.participant for e in enrolls]
+    users = UserProfile.objects.filter(rider__isnull=False)
+    view_enrolls = []
+    for e in enrolls:
+      view_enrolls.append({'participant': e.participant, 'state': PARTICIPATION_STATES[e.state][1]})
+    return render(request, 'stables/enrolls.html', { 'course': course, 'enrolls': view_enrolls, 'users': set(users) - set(en_users) })
 
 from models import admin, RiderInfo
 from django.core.urlresolvers import reverse

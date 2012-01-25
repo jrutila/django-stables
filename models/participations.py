@@ -110,13 +110,18 @@ class Course(models.Model):
             all = all[:self.max_participants]
         return all
 
-    def is_full(self, occurrence):
+    def is_full(self, occurrence=None):
+      if occurrence:
         p_part = Participation.objects.get_participations(occurrence).values_list('participant', flat=True)
         p_attnd = Participation.objects.get_participations(occurrence).filter(Q(state=ATTENDING) | Q(state=RESERVED)).count()
         c_attnd = Enroll.objects.filter(Q(state=ATTENDING) | Q(state=RESERVED), course=self).exclude(participant__in=p_part).count()
         return p_attnd+c_attnd >= self.max_participants
+      else:
+        c_attnd = Enroll.objects.filter(Q(state=ATTENDING) | Q(state=RESERVED), course=self)
+        return c_attnd.count() >= self.max_participants
 
-    def get_possible_states(self, rider, occurrence):
+    def get_possible_states(self, rider, occurrence=None):
+      if occurrence:
         # If this course is in the past (end date gone), can't do anything
         if occurrence.end < datetime.datetime.now():
             return []
@@ -161,6 +166,22 @@ class Course(models.Model):
             return [ATTENDING]
         else:
             return [RESERVED]
+      else:
+        enroll = self.enroll_set.filter(participant=rider)
+        isfull = self.is_full()
+        c_attnd = Enroll.objects.filter(Q(state=ATTENDING) | Q(state=RESERVED), course=self)
+        if enroll:
+          enroll = enroll[0]
+          if enroll.state == ATTENDING:
+            return [CANCELED]
+          full = c_attnd.order_by('last_state_change_on')[0:self.max_participants]
+          if enroll.state == RESERVED:
+            if enroll in full:
+              return [ATTENDING, CANCELED]
+            return [CANCELED]
+        if isfull:
+          return [RESERVED]
+        return [ATTENDING]
 
     def attend(self, rider, occurrence):
         """
@@ -228,6 +249,16 @@ class Course(models.Model):
         parti.save()
         return parti
 
+    def enroll(self, rider):
+        (enroll, created) = Enroll.objects.get_or_create(participant=rider, course=self)
+        estates = self.get_possible_states(rider)
+        if ATTENDING in estates or enroll.state == ATTENDING:
+          enroll.state = ATTENDING
+        else:
+          enroll.state = RESERVED
+        enroll.save()
+        return enroll
+
     @models.permalink
     def get_absolute_url(self):
         return ('stables.views.view_course', (), { 'course_id': self.id })
@@ -274,6 +305,10 @@ class Enroll(models.Model):
                 return ATTENDING
         return self.state
     actual_state = property(_get_actual_state)
+
+    def cancel(self):
+      self.state = CANCELED
+      self.save()
 
 logger = logging.getLogger(__name__)
 

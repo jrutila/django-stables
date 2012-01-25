@@ -1,0 +1,14 @@
+{% extends "site_base.html" %}
+{% load i18n %}
+{% load stablestags %}
+{% block body %}
+<h1>{{ course }}</h1>
+<ul>
+{% for e in enrolls %}
+  <li>{{ e.participant }} {{ e.state }}{% participate_button e.participant course %}</li>
+{% endfor %}
+{% for u in users %}
+    <li>{{ u }}{% participate_button u course %}</li>
+{% endfor %}
+</ul>
+{% endblock body %}

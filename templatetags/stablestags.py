@@ -8,40 +8,58 @@ from django.contrib.contenttypes.models import ContentType
 from stables.models import Transaction
 
 from django.core.exceptions import ObjectDoesNotExist
+from stables.models import ATTENDING, CANCELED, RESERVED
 
 import stables.models as enum
 register = template.Library()
 
 @register.inclusion_tag('stables/participate_button.html')
-def participate_button(user, course, occurrence):
-    occ = occurrence
-    states = course.get_possible_states(user, occ)
+def participate_button(user, course, occurrence=None):
     buttons = []
 
-    participation_id = 0
-    start = None
-    end = None
-    p = Participation.objects.get_participation(user, occ)
-    if p:
-        participation_id = p.id
-        start = p.start
-        end = p.end
+    # If occurrence is none, this is participate button for course enroll
+    if occurrence:
+      occ = occurrence
+      states = course.get_possible_states(user, occ)
 
-    for s in states:
-        if s == 0:
-            btn_text = _('Attend')
-            action = reverse('stables.views.attend_course', args=[course.id])
-        elif s == 3:
-            btn_text = _('Cancel')
-            action = reverse('stables.views.cancel_participation', args=[course.id])
-            if p:
-                part_type = ContentType.objects.get_for_model(p)
-                if Transaction.objects.filter(content_type=part_type, object_id=p.id).exists():
-                    action = reverse('stables.views.confirm', kwargs={'action':action})+"?"+urlencode({'title': ugettext('You still have to pay. Are you sure you want to cancel?')})
-        elif s == 5:
-            btn_text = _('Reserve')
-            action = reverse('stables.views.attend_course', args=[course.id])
-        buttons.append({ 'start': occ.start, 'end': occ.end, 'action': action, 'button_text': btn_text, 'participation_id': participation_id, 'username': user.user.username})
+      participation_id = 0
+      start = None
+      end = None
+      p = Participation.objects.get_participation(user, occ)
+
+      if p:
+          participation_id = p.id
+          start = p.start
+          end = p.end
+
+      for s in states:
+          if s == ATTENDING:
+              btn_text = _('Attend')
+              action = reverse('stables.views.attend_course', args=[course.id])
+          elif s == CANCELED:
+              btn_text = _('Cancel')
+              action = reverse('stables.views.cancel', args=[course.id])
+              if p:
+                  part_type = ContentType.objects.get_for_model(p)
+                  if Transaction.objects.filter(content_type=part_type, object_id=p.id).exists():
+                      action = reverse('stables.views.confirm', kwargs={'action':action})+"?"+urlencode({'title': ugettext('You still have to pay. Are you sure you want to cancel?')})
+          elif s == RESERVED:
+              btn_text = _('Reserve')
+              action = reverse('stables.views.attend_course', args=[course.id])
+          buttons.append({ 'start': occ.start, 'end': occ.end, 'action': action, 'button_text': btn_text, 'participation_id': participation_id, 'username': user.user.username})
+    else:
+      states = course.get_possible_states(user)
+      for s in states:
+        if s == ATTENDING:
+          btn_text = _('Enroll')
+          action = reverse('stables.views.enroll_course', args=[course.id])
+        elif s == CANCELED:
+          btn_text = _('Cancel')
+          action = reverse('stables.views.cancel', args=[course.id])
+        elif s == RESERVED:
+          btn_text = _('Reserve')
+          action = reverse('stables.views.enroll_course', args=[course.id])
+        buttons.append({'action': action, 'button_text': btn_text, 'username': user.user.username })
 
     return { 'buttons': buttons }
 

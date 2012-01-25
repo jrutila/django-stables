@@ -9,6 +9,7 @@ from schedule.models import Calendar, Event, Rule
 from django.contrib.auth.models import User
 import datetime
 from stables.models import ATTENDING, CANCELED, RESERVED
+from decimal import *
 
 def setupRider(name):
     user, created = User.objects.get_or_create(username=name)
@@ -183,7 +184,7 @@ class ActivatorTestCase(unittest.TestCase):
         p = course.create_participation(user.get_profile(), o, ATTENDING, True)
 
         self.assertEqual(pa.count(), 1)
-        self.assertEqual(pa[0].fee, 45.16)
+        self.assertEqual(pa[0].fee, Decimal('45.16'))
 
     def testParticipationTransactionActivation(self):
         user = self.user
@@ -231,8 +232,165 @@ class ActivatorTestCase(unittest.TestCase):
         count = ParticipationTransactionActivator.objects.count()
         self.assertEqual(count, 0)
 
-
 from stables.models import CourseForm
+class CourseEnrollTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        user = setupRider('user')
+        data = { 'start': datetime.datetime.today()-datetime.timedelta(days=14),
+                 'end': datetime.datetime.today()+datetime.timedelta(days=14),
+                 'max_participants': 2,
+                 'name': 'Test course',
+                 'creator': 0,
+                 'course_fee': 1200,
+                 'default_participation_fee': 0,
+                 'creator': user.id,
+                 'created_on': datetime.datetime.now(),
+                 'starttime': datetime.time(13, 00),
+                 'endtime': datetime.time(15, 00),
+               }
+        course = CourseForm(data)
+        cls.course=course.save()
+        cls.user = user
+
+    def setUp(self):
+        self.course.max_participants=2
+        self.course.save()
+        Enroll.objects.all().delete()
+        Participation.objects.all().delete()
+
+    def runStates(self, table):
+        (users) = self.runHelper(table)
+        for (i, u) in enumerate(users):
+            result = self.course.get_possible_states(u)
+            self.assertEqual(set(result), set(table[i][1]), "user%d: " % i + str(result) )
+
+    def runHelper(self, table):
+        users = []
+        for (i, row) in enumerate(table):
+            us = setupRider('user'+str(i)).get_profile()
+            users.append(us)
+            row.append(us)
+        if len(table[0]) > 4:
+            table = sorted(table, key=lambda x: x[3][0])
+        for (i, row) in enumerate(table):
+            if row[0] is not None:
+                Enroll.objects.create(course=self.course, participant=row[-1], state=row[0])
+        return (users)
+
+    def testCourseEnroll(self):
+        course = self.course
+        user = self.user.get_profile()
+
+        course.enroll(user)
+
+        e = Enroll.objects.all()[0]
+        self.assertEqual(e.participant, user)
+        self.assertEqual(e.state, ATTENDING)
+
+    def testCourseEnroll(self):
+        course = self.course
+        user = self.user.get_profile()
+
+        course.enroll(user)
+
+        e = Enroll.objects.all()[0]
+        ex = course.enroll(user)
+
+        self.assertEqual(Enroll.objects.count(), 1)
+        self.assertEqual(ex, e)
+        self.assertEqual(e.participant, user)
+        self.assertEqual(e.state, ATTENDING)
+
+    def testCourseEnrollWhenFull(self):
+        course = self.course
+        user = self.user.get_profile()
+        user2 = setupRider('user2').get_profile()
+        user3 = setupRider('user3').get_profile()
+
+        course.enroll(user)
+        course.enroll(user2)
+        # Now it is full
+        ex = course.enroll(user3)
+
+        self.assertEqual(Enroll.objects.count(), 3)
+        e = Enroll.objects.all()[2]
+        self.assertEqual(ex, e)
+        self.assertEqual(e.participant, user3)
+        self.assertEqual(e.state, RESERVED)
+
+    def testCourseDoubleEnrollWhenFull(self):
+        course = self.course
+        user = self.user.get_profile()
+        user2 = setupRider('user2').get_profile()
+        user3 = setupRider('user3').get_profile()
+
+        course.enroll(user)
+        course.enroll(user2)
+        # Now it is full, Enroll user again
+        ex = course.enroll(user)
+
+        self.assertEqual(Enroll.objects.count(), 2)
+        e = Enroll.objects.all()[0]
+        self.assertEqual(ex, e)
+        self.assertEqual(e.participant, user)
+        self.assertEqual(e.state, ATTENDING)
+        
+
+    def testPossibleStateWhenEmpty(self):
+        states = self.course.get_possible_states(self.user)
+        self.assertEqual(len(states), 1)
+        self.assertEqual(states[0], ATTENDING)
+
+    def testPossibleStatesWhenEmpty(self):
+        #        enroll    , allowed
+        data = [
+                [ None     , [ATTENDING] ],
+                [ None     , [ATTENDING] ],
+               ]
+        self.runStates(data)
+        
+    def testPossibleStatesWhenPartialEmpty(self):
+        #        enroll    , allowed
+        data = [
+                [ ATTENDING, [CANCELED ] ],
+                [ None     , [ATTENDING] ],
+               ]
+        self.runStates(data)
+
+    def testPossibleStatesWhenFull(self):
+        #        enroll    , allowed
+        data = [
+                [ ATTENDING, [CANCELED ] ],
+                [ CANCELED , [RESERVED ] ],
+                [ CANCELED , [RESERVED ] ],
+                [ ATTENDING, [CANCELED ] ],
+                [ None     , [RESERVED ] ],
+               ]
+        self.runStates(data)
+
+    def testPossibleStatesWhenFullAndReserved(self):
+        #        enroll    , allowed
+        data = [
+                [ ATTENDING, [CANCELED ] ],
+                [ ATTENDING, [CANCELED ] ],
+                [ RESERVED , [CANCELED ] ],
+                [ None     , [RESERVED ] ],
+               ]
+        self.runStates(data)
+
+    def testPossibleStatesWhenInQueue(self):
+        #        enroll    , allowed
+        data = [
+                [ ATTENDING, [CANCELED ] ],
+                [ CANCELED , [RESERVED ] ],
+                [ RESERVED , [ATTENDING, CANCELED ] ],
+                [ RESERVED , [CANCELED ] ],
+                [ None     , [RESERVED ] ],
+                [ RESERVED , [CANCELED ] ],
+               ]
+        self.runStates(data)
+
 class CourseParticipationTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
