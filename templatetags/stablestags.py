@@ -94,14 +94,16 @@ def participants(context, course, occurrence):
             parts = [Participation.objects.get_participation(rider, occurrence)]
             if parts[0] == None:
                 parts = [Enroll.objects.filter(course=course, participant=rider)]
-                if not parts[0]:
+                if not parts[0] or parts[0][0].state == CANCELED:
                     parts = []
+                    mypart = True
                 else:
                     epart = Participation()
                     epart.participant = parts[0][0].participant
                     epart.start = occurrence.original_start
                     epart.end = occurrence.original_end
                     epart.event = occurrence.event
+                    epart.state = parts[0][0].state
                     parts[0] = epart
     else:
         return

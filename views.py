@@ -79,13 +79,13 @@ def attend_course(request, course_id):
     start=dateutil.parser.parse(request.POST.get('start'))
     occurrence = course.get_occurrence(start=start) #, end=request.POST.get('end')))
     course.attend(user, occurrence)
-    return redirect('stables.views.modify_participations', course_id=int(course_id), occurrence_start=start.isoformat())
+    return redirect(request.META['HTTP_REFERER'])
 
 def enroll_course(request, course_id):
     user = get_user_or_404(request, request.POST.get('username'), request.user.has_perm('stables.change_participation'))
     course = get_object_or_404(Course, pk=course_id)
     course.enroll(user)
-    return redirect('stables.views.modify_enrolls', course_id=int(course_id))
+    return redirect(request.META['HTTP_REFERER'])
 
 def cancel(request, course_id):
     # Only user that has right to change permission
@@ -98,17 +98,17 @@ def cancel(request, course_id):
         pid = int(pid)
         participation = get_object_or_404(Participation, pk=pid)
         participation.cancel()
-        return redirect('stables.views.modify_participations', course_id=int(course_id), occurrence_start=start.isoformat())
+        #return redirect('stables.views.modify_participations', course_id=int(course_id), occurrence_start=start.isoformat())
     elif start:
         course = get_object_or_404(Course, pk=course_id)
         occurrence = course.get_occurrence(start=start) #, end=request.POST.get('end')))
         participation = course.create_participation(user, occurrence, enum.CANCELED)
-        return redirect('stables.views.modify_participations', course_id=int(course_id), occurrence_start=start.isoformat())
+        #return redirect('stables.views.modify_participations', course_id=int(course_id), occurrence_start=start.isoformat())
     else:
         enroll = Enroll.objects.filter(course=course_id, participant=user)[0]
         enroll.cancel()
-        return redirect('stables.views.modify_enrolls', course_id=int(course_id))
-    raise Http404
+        #return redirect('stables.views.modify_enrolls', course_id=int(course_id))
+    return redirect(request.META['HTTP_REFERER'])
 
 def view_account(request):
     user = request.user.get_profile()
