@@ -2,13 +2,16 @@
 {% load i18n %}
 {% block body %}
 <h1>{{ rider }}</h1>
-{% if rider.rider.unused_tickets.count %}
 <div class="tickets">
+{% if rider.rider.unused_tickets.count %}
 {% blocktrans with rider.rider.unused_tickets.count as ticket_count %}
 Tickets left: {{ ticket_count }}
 {% endblocktrans %}
-</div>
 {% endif %}
+{% if perms.stables.add_ticket %}
+<a href="{% url stables.views.add_tickets rider.user.username  %}">{% trans "Add tickets" %}</a>
+{% endif %}
+</div>
 <ul>
     {% for p in rider.get_participations %}
     <li>{{ p }}</li>

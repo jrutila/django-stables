@@ -1,6 +1,7 @@
 from django.db import models
 from user import CustomerInfo, RiderInfo
 import datetime
+from django import forms
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
@@ -132,3 +133,16 @@ class Transaction(models.Model):
     def delete(self):
         self.ticket_set.clear()
         super(Transaction, self).delete()
+
+class TicketForm(forms.ModelForm):
+  class Meta:
+    model = Ticket
+    exclude = ['transaction']
+
+  amount = forms.IntegerField(required=True, initial=10)
+
+  def save_all(self):
+    amnt = self.cleaned_data['amount']
+    for i in range(0, amnt):
+      super(TicketForm, self).save(commit=True)
+      self.instance.id = None

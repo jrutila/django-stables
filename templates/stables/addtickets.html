@@ -1,0 +1,8 @@
+{% extends "site_base.html" %}
+{% block body %}
+<form action="{% url stables.views.add_tickets username %}" method="POST">
+{% csrf_token %}
+{{ form.as_p }}
+<input type="submit" />
+</form>
+{% endblock body %}

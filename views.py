@@ -155,6 +155,18 @@ def modify_enrolls(request, course_id):
       view_enrolls.append({'participant': e.participant, 'state': PARTICIPATION_STATES[e.state][1]})
     return render(request, 'stables/enrolls.html', { 'course': course, 'enrolls': view_enrolls, 'users': set(users) - set(en_users) })
 
+from models import TicketForm
+@permission_required('stables.add_ticket')
+def add_tickets(request, username):
+  tf = TicketForm(initial={'rider': UserProfile.objects.get(user__username=username).rider})
+  if request.method == "POST":
+    tf = TicketForm(request.POST)
+    if tf.is_valid():
+      tf.save_all()
+      return redirect('stables.views.view_rider', username)
+  return render(request, 'stables/addtickets.html', { 'form': tf, 'username': username })
+
+
 from models import admin, RiderInfo
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
