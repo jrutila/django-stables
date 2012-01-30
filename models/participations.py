@@ -120,6 +120,15 @@ class Course(models.Model):
         c_attnd = Enroll.objects.filter(Q(state=ATTENDING) | Q(state=RESERVED), course=self)
         return c_attnd.count() >= self.max_participants
 
+    def get_attending_amount(self, occurrence=None):
+      if occurrence:
+        p_part = Participation.objects.get_participations(occurrence).values_list('participant', flat=True)
+        p_attnd = Participation.objects.get_participations(occurrence).filter(Q(state=ATTENDING) | Q(state=RESERVED)).count()
+        c_attnd = Enroll.objects.filter(Q(state=ATTENDING) | Q(state=RESERVED), course=self).exclude(participant__in=p_part).count()
+        return p_attnd+c_attnd
+      else:
+        return Enroll.objects.filter(Q(state=ATTENDING), course=self).count()
+
     def get_possible_states(self, rider, occurrence=None):
       if occurrence:
         # If this course is in the past (end date gone), can't do anything
@@ -290,6 +299,11 @@ class Enroll(models.Model):
         app_label = 'stables'
     def __unicode__(self):
         return str(self.course) + ": " + str(self.participant)
+    def short(self):
+        return ugettext('%(name)s %(state)s') % {
+            'name': self.participant,
+            'state': PARTICIPATION_STATES[self.state][1],
+        }
     course = models.ForeignKey(Course)
     participant = models.ForeignKey(UserProfile)
     state = models.IntegerField(choices=ENROLL_STATES, default=WAITFORPAY)

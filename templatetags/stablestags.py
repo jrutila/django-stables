@@ -8,6 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 from stables.models import Transaction
 
 from django.core.exceptions import ObjectDoesNotExist
+from stables.models import PARTICIPATION_STATES
 from stables.models import ATTENDING, CANCELED, RESERVED
 
 import stables.models as enum
@@ -63,48 +64,6 @@ def participate_button(user, course, occurrence=None):
 
     return { 'buttons': buttons }
 
-@register.inclusion_tag('stables/_participants.html', takes_context=True)
-def participants(context, course, occurrence):
-    user = context['request'].user
-    otherparts = []
-    mypart = None
-    ownpart = False
-    rider = None
-    if user.is_authenticated():
-        try:
-          rider = user.get_profile()
-        except ObjectDoesNotExist:
-          pass
-        if user.has_perm('stables.course_view_participants'):
-            # Admin can view all
-            parts = Participation.objects.get_participations(occurrence)
-            if rider and not parts.filter(participant=rider):
-                ownpart = True
-            for e in Enroll.objects.filter(course=course, state=enum.ATTENDING).order_by('last_state_change_on'):
-                epart = Participation()
-                epart.participant = e.participant
-                epart.start = occurrence.original_start
-                epart.end = occurrence.original_end
-                epart.event = occurrence.event
-                if not parts.filter(participant=epart.participant):
-                    otherparts.append(epart)
-                if rider and epart.participant == rider:
-                    ownpart = False
-        else:
-            parts = [Participation.objects.get_participation(rider, occurrence)]
-            if parts[0] == None:
-                parts = [Enroll.objects.filter(course=course, participant=rider)]
-                if not parts[0] or parts[0][0].state == CANCELED:
-                    parts = []
-                    mypart = True
-                else:
-                    epart = Participation()
-                    epart.participant = parts[0][0].participant
-                    epart.start = occurrence.original_start
-                    epart.end = occurrence.original_end
-                    epart.event = occurrence.event
-                    epart.state = parts[0][0].state
-                    parts[0] = epart
-    else:
-        return
-    return { 'participations': otherparts+list(parts), 'course': course, 'occurrence': occurrence, 'rider': rider, 'mypart': mypart }
+@register.filter()
+def state(state):
+  return PARTICIPATION_STATES[state][1]

@@ -2,6 +2,7 @@ from models import HorseForm, Horse, Course, Participation, PARTICIPATION_STATES
 from models import Enroll
 from models import UserProfile
 from models import Transaction
+from models import ATTENDING, RESERVED
 from schedule.models import Occurrence
 from django.shortcuts import render_to_response, redirect, render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, Http404
@@ -63,8 +64,25 @@ def list_course(request):
 def view_course(request, course_id):
     course = Course.objects.get(pk=course_id)
     occurrences = course.get_occurrences(start=datetime.date.today())
+
+    estates = {}
+    for e in Enroll.objects.filter(course=course, state__in=[ATTENDING, RESERVED]):
+      estates[e.participant] = e
+      
+    parts = Participation.objects.filter(event__in=course.events.all())
+    occs = []
+
+    for o in occurrences:
+      pp = dict(estates) 
+      for p in parts.filter(start=o.original_start):
+        pp[p.participant] = p
+      pp = sorted(pp.values(), key=lambda x: x.last_state_change_on )
+      atnd = filter(lambda x: x.state == ATTENDING, pp)
+      resv = filter(lambda x: x.state == RESERVED, pp)
+      occs.append({'occurrence': o, 'attending_amount': len(atnd), 'start': o.start, 'end': o.end, 'parts': atnd+resv })
+
     return render_response(request, 'stables/course.html',
-            { 'course': course, 'occurrences': occurrences })
+            { 'course': course, 'occurrences': occs })
 
 def get_user_or_404(request, username, perm):
     if username and perm:
