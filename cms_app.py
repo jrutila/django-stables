@@ -26,3 +26,9 @@ class UserApphook(CMSApp):
     urls = ["stables.user_urls"]
 
 apphook_pool.register(UserApphook)
+
+class ScheduleApphook(CMSApp):
+    name = _("Schedule apphook")
+    urls = ["schedule.urls"]
+
+apphook_pool.register(ScheduleApphook)

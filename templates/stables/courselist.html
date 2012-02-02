@@ -1,8 +1,11 @@
 {% extends "site_base.html" %}
-{% load i18n %}
+{% load i18n sekizai_tags %}
 {% block body %}
+{% addtoblock "css" %}
+<link href="{{ STATIC_URL }}stables/css/course.css" rel="stylesheet" type="text/css" />
+{% endaddtoblock %}
 <h1>{% trans "courses"|capfirst %}</h1>
-<table>
+<table class='timetable'>
   <thead>
     <tr>
     <th></th>

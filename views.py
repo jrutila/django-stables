@@ -40,6 +40,8 @@ def view_horse(request, horse_id):
     horse = Horse.objects.get(pk=horse_id)
     return render_response(request, 'stables/horse.html', { 'horse': horse })
 
+from babel.dates import format_date
+from django.utils.translation import get_language
 def list_course(request):
     courses = Course.objects.exclude(end__lte=datetime.date.today())
     occs = {}
@@ -56,7 +58,7 @@ def list_course(request):
     week = {}
     today = datetime.date.today()
     while today < datetime.date.today()+datetime.timedelta(days=7):
-      week[today.weekday()] = (today, today.strftime('%a'))
+      week[today.weekday()] = (today, format_date(today, 'EE', locale=get_language()))
       today = today+datetime.timedelta(days=1)
     return render_response(request, 'stables/courselist.html',
             { 'courses': courses, 'occurrences': occs, 'week': week })
