@@ -1,0 +1,10 @@
+table.timetable thead th
+{
+  width: 20%;
+  min-width: 100px;
+}
+
+table.timetable thead th:first-of-type
+{
+  width: auto;
+}
