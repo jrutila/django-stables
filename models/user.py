@@ -31,6 +31,8 @@ class UserProfile(models.Model):
     rider = models.OneToOneField('RiderInfo', null=True, blank=True)
     customer = models.OneToOneField('CustomerInfo', null=True, blank=True)
 
+    phone_number = models.CharField(max_length=30, null=True, blank=True)
+
     def get_participations(self):
         from participations import Participation
         return Participation.objects.filter(participant=self).order_by('start')
@@ -42,7 +44,7 @@ def create_user_profile(sender, instance, created, **kwargs):
     if created:
         UserProfile.objects.create(user=instance)
 
-post_save.connect(create_user_profile, sender=User)
+post_save.connect(create_user_profile, sender=User, dispatch_uid="users-profilecreation-signal")
 
 class CustomerInfo(models.Model):
     class Meta:
