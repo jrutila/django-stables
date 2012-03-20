@@ -1,0 +1,212 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2012-03-20 22:46+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: admin.py:41
+msgid "Customer"
+msgstr "Asiakastieto"
+
+#: cms_app.py:7
+msgid "Deprecated stables apphook"
+msgstr ""
+
+#: cms_app.py:13
+msgid "Courses Apphook"
+msgstr ""
+
+#: cms_app.py:19
+msgid "Horse Apphook"
+msgstr ""
+
+#: cms_app.py:25
+msgid "User Apphook"
+msgstr ""
+
+#: cms_app.py:31
+msgid "Schedule apphook"
+msgstr ""
+
+#: cms_plugins.py:9
+msgid "Course Plugin"
+msgstr "Tuntiviittaus"
+
+#: reverseadmin.py:259
+#, python-format
+msgid "Add %s"
+msgstr ""
+
+#: views.py:54
+msgid "Space"
+msgstr "Tilaa"
+
+#: views.py:56
+msgid "Full"
+msgstr "Täynnä"
+
+#: models/financial.py:25
+msgid "name"
+msgstr "nimi"
+
+#: models/financial.py:26
+msgid "description"
+msgstr "kuvaus"
+
+#: models/participations.py:39
+msgid "course"
+msgstr "kurssi"
+
+#: models/participations.py:40 templates/stables/courselist.html:7
+msgid "courses"
+msgstr "kurssit"
+
+#: models/participations.py:283 models/participations.py:292
+msgid "Attending"
+msgstr "Osallistuu"
+
+#: models/participations.py:284
+msgid "Attended"
+msgstr "Osallistui"
+
+#: models/participations.py:285
+msgid "Skipped"
+msgstr "Ei osallistunut"
+
+#: models/participations.py:286 models/participations.py:293
+msgid "Canceled"
+msgstr "Peruttu"
+
+#: models/participations.py:287 models/participations.py:294
+msgid "Rejected"
+msgstr "Hylätty"
+
+#: models/participations.py:288 models/participations.py:295
+msgid "Reserved"
+msgstr "Varalla"
+
+#: models/participations.py:291
+msgid "Waiting for payment"
+msgstr ""
+
+#: models/participations.py:303 models/participations.py:405
+#, python-format
+msgid "%(name)s %(state)s"
+msgstr ""
+
+#: models/participations.py:394
+msgid "DATE_FORMAT"
+msgstr ""
+
+#: models/participations.py:395
+msgid "TIME_FORMAT"
+msgstr ""
+
+#: models/participations.py:396
+#, python-format
+msgid "%(name)s %(state)s %(event)s: %(start)s %(starttime)s - %(endtime)s"
+msgstr ""
+
+#: templates/stables/course.html:6
+#, python-format
+msgid "From %(start)s to %(end)s"
+msgstr "%(start)s - %(end)s"
+
+#: templates/stables/course.html:8
+msgid "Modify enrolls"
+msgstr "Muokkaa ilmoittautuneita"
+
+#: templates/stables/course.html:13
+#, python-format
+msgid ""
+"\n"
+"Enrolled: %(attending)s/%(space)s\n"
+msgstr ""
+"\n"
+"Ilmoittautunut: %(attending)s/%(space)s\n"
+
+#: templates/stables/course.html:19
+#, python-format
+msgid ""
+"\n"
+"        <span class=\"summary\">%(summary)s</span> on <abbr class=\"dtstart"
+"\" title=\"%(dtstart)s\">%(weekday)s, %(day)s from %(start)s</abbr> to <abbr "
+"class=\"dtend\" title=\"%(dtend)s\">%(end)s</abbr>\n"
+"        "
+msgstr ""
+"\n"
+"        <span class=\"summary\">%(summary)s</span>: <abbr class=\"dtstart\" "
+"title=\"%(dtstart)s\">%(weekday)s, %(day)s %(start)s</abbr> - <abbr class="
+"\"dtend\" title=\"%(dtend)s\">%(end)s</abbr>\n"
+"        "
+
+#: templates/stables/course.html:23
+#, python-format
+msgid ""
+"\n"
+"        Participating: %(attending)s/%(space)s\n"
+"        "
+msgstr ""
+"\n"
+"        Osallistuu: %(attending)s/%(space)s\n"
+"        "
+
+#: templates/stables/course.html:29
+msgid "Modify participations"
+msgstr "Muokkaa osallistujia"
+
+#: templates/stables/customer.html:6
+#, python-format
+msgid ""
+"\n"
+"Saldo: %(saldo)s\n"
+msgstr ""
+
+#: templates/stables/rider.html:7
+#, python-format
+msgid ""
+"\n"
+"Tickets left: %(ticket_count)s\n"
+msgstr ""
+"\n"
+"Kortteja jäljellä: %(ticket_count)s\n"
+
+#: templates/stables/rider.html:12
+msgid "Add tickets"
+msgstr "Lisää kortteja"
+
+#: templatetags/stablestags.py:38
+msgid "Attend"
+msgstr "Osallistu"
+
+#: templatetags/stablestags.py:41 templatetags/stablestags.py:58
+msgid "Cancel"
+msgstr "Peru"
+
+#: templatetags/stablestags.py:46
+msgid "You still have to pay. Are you sure you want to cancel?"
+msgstr "Sinun täytyy silti maksaa. Haluatko varmasti peruuttaa?"
+
+#: templatetags/stablestags.py:48 templatetags/stablestags.py:61
+msgid "Reserve"
+msgstr "Varaa"
+
+#: templatetags/stablestags.py:55
+msgid "Enroll"
+msgstr "Ilmoittaudu"
+
+#~ msgid "on %(weekday)s, %(day)s from %(start)s to %(end)s"
+#~ msgstr "%(weekday)sna %(day)s %(start)s - %(end)s"
