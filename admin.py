@@ -45,7 +45,6 @@ class UserProfileAdminForm(forms.ModelForm):
     super(UserProfileAdminForm, self).__init__(*args, **kwargs)
     instance = kwargs.pop('instance', None)
     self.fields['levels'].initial=[x.id for x in instance.rider.levels.all()]
-    self.fields['user'].initial=instance.user
     self.fields['rider_customer'].initial=instance.rider.customer
     self.fields['phone_number'].initial=instance.phone_number
 
