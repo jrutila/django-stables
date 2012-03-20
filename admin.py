@@ -8,7 +8,7 @@ from django.contrib import admin
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
-
+from django.utils.translation import ugettext_lazy as _
 import reversion
 
 #class HorseAdmin(reversion.VersionAdmin):
@@ -37,9 +37,17 @@ class RiderInfoInline(admin.StackedInline):
     model = RiderInfo
 
 class UserProfileAdminForm(forms.ModelForm):
-  # TODO: These could be fetched from RiderInfo and CustomerInfo
   levels = forms.ModelMultipleChoiceField(queryset=RiderLevel.objects.all(), required=False)
+  rider_customer = forms.ModelChoiceField(queryset=CustomerInfo.objects.all(), required=True, label=_('Customer'))
   #address = forms.CharField(max_length=500, widget=forms.Textarea, required=False)
+
+  def __init__(self, *args, **kwargs):
+    super(UserProfileAdminForm, self).__init__(*args, **kwargs)
+    instance = kwargs.pop('instance', None)
+    self.fields['levels'].initial=[x.id for x in instance.rider.levels.all()]
+    self.fields['user'].initial=instance.user
+    self.fields['rider_customer'].initial=instance.rider.customer
+    self.fields['phone_number'].initial=instance.phone_number
 
   class Meta:
     model = UserProfile
@@ -48,6 +56,8 @@ class UserProfileAdminForm(forms.ModelForm):
     instance = super(UserProfileAdminForm, self).save(commit)
     if self.cleaned_data['levels']:
       instance.rider.levels = self.cleaned_data['levels']
+    if self.cleaned_data['rider_customer']:
+      instance.rider.customer = self.cleaned_data['rider_customer']
     instance.rider.save()
     return instance
 
@@ -83,12 +93,14 @@ class UserProfileAdminAddForm(forms.ModelForm):
     if not instance.rider:
       r = RiderInfo.objects.create(customer=c)
       instance.rider = r
+      instance.rider.customer = instance.customer
     if self.cleaned_data['levels']:
       instance.rider.levels = self.cleaned_data['levels']
     instance.phone_number = self.cleaned_data['phone_number']
 
     instance.save()
     instance.customer.save()
+    instance.rider.customer = instance.customer
     instance.rider.save()
     return instance
 
@@ -97,15 +109,11 @@ class UserProfileAdminAddForm(forms.ModelForm):
 
 class UserProfileAdmin(admin.ModelAdmin):
   form = UserProfileAdminForm
-  #exclude = ['rider', 'customer']
-  #inlines = [RiderInfoInline]
-  #inline_type = 'tabular'
-  #inlines = []
   actions = ['update_riderlevels']
 
   def change_view(self, request, form_url='', extra_context=None):
     self.form = UserProfileAdminForm
-    import pdb; pdb.set_trace()
+    self.exclude = ['rider', 'customer', 'user']
     return super(UserProfileAdmin, self).change_view(request, form_url, extra_context)
 
   def add_view(self, request, form_url='', extra_context=None):
@@ -119,7 +127,6 @@ class UserProfileAdmin(admin.ModelAdmin):
 
 #admin.site.register(Horse, HorseAdmin)
 admin.site.register(Horse)
-#admin.site.register(UserProfile, UserProfileAdmin)
 admin.site.register(UserProfile, UserProfileAdmin)
 admin.site.register(RiderInfo)
 admin.site.register(CustomerInfo, CustomerInfoAdmin)
