@@ -37,6 +37,8 @@ class RiderInfoInline(admin.StackedInline):
     model = RiderInfo
 
 class UserProfileAdminForm(forms.ModelForm):
+  first_name = forms.CharField(max_length=500, required=True)
+  last_name = forms.CharField(max_length=500, required=True)
   levels = forms.ModelMultipleChoiceField(queryset=RiderLevel.objects.all(), required=False)
   rider_customer = forms.ModelChoiceField(queryset=CustomerInfo.objects.all(), required=True, label=_('Customer'))
   #address = forms.CharField(max_length=500, widget=forms.Textarea, required=False)
@@ -47,12 +49,17 @@ class UserProfileAdminForm(forms.ModelForm):
     self.fields['levels'].initial=[x.id for x in instance.rider.levels.all()]
     self.fields['rider_customer'].initial=instance.rider.customer
     self.fields['phone_number'].initial=instance.phone_number
+    self.fields['first_name'].initial=instance.user.first_name
+    self.fields['last_name'].initial=instance.user.last_name
 
   class Meta:
     model = UserProfile
 
   def save(self, force_insert=False, force_update=False, commit=True):
     instance = super(UserProfileAdminForm, self).save(commit)
+    instance.user.first_name = self.cleaned_data['first_name']
+    instance.user.last_name = self.cleaned_data['last_name']
+    instance.user.save()
     if self.cleaned_data['levels']:
       instance.rider.levels = self.cleaned_data['levels']
     if self.cleaned_data['rider_customer']:
