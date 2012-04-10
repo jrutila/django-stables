@@ -1,5 +1,7 @@
 {% extends "site_base.html" %}
-{% block main %}
+{% load thumbnail %}
+{% block body %}
 <h1>{{ horse.name }}</h1>
+<img src="{% thumbnail horse.mugshot 100x200 %}"/>
 <div class="birthday">{{ horse.birthday }}</div>
-{% endblock main %}
+{% endblock body %}

@@ -40,6 +40,10 @@ def view_horse(request, horse_id):
     horse = Horse.objects.get(pk=horse_id)
     return render_response(request, 'stables/horse.html', { 'horse': horse })
 
+def list_horse(request):
+    horses = Horse.objects.all()
+    return render_response(request, 'stables/horselist.html', { 'horses': horses })
+
 from babel.dates import format_date
 from django.utils.translation import get_language
 def list_course(request):

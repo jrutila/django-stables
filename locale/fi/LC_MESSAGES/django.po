@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-03-20 22:46+0200\n"
+"POT-Creation-Date: 2012-04-10 18:17+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: admin.py:41
+#: admin.py:43
 msgid "Customer"
 msgstr "Asiakastieto"
 
@@ -50,21 +50,57 @@ msgstr "Tuntiviittaus"
 msgid "Add %s"
 msgstr ""
 
-#: views.py:54
+#: views.py:58
 msgid "Space"
 msgstr "Tilaa"
 
-#: views.py:56
+#: views.py:60
 msgid "Full"
 msgstr "Täynnä"
 
-#: models/financial.py:25
+#: models/financial.py:25 models/horses.py:12
 msgid "name"
 msgstr "nimi"
 
 #: models/financial.py:26
 msgid "description"
 msgstr "kuvaus"
+
+#: models/horses.py:13
+msgid "nickname"
+msgstr "lempinimi"
+
+#: models/horses.py:14
+msgid "breed"
+msgstr "rotu"
+
+#: models/horses.py:15
+msgid "withers"
+msgstr "säkä"
+
+#: models/horses.py:16
+msgid "birthday"
+msgstr "syntymäpäivä"
+
+#: models/horses.py:17
+msgid "gender"
+msgstr "sukupuoli"
+
+#: models/horses.py:17
+msgid "Gelding"
+msgstr "Ruuna"
+
+#: models/horses.py:17
+msgid "Mare"
+msgstr "Tamma"
+
+#: models/horses.py:17
+msgid "Stallion"
+msgstr "Ori"
+
+#: models/horses.py:19
+msgid "tags"
+msgstr ""
 
 #: models/participations.py:39
 msgid "course"
@@ -175,6 +211,31 @@ msgid ""
 "Saldo: %(saldo)s\n"
 msgstr ""
 
+#: templates/stables/horselist.html:26
+#, python-format
+msgid ""
+"\n"
+"\"%(nickname)s\"\n"
+msgstr ""
+
+#: templates/stables/horselist.html:36
+#, python-format
+msgid ""
+"\n"
+"Birth: %(birthday)s\n"
+msgstr ""
+"\n"
+"Synt: %(birthday)s\n"
+
+#: templates/stables/horselist.html:43
+#, python-format
+msgid ""
+"\n"
+"Withers: ca. %(withers)s cm.\n"
+msgstr ""
+"\n"
+"Säkä: ca. %(withers)s cm.\n"
+
 #: templates/stables/rider.html:7
 #, python-format
 msgid ""
@@ -207,6 +268,9 @@ msgstr "Varaa"
 #: templatetags/stablestags.py:55
 msgid "Enroll"
 msgstr "Ilmoittaudu"
+
+#~ msgid "Name"
+#~ msgstr "Nimi"
 
 #~ msgid "on %(weekday)s, %(day)s from %(start)s to %(end)s"
 #~ msgstr "%(weekday)sna %(day)s %(start)s - %(end)s"
