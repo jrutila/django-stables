@@ -1,0 +1,16 @@
+{% extends "site_base.html" %}
+{% load i18n %}
+{% load stablestags %}
+{% block body %}
+<h1>{{ course }}</h1>
+<ul>
+{% if occurrence %}
+{{ occurrence.start }} - {{ occurrence.end }}
+<form method="POST" action=''>
+{{ form.as_p }}
+{% csrf_token %}
+<input type='submit'/>
+</form>
+{% endif %}
+</ul>
+{% endblock body %}

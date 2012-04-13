@@ -14,6 +14,7 @@ from django.core.exceptions import ObjectDoesNotExist
 import reversion
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from horses import Horse
 
 import logging
 
@@ -258,6 +259,19 @@ class Course(models.Model):
         parti.save()
         return parti
 
+    def get_participation(self, rider, occurrence):
+        enroll = Enroll.objects.filter(participant=rider, course=self)
+        parti = Participation.objects.get_participation(rider, occurrence)
+        if (not enroll.exists() or enroll[0].state != ATTENDING) and not parti:
+          return None
+        if not parti:
+            parti = Participation()
+            parti.participant = rider
+            parti.event = occurrence.event
+            parti.start = occurrence.original_start
+            parti.end = occurrence.original_end
+        return parti
+
     def enroll(self, rider):
         (enroll, created) = Enroll.objects.get_or_create(participant=rider, course=self)
         estates = self.get_possible_states(rider)
@@ -414,6 +428,8 @@ class Participation(models.Model):
     last_state_change_on = models.DateTimeField(default=datetime.datetime.now)
     created_on = models.DateTimeField(default=datetime.datetime.now)
     objects = ParticipationManager()
+
+    horse = models.ForeignKey(Horse, null=True, blank=True)
 
     def save(self, omitstatechange=False):
         if self.id and not omitstatechange:

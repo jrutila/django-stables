@@ -15,6 +15,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.http import require_POST
 import models as enum
 import dateutil.parser
+from django import forms
 
 def render_response(req, *args, **kwargs):
     kwargs['context_instance'] = RequestContext(req)
@@ -167,6 +168,42 @@ def modify_participations(request, course_id, occurrence_start):
         occurrence = course.get_occurrence(start=dateutil.parser.parse(occurrence_start))
         attnd = course.full_rider(occurrence, nolimit=True, include_statenames=True)
     return render(request, 'stables/participations.html', { 'course': course, 'occurrence': occurrence, 'participations': attnd, 'users': set(users) - set([k for k,v in attnd]) })
+
+class HorseParticipationForm(forms.Form):
+  def __init__(self, *args, **kwargs):
+    participations = kwargs['participations']
+    horses = kwargs['horses']
+    del kwargs['participations']
+    del kwargs['horses']
+    super(HorseParticipationForm, self).__init__(*args, **kwargs)
+    for p in participations:
+      self.fields['rider_id_'+str(p.participant.id)] = forms.ModelChoiceField(queryset=horses, label=str(p.participant), initial=p.horse, required=False)
+
+
+@permission_required('stables.change_participation_horse')
+def modify_participation_horses(request, course_id, occurrence_start):
+    if not occurrence_start:
+        raise Http404
+    course = get_object_or_404(Course, pk=course_id)
+    occurrence = None
+    horses = Horse.objects
+    occurrence = course.get_occurrence(start=dateutil.parser.parse(occurrence_start))
+    parts = {}
+    for a in course.full_rider(occurrence):
+      p = course.get_participation(a, occurrence)
+      parts[a.id] = p
+
+    if request.method == 'POST':
+      form = HorseParticipationForm(request.POST, participations=parts.values(), horses=horses)
+      if form.is_valid():
+        for (k,v) in form.cleaned_data.items():
+          p = parts[int(k.rsplit('_')[2])]
+          p.horse = v
+          p.save()
+    else:
+      form = HorseParticipationForm(participations=parts.values(), horses=horses)
+
+    return render(request, 'stables/participation_horse.html', { 'course': course, 'occurrence': occurrence, 'form': form })
 
 @permission_required('stables.change_participation')
 def modify_enrolls(request, course_id):
