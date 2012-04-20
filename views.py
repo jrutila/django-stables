@@ -200,6 +200,7 @@ def modify_participation_horses(request, course_id, occurrence_start):
           p = parts[int(k.rsplit('_')[2])]
           p.horse = v
           p.save()
+        return redirect(course)
     else:
       form = HorseParticipationForm(participations=parts.values(), horses=horses)
 
