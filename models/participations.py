@@ -18,6 +18,8 @@ from horses import Horse
 
 import logging
 
+OCCURRENCE_LIST_WEEKS = 5
+
 class ParticipationError(Exception):
     pass
 
@@ -68,7 +70,7 @@ class Course(models.Model):
             else:
                 endd = self.end
             if endd == None:
-                endd = start+datetime.timedelta(days=5*7)
+                endd = start+datetime.timedelta(days=OCCURRENCE_LIST_WEEKS*7)
             occs = e.get_occurrences(
                 datetime.datetime.combine(start, datetime.time(0,0)),
                 datetime.datetime.combine(endd, datetime.time(23,59)))

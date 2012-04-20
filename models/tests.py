@@ -6,6 +6,7 @@ from stables.models import Ticket, TicketType, Transaction
 from stables.models import RiderInfo, CustomerInfo
 from stables.models import Course
 from schedule.models import Calendar, Event, Rule
+import stables
 from django.contrib.auth.models import User
 import datetime
 from stables.models import ATTENDING, CANCELED, RESERVED
@@ -61,7 +62,7 @@ class CourseOccurrenceTest(unittest.TestCase):
         course = setupCourse('course1', start, None, starttime, endtime)
 
         occs = course.get_occurrences()
-        self.assertEqual(len(occs), 52)
+        self.assertEqual(len(occs), stables.models.participations.OCCURRENCE_LIST_WEEKS+1)
 
     def testCourseOccurrencesWithDelta(self):
         start=datetime.date.today()
