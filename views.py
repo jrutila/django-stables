@@ -179,6 +179,27 @@ class HorseParticipationForm(forms.Form):
     for p in participations:
       self.fields['rider_id_'+str(p.participant.id)] = forms.ModelChoiceField(queryset=horses, label=str(p.participant), initial=p.horse, required=False)
 
+from django.contrib.admin import widgets
+class ParticipationTimeForm(forms.Form):
+    new_start = forms.DateTimeField(initial=datetime.datetime.now())
+    new_end = forms.DateTimeField(initial=datetime.datetime.now())
+
+@permission_required('stables.change_participation_time')
+def modify_participation_time(request, course_id, occurrence_start):
+    if not occurrence_start:
+        raise Http404
+    course = get_object_or_404(Course, pk=course_id)
+    occurrence = course.get_occurrence(start=dateutil.parser.parse(occurrence_start))
+    if request.method == 'POST':
+      form = ParticipationTimeForm(request.POST)
+      if form.is_valid():
+        occurrence.move(form.cleaned_data['new_start'], form.cleaned_data['new_end'])
+        return redirect(course)
+    else:
+      form = ParticipationTimeForm()
+      form.initial['new_start'] = occurrence.start
+      form.initial['new_end'] = occurrence.end
+    return render(request, 'stables/participation_time.html', { 'course': course, 'occurrence': occurrence, 'form': form })
 
 @permission_required('stables.change_participation_horse')
 def modify_participation_horses(request, course_id, occurrence_start):

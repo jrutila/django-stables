@@ -3,6 +3,7 @@ from django.conf.urls.defaults import *
 urlpatterns = patterns('',
     url(r'^(?P<course_id>\d+)/participations/(?P<occurrence_start>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})/', 'stables.views.modify_participations'),
     url(r'^(?P<course_id>\d+)/horses/(?P<occurrence_start>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})/', 'stables.views.modify_participation_horses'),
+    url(r'^(?P<course_id>\d+)/time/(?P<occurrence_start>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})/', 'stables.views.modify_participation_time'),
     url(r'^(?P<course_id>\d+)/enrolls/$', 'stables.views.modify_enrolls'),
     url(r'^(?P<course_id>\d+)/attend/$', 'stables.views.attend_course'),
     url(r'^(?P<course_id>\d+)/enroll/$', 'stables.views.enroll_course'),

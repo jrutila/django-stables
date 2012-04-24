@@ -31,6 +31,9 @@ Enrolled: {{ attending }}/{{ space }}
         {% if perms.stables.change_participation_horse %}
         <a href="{% url stables.views.modify_participation_horses course_id=course.id occurrence_start=c.start.isoformat %}">{% trans "Set horses" %}</a>
         {% endif %}
+        {% if perms.stables.change_participation_time %}
+        <a href="{% url stables.views.modify_participation_time course_id=course.id occurrence_start=c.start.isoformat %}">{% trans "Change time" %}</a>
+        {% endif %}
         <ul>
         {% for part in c.parts %}
           <li>
