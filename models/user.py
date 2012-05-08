@@ -33,8 +33,6 @@ class UserProfile(models.Model):
 
     phone_number = models.CharField(max_length=30, null=True, blank=True)
 
-    facebook_uid = models.CharField(blank=True, null=True, max_length=50)
-
     def get_participations(self):
         from participations import Participation
         return Participation.objects.filter(participant=self).order_by('start')
