@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-04-10 18:17+0300\n"
+"POT-Creation-Date: 2012-05-11 08:03+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -48,13 +48,13 @@ msgstr "Tuntiviittaus"
 #: reverseadmin.py:259
 #, python-format
 msgid "Add %s"
-msgstr ""
+msgstr "Lisää %s"
 
-#: views.py:58
+#: views.py:59
 msgid "Space"
 msgstr "Tilaa"
 
-#: views.py:60
+#: views.py:61
 msgid "Full"
 msgstr "Täynnä"
 
@@ -100,58 +100,58 @@ msgstr "Ori"
 
 #: models/horses.py:19
 msgid "tags"
-msgstr ""
+msgstr "tagit"
 
-#: models/participations.py:39
+#: models/participations.py:42
 msgid "course"
 msgstr "kurssi"
 
-#: models/participations.py:40 templates/stables/courselist.html:7
+#: models/participations.py:43 templates/stables/courselist.html:7
 msgid "courses"
-msgstr "kurssit"
+msgstr "tunnit"
 
-#: models/participations.py:283 models/participations.py:292
+#: models/participations.py:299 models/participations.py:308
 msgid "Attending"
 msgstr "Osallistuu"
 
-#: models/participations.py:284
+#: models/participations.py:300
 msgid "Attended"
 msgstr "Osallistui"
 
-#: models/participations.py:285
+#: models/participations.py:301
 msgid "Skipped"
 msgstr "Ei osallistunut"
 
-#: models/participations.py:286 models/participations.py:293
+#: models/participations.py:302 models/participations.py:309
 msgid "Canceled"
 msgstr "Peruttu"
 
-#: models/participations.py:287 models/participations.py:294
+#: models/participations.py:303 models/participations.py:310
 msgid "Rejected"
 msgstr "Hylätty"
 
-#: models/participations.py:288 models/participations.py:295
+#: models/participations.py:304 models/participations.py:311
 msgid "Reserved"
 msgstr "Varalla"
 
-#: models/participations.py:291
+#: models/participations.py:307
 msgid "Waiting for payment"
-msgstr ""
+msgstr "Odottaa maksua"
 
-#: models/participations.py:303 models/participations.py:405
+#: models/participations.py:319 models/participations.py:421
 #, python-format
 msgid "%(name)s %(state)s"
 msgstr ""
 
-#: models/participations.py:394
+#: models/participations.py:410
 msgid "DATE_FORMAT"
 msgstr ""
 
-#: models/participations.py:395
+#: models/participations.py:411
 msgid "TIME_FORMAT"
 msgstr ""
 
-#: models/participations.py:396
+#: models/participations.py:412
 #, python-format
 msgid "%(name)s %(state)s %(event)s: %(start)s %(starttime)s - %(endtime)s"
 msgstr ""
@@ -203,6 +203,14 @@ msgstr ""
 #: templates/stables/course.html:29
 msgid "Modify participations"
 msgstr "Muokkaa osallistujia"
+
+#: templates/stables/course.html:32
+msgid "Set horses"
+msgstr "Aseta hevoset"
+
+#: templates/stables/course.html:35
+msgid "Change time"
+msgstr "Vaihda ajankohtaa"
 
 #: templates/stables/customer.html:6
 #, python-format
@@ -268,6 +276,18 @@ msgstr "Varaa"
 #: templatetags/stablestags.py:55
 msgid "Enroll"
 msgstr "Ilmoittaudu"
+
+#: templates/stables/horselist.html
+msgid "M"
+msgstr "T"
+
+#: templates/stables/horselist.html
+msgid "G"
+msgstr "R"
+
+#: templates/stables/horselist.html
+msgid "S"
+msgstr "O"
 
 #~ msgid "Name"
 #~ msgstr "Nimi"
