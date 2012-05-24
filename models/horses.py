@@ -11,7 +11,8 @@ class Horse(models.Model):
         return self.name
     name = models.CharField(_('name'), max_length=500)
     nickname = models.CharField(_('nickname'), max_length=500, null=True, blank=True)
-    breed = models.CharField(_('breed'), max_length=500l, null=True, blank=True)
+    description = models.TextField(_('description'), max_length=2500, null=True, blank=True)
+    breed = models.CharField(_('breed'), max_length=500, null=True, blank=True)
     withers = models.IntegerField(_('withers'), null=True, blank=True)
     birthday = models.DateField(_('birthday'), null=True, blank=True)
     gender = models.CharField(_('gender'), max_length=1, choices=(('G', _('Gelding')), ('M', _('Mare')), ('S', _('Stallion'))), null=True, blank=True)
