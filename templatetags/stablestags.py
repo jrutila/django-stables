@@ -44,7 +44,7 @@ def participate_button(user, course, occurrence=None):
               if p:
                   part_type = ContentType.objects.get_for_model(p)
                   if Transaction.objects.filter(content_type=part_type, object_id=p.id).exists():
-                      action = reverse('stables.views.confirm', kwargs={'action':action})+"?"+urlencode({'title': ugettext('You still have to pay. Are you sure you want to cancel?')})
+                      action = reverse('stables.views.confirm', kwargs={'action':action})+"?"+urlencode({'title': ugettext('You still have to pay. Are you sure you want to cancel?').encode('utf-8')})
           elif s == RESERVED:
               btn_text = _('Reserve')
               action = reverse('stables.views.attend_course', args=[course.id])
