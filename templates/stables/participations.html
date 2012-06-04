@@ -6,9 +6,16 @@
 <ul>
 {% if occurrence %}
 {{ occurrence.start }} - {{ occurrence.end }}
-    {% for p in participations %}
-    <li>{{ p.0 }} {{ p.1 }} {% participate_button p.0 course occurrence %}</li>
-    {% endfor %}
+<form method='POST'>
+{% csrf_token %}
+<input type='submit' value='{% trans "Save changes" %}'/>
+<table>
+  <thead><th>{% trans "Participant" %}</th><th>{% trans "State" %}</th></thead>
+  <tbody>
+    {{ form.as_table }}
+  <tbody>
+</table>
+</form>
 {% endif %}
 {% for u in users %}
     <li>{{ u }}{% participate_button u course occurrence %}</li>

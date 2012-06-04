@@ -71,7 +71,7 @@ class ParticipationTransactionActivator(TransactionActivator):
     def try_activate(self):
         t = None
         if self.participation.start-datetime.timedelta(hours=self.activate_before_hours) < datetime.datetime.now():
-            if self.participation.state == participations.ATTENDING or self.participation.state == participations.ATTENDED:
+            if self.participation.state == participations.ATTENDING:
                 t = Transaction()
                 t.amount = self.fee*-1
                 t.customer = self.participation.participant.rider.customer

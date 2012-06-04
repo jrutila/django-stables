@@ -74,6 +74,37 @@ class CourseOccurrenceTest(unittest.TestCase):
         occs = course.get_occurrences(delta=datetime.timedelta(days=14))
         self.assertEqual(len(occs), 3)
 
+class CourseOccurrenceTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.user = setupRider('user')
+
+    def testCourseGetParticipation(self):
+        start=datetime.date.today()-datetime.timedelta(days=7)
+        end=datetime.date.today()+datetime.timedelta(days=21)
+        starttime=datetime.time(11,00)
+        endtime=datetime.time(12,00)
+        course = setupCourse('course1', start, end, starttime, endtime)
+
+        course.enroll(self.user.get_profile())
+
+        p = course.get_participation(self.user.get_profile(), course.get_next_occurrence())
+
+        self.assertEqual(p.state, ATTENDING)
+
+    def testCourseGetParticipationBeforeEnroll(self):
+        start=datetime.date.today()-datetime.timedelta(days=7)
+        end=datetime.date.today()+datetime.timedelta(days=21)
+        starttime=datetime.time(11,00)
+        endtime=datetime.time(12,00)
+        course = setupCourse('course1', start, end, starttime, endtime)
+
+        course.enroll(self.user.get_profile())
+
+        p = course.get_participation(self.user.get_profile(), course.get_occurrences(start=start)[0])
+
+        self.assertEqual(p, None)
+
 class TicketTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

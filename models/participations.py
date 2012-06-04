@@ -266,6 +266,8 @@ class Course(models.Model):
         parti = Participation.objects.get_participation(rider, occurrence)
         if (not enroll.exists() or enroll[0].state != ATTENDING) and not parti:
           return None
+        if not parti and enroll[0].last_state_change_on > occurrence.start:
+          return None
         if not parti:
             parti = Participation()
             parti.participant = rider
@@ -289,7 +291,6 @@ class Course(models.Model):
         return ('stables.views.view_course', (), { 'course_id': self.id })
 
 ATTENDING = 0
-ATTENDED = 1
 SKIPPED = 2
 CANCELED = 3
 REJECTED = 4
@@ -297,7 +298,7 @@ RESERVED = 5
 WAITFORPAY = 6
 PARTICIPATION_STATES = (
     (ATTENDING, _('Attending')),
-    (ATTENDED, _('Attended')),
+    (-1, 'Obsolete'),
     (SKIPPED, _('Skipped')),
     (CANCELED, _('Canceled')),
     (REJECTED, _('Rejected')),

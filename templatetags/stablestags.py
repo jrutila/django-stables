@@ -6,10 +6,11 @@ from urllib import urlencode
 from django.contrib.auth.decorators import permission_required
 from django.contrib.contenttypes.models import ContentType
 from stables.models import Transaction
+import datetime
 
 from django.core.exceptions import ObjectDoesNotExist
 from stables.models import PARTICIPATION_STATES
-from stables.models import ATTENDING, CANCELED, RESERVED
+from stables.models import ATTENDING, CANCELED, RESERVED, SKIPPED
 
 import stables.models as enum
 register = template.Library()

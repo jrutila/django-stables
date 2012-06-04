@@ -2,7 +2,7 @@ from models import HorseForm, Horse, Course, Participation, PARTICIPATION_STATES
 from models import Enroll
 from models import UserProfile
 from models import Transaction
-from models import ATTENDING, RESERVED
+from models import ATTENDING, RESERVED, SKIPPED
 from schedule.models import Occurrence
 from django.shortcuts import render_to_response, redirect, render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, Http404
@@ -70,7 +70,10 @@ def list_course(request):
 
 def view_course(request, course_id):
     course = Course.objects.get(pk=course_id)
-    occurrences = course.get_occurrences(start=datetime.date.today())
+    if (request.user.has_perm('stables.change_participation')):
+      occurrences = course.get_occurrences(start=datetime.date.today()-datetime.timedelta(days=7))
+    else:
+      occurrences = course.get_occurrences(start=datetime.date.today())
 
     estates = {}
     for e in Enroll.objects.filter(course=course, state__in=[ATTENDING, RESERVED]):
@@ -157,6 +160,50 @@ def view_customer(request, username):
     saldo = customer.saldo()
     return render_response(request, 'stables/customer.html', { 'customer': customer, 'transactions': trans, 'saldo': saldo })
 
+class ModifyParticipationForm(forms.Form):
+  PARTICIPATE_KEY_PREFIX='participate_'
+  usermap={}
+  def __init__(self, *args, **kwargs):
+    course = kwargs.pop('course')
+    occurrence = kwargs.pop('occurrence')
+    participants = kwargs.pop('participants')
+
+    super(ModifyParticipationForm, self).__init__(*args, **kwargs)
+
+    for participant in participants:
+      key = str(self.PARTICIPATE_KEY_PREFIX+'%s') % participant.user.username
+      self.usermap[participant.user.username] = participant
+      items = []
+      states = course.get_possible_states(participant, occurrence)
+      for s in PARTICIPATION_STATES:
+        if s[0] != -1:
+          items.append({'value': s[0], 'text': ('(*) %s' % unicode(s[1])) if s[0] in states else s[1] , 'allowed': s[0] in states })
+
+      # Put allowed items on top
+      items.sort(key=lambda x: x['allowed'], reverse=True)
+
+      curstate = SKIPPED
+      
+      p = course.get_participation(participant, occurrence)
+      if p:
+        curstate = p.state
+      else:
+        # And if there is no participation, use enroll state
+        e = Enroll.objects.filter(participant=participant, course=course, last_state_change_on__lt=occurrence.start)
+        if e.exists():
+          curstate = e[0].state
+
+      # Sort by current state
+      items.sort(key=lambda x: x['value'] == curstate, reverse=True)
+
+      self.fields[key] = forms.ChoiceField(label=participant, choices=[(i['value'], i['text']) for i in items])
+
+  def participations(self):
+    for name, value in self.cleaned_data.items():
+      if name.startswith(self.PARTICIPATE_KEY_PREFIX):
+        yield (self.usermap[name[len(self.PARTICIPATE_KEY_PREFIX):]], int(value))
+
+
 import dateutil.parser
 @permission_required('stables.change_participation')
 def modify_participations(request, course_id, occurrence_start):
@@ -164,10 +211,19 @@ def modify_participations(request, course_id, occurrence_start):
     occurrence = None
     participations = None
     users = UserProfile.objects.filter(rider__isnull=False)
+    form = None
     if occurrence_start:
         occurrence = course.get_occurrence(start=dateutil.parser.parse(occurrence_start))
-        attnd = course.full_rider(occurrence, nolimit=True, include_statenames=True)
-    return render(request, 'stables/participations.html', { 'course': course, 'occurrence': occurrence, 'participations': attnd, 'users': set(users) - set([k for k,v in attnd]) })
+        attnd = course.full_rider(occurrence, nolimit=True)
+        #attnd = list(y.participant for y in Participation.objects.get_participations(occurrence))
+        if request.method == 'POST':
+          form = ModifyParticipationForm(request.POST, course=course, occurrence=occurrence, participants=attnd)
+          if form.is_valid():
+            for part in form.participations():
+              course.create_participation(part[0], occurrence, part[1], True)
+        else:
+          form = ModifyParticipationForm(course=course, occurrence=occurrence, participants=attnd)
+        return render(request, 'stables/participations.html', { 'course': course, 'occurrence': occurrence, 'participations': attnd, 'users': set(users) - set([k for k in attnd]), 'form': form })
 
 class HorseParticipationForm(forms.Form):
   def __init__(self, *args, **kwargs):
