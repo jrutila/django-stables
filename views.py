@@ -214,8 +214,10 @@ def modify_participations(request, course_id, occurrence_start):
     form = None
     if occurrence_start:
         occurrence = course.get_occurrence(start=dateutil.parser.parse(occurrence_start))
-        attnd = course.full_rider(occurrence, nolimit=True)
-        #attnd = list(y.participant for y in Participation.objects.get_participations(occurrence))
+        # Get both participation and enroll participants
+        p_attnd = set(y.participant for y in Participation.objects.get_participations(occurrence))
+        c_attnd = set(y.participant for y in Enroll.objects.get_enrolls(course, occurrence))
+        attnd = p_attnd | c_attnd
         if request.method == 'POST':
           form = ModifyParticipationForm(request.POST, course=course, occurrence=occurrence, participants=attnd)
           if form.is_valid():

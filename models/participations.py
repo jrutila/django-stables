@@ -311,6 +311,11 @@ ENROLL_STATES = (
     (REJECTED, _('Rejected')),
     (RESERVED, _('Reserved')),
 )
+
+class EnrollManager(models.Manager):
+    def get_enrolls(self, course, occurrence=None):
+        return self.filter(course=course)
+
 class Enroll(models.Model):
     class Meta:
         app_label = 'stables'
@@ -325,6 +330,8 @@ class Enroll(models.Model):
     participant = models.ForeignKey(UserProfile)
     state = models.IntegerField(choices=ENROLL_STATES, default=WAITFORPAY)
     last_state_change_on = models.DateTimeField(default=datetime.datetime.now())
+
+    objects = EnrollManager()
     
     def _get_actual_state(self):
         if self.state == WAITFORPAY:
