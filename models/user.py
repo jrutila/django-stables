@@ -42,7 +42,11 @@ class UserProfile(models.Model):
 
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-        UserProfile.objects.create(user=instance)
+      userprofile = UserProfile.objects.create(user=instance)
+      userprofile.customer = CustomerInfo.objects.create()
+      userprofile.rider = RiderInfo.objects.create(customer=userprofile.customer)
+      userprofile.rider.customer = userprofile.customer
+      userprofile.save()
 
 post_save.connect(create_user_profile, sender=User, dispatch_uid="users-profilecreation-signal")
 
