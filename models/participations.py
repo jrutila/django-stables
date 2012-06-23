@@ -357,25 +357,70 @@ class CourseForm(forms.ModelForm):
     starttime = forms.TimeField(required=False)
     endtime = forms.TimeField(required=False)
 
+    def __init__(self, *args, **kwargs):
+      super(CourseForm, self).__init__(*args, **kwargs)
+      if self.instance.pk:
+        last_event = CourseForm.get_course_last_event(self.instance)
+        if last_event:
+          self.initial['starttime'] = last_event.start.time()
+          self.initial['endtime'] = last_event.end.time()
+          if last_event.end_recurring_period:
+              self.initial['end'] = last_event.end_recurring_period.date()
+
     def save(self, force_insert=False, force_update=False, commit=True):
-        course = super(forms.ModelForm, self).save(commit=True)
-        if self.cleaned_data['starttime'] and self.cleaned_data['endtime']:
+        instance = super(forms.ModelForm, self).save(commit=True)
+        last_event = CourseForm.get_course_last_event(instance)
+        if not last_event or (self.cleaned_data['starttime'] != last_event.start.time() or self.cleaned_data['endtime'] != last_event.end.time()):
+            next_start = self.cleaned_data['start']
+            next_end = self.cleaned_data['start']
+            if last_event:
+              next_start = last_event.next_occurrence().start.date()
+              next_end = last_event.next_occurrence().end.date()
             e = Event()
-            e.start = datetime.datetime.combine(self.cleaned_data['start'], self.cleaned_data['starttime'])
-            e.end = datetime.datetime.combine(self.cleaned_data['start'], self.cleaned_data['endtime'])
+            e.start = datetime.datetime.combine(next_start, self.cleaned_data['starttime'])
+            e.end = datetime.datetime.combine(next_end, self.cleaned_data['endtime'])
+            e.save()
+            for p in Participation.objects.filter(event=last_event, start__gte=next_start):
+              p.event=e
+              p.start=datetime.datetime.combine(p.start.date(), e.start.time())
+              p.end=datetime.datetime.combine(p.end.date(), e.end.time())
+              p.save()
+            if last_event:
+              last_event.end_recurring_period=next_start-datetime.timedelta(days=1)
+              last_event.save()
             e.title = self.cleaned_data['name']
             e.calendar = Calendar.objects.get(pk=1)
             e.creator = self.cleaned_data['creator']
-            e.created_on = self.cleaned_data['created_on']
+            e.created_on = datetime.datetime.now()
             e.rule = Rule.objects.get(pk=1)
             if self.cleaned_data['end']:
               e.end_recurring_period = datetime.datetime.combine(self.cleaned_data['end'], self.cleaned_data['endtime'])
             e.save()
-            course.events.add(e)
-        return course
+            instance.events.add(e)
+        else:
+            if not self.cleaned_data['end'] and last_event.end_recurring_period:
+                last_event.end_recurring_period = None
+                last_event.save()
+            elif self.cleaned_data['end'] and (not last_event.end_recurring_period or last_event.end_recurring_period.date() != self.cleaned_data['end']):
+                last_event.end_recurring_period = datetime.datetime.combine(self.cleaned_data['end'], self.cleaned_data['endtime'])
+                last_event.save()
+
+        if self.cleaned_data['name']:
+          for e in instance.events.all():
+            e.title = self.cleaned_data['name']
+            e.save()
+
+
+        return instance
 
     def save_m2m(self, *args, **kwargs):
         pass
+
+    @classmethod
+    def get_course_last_event(csl, course):
+        if course.events.count() > 0:
+          return course.events.order_by('-start')[0]
+        return None
 
 class CourseParticipationActivator(models.Model):
     class Meta:

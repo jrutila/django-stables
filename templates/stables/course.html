@@ -3,6 +3,9 @@
 {% load stablestags %}
 {% block body %}
 <h1>{{ course.name }}</h1>
+{% if perms.stables.change_course %}
+<a href="{% url admin:stables_course_change course.id %}">{% trans "Modify course" %}</a><br/>
+{% endif %}
 {% blocktrans with course.start as start and course.end as end %}From {{ start }} to {{ end }}{% endblocktrans %}
 {% if perms.stables.change_participation %}
 <a href="{% url stables.views.modify_enrolls course_id=course.id %}">{% trans "Modify enrolls" %}</a>
