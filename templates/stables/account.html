@@ -2,10 +2,13 @@
 {% load i18n %}
 {% block body %}
 <h1>{{ user }}</h1>
+<p>
+{% trans "E-mail" %}: {{ user.user.email }}
+</p>
 {% if social_auth.facebook %}
 <a href="{% url socialauth_disconnect 'facebook' %}">{% trans "Disconnect Facebook" %}</a>
 {% else %}
-<a href="{% url socialauth_begin 'facebook' %}">Connect Facebook</a>
+<a href="{% url socialauth_begin 'facebook' %}">{% trans "Connect Facebook" %}</a>
 {% endif %}
 <side>
 <ul>
