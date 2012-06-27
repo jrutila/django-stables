@@ -116,6 +116,7 @@ class UserProfileAdminAddForm(forms.ModelForm):
 class UserProfileAdmin(admin.ModelAdmin):
   form = UserProfileAdminForm
   actions = ['update_riderlevels']
+  search_fields = ['user__first_name', 'user__last_name', 'user__username']
 
   def change_view(self, request, form_url='', extra_context=None):
     self.form = UserProfileAdminForm
