@@ -8,8 +8,6 @@
 {% endif %}
 {% if course.end %}
 {% blocktrans with course.start as start and course.end as end %}From {{ start }} to {{ end }}{% endblocktrans %}
-{% else %}
-{% trans "Ongoing course" %}
 {% endif %}
 {% if perms.stables.change_participation %}
 <a href="{% url stables.views.modify_enrolls course_id=course.id %}">{% trans "Modify enrolls" %}</a>
