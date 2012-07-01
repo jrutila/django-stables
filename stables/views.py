@@ -106,7 +106,10 @@ def attend_course(request, course_id):
     course = get_object_or_404(Course, pk=course_id)
     start=dateutil.parser.parse(request.POST.get('start'))
     occurrence = course.get_occurrence(start=start) #, end=request.POST.get('end')))
-    course.attend(user, occurrence)
+    if request.user.has_perm('stables.change_participation'):
+      course.create_participation(user, occurrence, ATTENDING, True)
+    else:
+      course.attend(user, occurrence)
     return redirect(request.META['HTTP_REFERER'])
 
 def enroll_course(request, course_id):

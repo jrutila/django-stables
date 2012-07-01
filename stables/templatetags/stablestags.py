@@ -15,14 +15,17 @@ from stables.models import ATTENDING, CANCELED, RESERVED, SKIPPED
 import stables.models as enum
 register = template.Library()
 
-@register.inclusion_tag('stables/participate_button.html')
-def participate_button(user, course, occurrence=None):
+@register.inclusion_tag('stables/participate_button.html', takes_context=True)
+def participate_button(context, user, course, occurrence=None):
     buttons = []
 
     # If occurrence is none, this is participate button for course enroll
     if occurrence:
       occ = occurrence
       states = course.get_possible_states(user, occ)
+
+      if len(states) == 0 and context['request'].user.has_perm('stables.change_participation'):
+        states = [ATTENDING]
 
       participation_id = 0
       start = None
