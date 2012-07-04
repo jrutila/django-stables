@@ -86,8 +86,11 @@ class Course(models.Model):
         occurrences = []
         for e in self.events.all():
             occ = e.next_occurrence()
-            occurrences.append(occ)
+            if occ:
+              occurrences.append(occ)
         occurrences.sort(key=lambda occ: occ.start)
+        if len(occurrences) < 1:
+          return None
         return occurrences[0]
 
     def full_rider(self, occurrence, nolimit=False, include_statenames=False):
@@ -325,7 +328,7 @@ class Enroll(models.Model):
     class Meta:
         app_label = 'stables'
     def __unicode__(self):
-        return str(self.course) + ": " + str(self.participant)
+        return unicode(self.course) + ": " + unicode(self.participant)
     def short(self):
         return ugettext('%(name)s %(state)s') % {
             'name': self.participant,
@@ -440,7 +443,7 @@ class CourseParticipationActivator(models.Model):
             return None
         p = None
         occ = self.enroll.course.get_next_occurrence()
-        if occ.start-datetime.timedelta(hours=self.activate_before_hours) < datetime.datetime.now() and not Participation.objects.filter(participant=self.enroll.participant, start=occ.original_start):
+        if occ and occ.start-datetime.timedelta(hours=self.activate_before_hours) < datetime.datetime.now() and not Participation.objects.filter(participant=self.enroll.participant, start=occ.original_start):
           p = self.enroll.course.create_participation(self.enroll.participant, occ, self.enroll.state, force=True)
           reversion.set_comment('Automatically created by activator')
         return p
