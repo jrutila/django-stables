@@ -250,13 +250,18 @@ class Course(models.Model):
             parti.end = occurrence.original_end
 
         if state in pstates or force:
+            reversion.set_comment("State change")
             parti.state = state
-            #TODO: update reversion
-            #reversion.set_comment("Attending")
+            if state not in pstates:
+              reversion.set_comment("Forced state change")
         elif state == ATTENDING and RESERVED in pstates:
             parti.state = RESERVED
+            reversion.set_comment("Automatically reserved")
         else:
             raise ParticipationError
+
+        if not parti.pk:
+            reversion.set_comment('Created participation')
 
         parti.save()
         return parti
@@ -437,6 +442,7 @@ class CourseParticipationActivator(models.Model):
         occ = self.enroll.course.get_next_occurrence()
         if occ.start-datetime.timedelta(hours=self.activate_before_hours) < datetime.datetime.now() and not Participation.objects.filter(participant=self.enroll.participant, start=occ.original_start):
           p = self.enroll.course.create_participation(self.enroll.participant, occ, self.enroll.state, force=True)
+          reversion.set_comment('Automatically created by activator')
         return p
 
 @receiver(post_save, sender=Enroll)
@@ -495,8 +501,7 @@ class Participation(models.Model):
 
     def cancel(self):
         self.state = 3
-        #TODO: update reversion
-        #reversion.set_comment("Canceled")
+        reversion.set_comment("Canceled")
         self.save()
 
     def get_occurrence(self):

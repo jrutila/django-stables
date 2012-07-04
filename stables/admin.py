@@ -16,18 +16,8 @@ import reversion
 class CourseAdmin(admin.ModelAdmin):
     form =  CourseForm
 
-class ParticipationAdminForm(forms.ModelForm):
-    class Meta:
-        model = Participation
-
-    def save(self, force_insert=False, force_update=False, commit=True):
-        instance = super(ParticipationAdminForm, self).save(commit=False)
-        # When we change the state from admin, do not update the state ts
-        instance.save(True)
-        return instance
-
-#class ParticipationAdmin(reversion.VersionAdmin):
-    #form = ParticipationAdminForm
+class ParticipationAdmin(reversion.VersionAdmin):
+    pass
 
 class CustomerInfoAdmin(admin.ModelAdmin):
     model = CustomerInfo
@@ -137,9 +127,8 @@ admin.site.register(Horse)
 admin.site.register(UserProfile, UserProfileAdmin)
 admin.site.register(RiderInfo)
 admin.site.register(CustomerInfo, CustomerInfoAdmin)
-#admin.site.register(Participation, ParticipationAdmin)
+admin.site.register(Participation, ParticipationAdmin)
 admin.site.register(RiderLevel)
-admin.site.register(Participation)
 admin.site.register(Enroll)
 admin.site.register(Ticket)
 admin.site.register(TicketType)
