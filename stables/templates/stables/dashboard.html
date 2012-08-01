@@ -1,0 +1,35 @@
+{% extends "site_base.html" %}
+{% load i18n sekizai_tags cms_tags stablestags %}
+{% block body %}
+<article>
+{% addtoblock "js" %}
+<script type='text/javascript' src="{{ STATIC_URL }}stables/js/dashboard.js"></script>
+{% endaddtoblock %}
+{% addtoblock "css" %}
+<link href="{{ STATIC_URL }}stables/css/dashboard.css" rel="stylesheet" type="text/css" />
+{% endaddtoblock %}
+<form method='POST'>
+{% csrf_token %}
+<input type='submit' value='{% trans "Save Changes" %}'/>
+<table class='timetable'>
+{{ form.as_table }}
+</table>
+</form>
+
+
+<ul id='week_navigation'>
+{% for i in week|week_range %}
+<li{% ifequal i week %} class='selected'{% endifequal %}>
+{% ifnotequal i week %}
+<a href="{% url stables.views.dashboard week=i %}">
+{% endifnotequal %}
+{{ i }}
+{% ifnotequal i week %}
+</a>
+{% endifnotequal %}
+</li>
+{% endfor %}
+</ul>
+
+</article>
+{% endblock body %}

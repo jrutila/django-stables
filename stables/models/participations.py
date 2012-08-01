@@ -465,6 +465,27 @@ class ParticipationManager(models.Manager):
     def get_participations(self, occurrence):
         return self.filter(start=occurrence.original_start, end=occurrence.original_end, ).order_by('last_state_change_on')
 
+    def generate_attending_participations(self, start, end):
+        equery = Enroll.objects.filter(state=ATTENDING)
+        pquery = Participation.objects.filter(start__gte=start, end__lte=end)
+        ret = []
+        for p in pquery:
+            equery = equery.exclude(course__events=p.event, participant=p.participant)
+            #yield p
+            if p.state == ATTENDING:
+              ret.append(p)
+        for e in equery:
+            for o in e.course.get_occurrences(start=start, delta=end-start):
+                p = Participation()
+                p.participant = e.participant
+                p.event = o.event
+                p.start = o.start
+                p.end = o.end
+                #yield p
+                ret.append(p)
+        return ret 
+            
+
 class Participation(models.Model):
     class Meta:
         app_label = 'stables'
@@ -486,6 +507,7 @@ class Participation(models.Model):
         }
     state = models.IntegerField(choices=PARTICIPATION_STATES,default=0)
     participant = models.ForeignKey(UserProfile)
+    note = models.TextField()
     event = models.ForeignKey(Event)
     start = models.DateTimeField()
     end = models.DateTimeField()

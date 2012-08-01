@@ -15,6 +15,21 @@ from stables.models import ATTENDING, CANCELED, RESERVED, SKIPPED
 import stables.models as enum
 register = template.Library()
 
+@register.inclusion_tag('stables/render_field.html')
+def render_field(form, course, participation, name, occurrence=None, attributes=''):
+    field = form.get_field(course, participation, name, occurrence)
+    return {'errors': field.errors, 'widget': make_widget(field, attributes)}
+
+def make_widget(field,attributes):
+    attr = {}
+    if attributes:
+        attrs = attributes.split(",")
+        if attrs:
+            for at in attrs:
+                key,value = at.split("=")
+                attr[key] = value
+    return field.as_widget(attrs=attr)
+
 @register.inclusion_tag('stables/participate_button.html', takes_context=True)
 def participate_button(context, user, course, occurrence=None):
     buttons = []
@@ -71,3 +86,8 @@ def participate_button(context, user, course, occurrence=None):
 @register.filter()
 def state(state):
   return PARTICIPATION_STATES[state][1]
+
+@register.filter()
+def week_range(week):
+  return range(week-3,week+4)
+

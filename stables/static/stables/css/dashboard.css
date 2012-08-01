@@ -1,0 +1,53 @@
+div.note
+{
+  height: 20px;
+  width: 20px;
+  position: relative;
+  display: inline-block;
+  background-color: black;
+}
+
+div.note.has_text
+{
+  background-color: green;
+  cursor: pointer;
+}
+
+.note:after
+{
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 8px 8px 8px 0px;
+  box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.5);
+  color: #FFF;
+  content: attr(data-tooltip); /* The main part of the code, determining the content of the pop-up prompt */
+  margin-top: -24px;
+  opacity: 0; /* Our element is transparent... */
+  padding: 3px 7px;
+  position: absolute;
+  bottom: 20px;
+  visibility: hidden; /* ...and hidden. */
+  white-space: pre;
+    
+  transition: all 0.4s ease-in-out; /* To add some smoothness */ 
+}
+
+.note:hover:after
+{
+  opacity: 1;
+  visibility: visible;
+}
+
+div.note textarea
+{
+  position: absolute;
+  width: 100px;
+  height: 100%;
+  left: 0px;
+  top: 0px;
+}
+
+select[name$='state']
+{
+  width: 20px;
+  height: 20px;
+}

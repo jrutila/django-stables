@@ -2,7 +2,7 @@ from models import HorseForm, Horse, Course, Participation, PARTICIPATION_STATES
 from models import Enroll
 from models import UserProfile
 from models import Transaction
-from models import ATTENDING, RESERVED, SKIPPED
+from models import ATTENDING, RESERVED, SKIPPED, CANCELED
 from schedule.models import Occurrence
 from django.shortcuts import render_to_response, redirect, render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, Http404
@@ -10,12 +10,16 @@ from django.template import RequestContext
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext, ugettext_lazy as _
 import datetime
+import time
 from django.contrib.auth.decorators import permission_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.http import require_POST
 import models as enum
 import dateutil.parser
 from django import forms
+import re
+
+from django.utils.safestring import mark_safe
 
 def render_response(req, *args, **kwargs):
     kwargs['context_instance'] = RequestContext(req)
@@ -45,6 +49,14 @@ def list_horse(request):
     horses = Horse.objects.all()
     return render_response(request, 'stables/horselist.html', { 'horses': horses })
 
+def _get_week():
+    week = {}
+    today = datetime.date.today()
+    while today < datetime.date.today()+datetime.timedelta(days=7):
+      week[today.weekday()] = (today, format_date(today, 'EE', locale=get_language()))
+      today = today+datetime.timedelta(days=1)
+    return week
+
 from babel.dates import format_date
 from django.utils.translation import get_language
 def list_course(request):
@@ -60,13 +72,241 @@ def list_course(request):
         if c.is_full(o):
           full = _("Full")
         occs[o.start.hour][o.start.weekday()].append((c, full))
-    week = {}
-    today = datetime.date.today()
-    while today < datetime.date.today()+datetime.timedelta(days=7):
-      week[today.weekday()] = (today, format_date(today, 'EE', locale=get_language()))
-      today = today+datetime.timedelta(days=1)
+    week = _get_week()
     return render_response(request, 'stables/courselist.html',
             { 'courses': courses, 'occurrences': occs, 'week': week })
+
+class DashboardForm(forms.Form):
+  participation_map = dict()
+  participations = []
+  horses = None
+  timetable = {}
+  changed_participations = []
+  already_changed = set()
+  newparts = {}
+
+  def __init__(self, *args, **kwargs):
+    self.courses = kwargs.pop('courses')
+    self.week = kwargs.pop('week')
+    self.horses = kwargs.pop('horses')
+    self.timetable = {}
+    self.participation_map = {}
+    self.changed_participations = []
+    self.already_changed = set()
+    super(DashboardForm, self).__init__(*args, **kwargs)
+    mon = datetime.datetime(*(time.strptime('%s %s 1' % (datetime.date.today().year, self.week), '%Y %W %w'))[:6])
+    participations = list(Participation.objects.generate_attending_participations(mon, mon+datetime.timedelta(days=6, hours=23, minutes=59)))
+    for c in self.courses:
+      for o in c.get_occurrences(delta=datetime.timedelta(days=6), start=mon):
+        if not self.timetable.has_key(o.start.hour):
+          self.timetable[o.start.hour] = {}
+          for i in range(0,7):
+            self.timetable[o.start.hour][i] = []
+        cop = (c, o, dict())
+        self.timetable[o.start.hour][o.start.weekday()].append(cop)
+        self.add_new_part(c, o)
+    for part in participations:
+      self.add_or_update_part(part)
+
+  def add_or_update_part(self, part):
+    if self.participation_map.has_key(self.part_hash(part)):
+      for o in self.participation_map[self.part_hash(part)]:
+        del self.fields[o]
+        del self.participation_map[o]
+      self.participation_map[self.part_hash(part)] = set()
+
+    parts = [ cop[2] for cop in self.timetable[part.start.hour][part.start.weekday()] if part.event in cop[0].events.all() ][0]
+    if part.state != ATTENDING:
+      del parts[self.part_hash(part)]
+      return
+    horse_field = forms.ModelChoiceField(queryset=self.horses, initial=part.horse, required=False)
+    horse_key = self.add_field(part, 'horse', horse_field)
+    state_field = forms.ChoiceField(initial=ATTENDING, choices=PARTICIPATION_STATES, required=False)
+    state_key = self.add_field(part, 'state', state_field)
+    note_field = forms.CharField(initial=part.note, widget=forms.Textarea, required=False)
+    note_key = self.add_field(part, 'note', note_field)
+    parts[self.part_hash(part)] = (horse_key, part.participant, state_key, note_key)
+    return (horse_key, part.participant, state_key, note_key)
+
+  def add_new_part(self, course, occurrence):
+    parts = [ cop[2] for cop in self.timetable[occurrence.start.hour][occurrence.start.weekday()] if occurrence.event in course.events.all() ][0]
+    part = Participation()
+    part.state = ATTENDING
+    part.event = occurrence.event
+    part.start = occurrence.start
+    part.end = occurrence.end
+    part.participant = UserProfile()
+    part.participant.user = User()
+    part.participant.user.first_name = 'NEW'
+    part.participant.user.last_name = 'NEW'
+    horse_field = forms.ModelChoiceField(queryset=self.horses, initial=None, required=False)
+    horse_key = self.add_new_field(course, occurrence, 'horse', horse_field)
+    note_field = forms.CharField(initial="", widget=forms.Textarea, required=False)
+    note_key = self.add_new_field(course, occurrence, 'note', note_field)
+    part_field = forms.ModelChoiceField(queryset=UserProfile.objects, initial=None, required=False)
+    part_key = self.add_new_field(course, occurrence, 'participant', part_field)
+    parts['NEW'] = (horse_key, part_key, note_key)
+    self.participation_map[horse_key] = part
+    self.participation_map[part_key] = part
+    self.participation_map[note_key] = part
+
+  def add_new_field(self, course, occurrence, name, field):
+    key = self.get_new_key(course, occurrence, name)
+    self.fields[key] = field
+    return key
+
+  def full_clean(self):
+    for k in self.changed_data:
+      p = self.participation_map[k]
+      if 'horse' in k and (not p.horse or (self.data[k] == "" and p.horse != None) or p.horse.id != int(self.data[k])):
+        if self.data[k] == "":
+          p.horse = None
+        else:
+          p.horse = self.fields[k].queryset.get(id=self.data[k])
+        self.participation_changed(p)
+      if 'note' in k:
+        p.note = unicode(self.data[k])
+        self.participation_changed(p)
+      if 'state' in k:
+        p.state = int(self.data[k])
+        self.participation_changed(p)
+      if 'part' in k:
+        p.participant = self.fields[k].queryset.get(id=self.data[k])
+        self.participation_changed(p)
+    super(DashboardForm, self).full_clean()
+
+  def participation_changed(self, part):
+    if self.part_hash(part) not in self.already_changed:
+      self.changed_participations.append(part)
+      self.already_changed.add(self.part_hash(part))
+    if part.state != ATTENDING:
+      if self.participation_map.has_key(self.part_hash(part)):
+        for k in self.participation_map[self.part_hash(part)]:
+          del self.fields[k]
+          del self.participation_map[k]
+        del self.participation_map[self.part_hash(part)]
+  
+  def add_field(self, participation, name, field):
+    key = self.get_key(participation, name)
+    self.fields[key] = field
+    self.participation_map[key] = participation
+    if (not self.participation_map.has_key(self.part_hash(participation))):
+      self.participation_map[self.part_hash(participation)] = set()
+    self.participation_map[self.part_hash(participation)].add(key)
+    return key
+
+  def part_hash(self, part):
+    return '%s%s%s' % (part.participant, part.start, part.end)
+
+  def get_key(self, participation, name):
+    course = participation.event.course_set.all()[0]
+    if participation.id:
+      key_id = 'c%s_p%s_%s' % (course.id, participation.id, name)
+    else:
+      key_id = 'c%s_r%s_s%s_e%s_%s' % (course.id, participation.participant.id, participation.start.isoformat(), participation.end.isoformat(), name)
+    return key_id
+
+  def get_new_key(self, course, occurrence, name):
+    return 'c%s_new_s%s_e%s_%s' % (course.id, occurrence.start.isoformat(), occurrence.end.isoformat(), name)
+
+  def as_table(self):
+    output = []
+    # THEAD
+    output.append('<thead>')
+    output.append('<th></th>')
+    mon = datetime.datetime(*(time.strptime('%s %s 1' % (datetime.date.today().year, self.week), '%Y %W %w'))[:6])
+    _s = mon
+    while (_s <= mon+datetime.timedelta(days=6)):
+      output.append('<th>%s</th>' % format_date(_s, 'EE dd.MM', locale=get_language()))
+      _s = _s + datetime.timedelta(days=1)
+    output.append('</thead>')
+    # TBODY
+    output.append('<tbody>')
+    for start_hour, weekdays in self.timetable.items():
+      output.append('<tr><th>%s</th>' % start_hour)
+      for day, cops in weekdays.items():
+        output.append('<td>')
+        for cop in cops:
+          output.append('<span>')
+          output.append(cop[0].name)
+          output.append('</span>')
+          output.append('<ul>')
+          for (key, part) in cop[2].items():
+            if key != 'NEW':
+              output.append('<li>')
+              output.append(unicode(self[part[0]]))
+              output.append(unicode(part[1]))
+              output.append(unicode(self[part[2]]))
+              output.append(unicode(self[part[3]]))
+              output.append('</li>')
+          part = cop[2]['NEW']
+          output.append('<li>')
+          output.append(unicode(self[part[0]]))
+          output.append(unicode(self[part[1]]))
+          output.append(unicode(self[part[2]]))
+          output.append('</li>')
+          output.append('</ul>')
+        output.append('</td>')
+      output.append('</tr>')
+    output.append('</tbody>')
+    return mark_safe(u'\n'.join(output))
+'''
+    self.participations = kwargs.pop('participations')
+    self.courses = kwargs.pop('courses')
+    self.horses = kwargs.pop('horses')
+    occurrences = kwargs.pop('occurrences')
+    super(DashboardForm, self).__init__(*args, **kwargs)
+    for p in self.participations:
+      self.add_field(p)
+
+    for o in occurrences:
+      key ='c%s_s%s_e%s_attend_0' % (o.event.course_set.all()[0].id, o.start.isoformat(), o.end.isoformat())
+      self.fields[key] = forms.ModelChoiceField(queryset=UserProfile.objects, required=False)
+      self.participation_map[key] = o
+      key = 'c%s_s%s_e%s_horse_0' % (o.event.course_set.all()[0].id, o.start.isoformat(), o.end.isoformat())
+      self.fields[key] = forms.ModelChoiceField(queryset=self.horses, required=False)
+      self.participation_map[key] = o
+
+  def clean(self):
+    super(DashboardForm, self).clean()
+    if self.is_valid():
+      for (k,v) in self.cleaned_data.items():
+        if 'state' in k:
+          part = self.parameter_map[k]
+          part.state = int(v)
+          if part.state != ATTENDING:
+            part.horse = None
+
+  def add_field(self, p):
+    if p.id:
+      key_id = 'c%s_p%s' % (p.event.course_set.all()[0].id, p.id)
+    else:
+      key_id = 'c%s_r%s_s%s_e%s' % (p.event.course_set.all()[0].id, p.participant.id, p.start.isoformat(), p.end.isoformat())
+    self.fields['%s_horse' % key_id] = forms.ModelChoiceField(queryset=self.horses, initial=p.horse, required=False)
+    self.fields['%s_state' % key_id] = forms.ChoiceField(initial=ATTENDING, choices=PARTICIPATION_STATES, required=False)
+    self.participation_map['%s_horse' % key_id] = p
+    self.participation_map['%s_state' % key_id] = p
+    return p
+'''
+
+@permission_required('stables.change_participation')
+def dashboard(request, week=None):
+    if week == None:
+        week = datetime.date.today().isocalendar()[1]
+    week = int(week)
+    year = datetime.date.today().year
+    mon = datetime.datetime(*(time.strptime('%s %s 1' % (year, week), '%Y %W %w'))[:6])
+    courses = Course.objects.exclude(end__lte=mon)
+    if request.method == 'POST':
+      form = DashboardForm(request.POST, week=week, courses=courses, horses=Horse.objects)
+      if form.is_valid():
+        for p in form.changed_participations:
+          p.save()
+        form = DashboardForm(week=week, courses=courses, horses=Horse.objects)
+    else:
+      form = DashboardForm(week=week, courses=courses, horses=Horse.objects)
+
+    return render_response(request, 'stables/dashboard.html', { 'week': week, 'form': form });
 
 def view_course(request, course_id):
     course = Course.objects.get(pk=course_id)

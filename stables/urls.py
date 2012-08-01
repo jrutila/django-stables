@@ -9,6 +9,8 @@ urlpatterns = patterns('',
     url(r'^(?P<course_id>\d+)/enroll/$', 'stables.views.enroll_course'),
     url(r'^(?P<course_id>\d+)/cancel/$', 'stables.views.cancel'),
     url(r'^(?P<course_id>\d+)/$', 'stables.views.view_course'),
+    url(r'^dashboard/$', 'stables.views.dashboard'),
+    url(r'^dashboard/(?P<week>\d+)/$', 'stables.views.dashboard'),
     url(r'^$', 'stables.views.list_course'),
     url(r'^confirm/(?P<action>.*)/$', 'stables.views.confirm'),
 )
