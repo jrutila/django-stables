@@ -62,6 +62,8 @@ def _get_week():
 from babel.dates import format_date
 from django.utils.translation import get_language
 def list_course(request):
+    if (request.user.has_perm('stables.change_participation')):
+      return redirect('stables.views.dashboard')
     courses = Course.objects.exclude(end__lte=datetime.date.today())
     occs = {}
     for c in courses:
