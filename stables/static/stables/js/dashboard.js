@@ -12,6 +12,12 @@ $(document).ready(function() {
     set_has_text(this);
     $(this).parent().attr('data-tooltip', $(this).val());
   });
+  $("select[name$='state']").change(function() {
+    $(this).css('background-color', 'red');
+  });
+  $("select[name$='horse']").change(function() {
+    $(this).css('background-color', 'green');
+  });
 });
 
 function set_has_text(textarea)
