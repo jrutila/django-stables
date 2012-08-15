@@ -212,7 +212,9 @@ class DashboardForm(forms.Form):
         output.append('<td>')
         for cop in cops:
           output.append('<span>')
+          output.append('<a href="%s">' % cop[0].get_absolute_url())
           output.append(cop[0].name)
+          output.append('</a>')
           output.append('</span>')
           output.append('<ul>')
           for part in cop[2]:
