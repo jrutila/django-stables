@@ -9,6 +9,8 @@ from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.template import RequestContext
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext, ugettext_lazy as _
+from django.db.models import Q
+import operator
 import datetime
 import time
 from django.contrib.auth.decorators import permission_required
@@ -95,65 +97,42 @@ class DashboardForm(forms.Form):
     self.already_changed = set()
     super(DashboardForm, self).__init__(*args, **kwargs)
     mon = datetime.datetime(*(time.strptime('%s %s 1' % (datetime.date.today().year, self.week), '%Y %W %w'))[:6])
-    participations = list(Participation.objects.generate_attending_participations(mon, mon+datetime.timedelta(days=6, hours=23, minutes=59)))
-    for c in self.courses:
-      for o in c.get_occurrences(delta=datetime.timedelta(days=6), start=mon):
+    participations = Participation.objects.generate_attending_participations(mon, mon+datetime.timedelta(days=6, hours=23, minutes=59))
+    for (o, (c, parts)) in participations.items():
         if not self.timetable.has_key(o.start.hour):
           self.timetable[o.start.hour] = {}
           for i in range(0,7):
             self.timetable[o.start.hour][i] = []
-        cop = (c, o, dict())
+        ll = []
+        for part in parts:
+          ll.append(self.add_or_update_part(c, part))
+        neu = Participation()
+        neu.participant = UserProfile()
+        neu.participant.id = 0
+        neu.participant.user = User()
+        neu.event = o.event
+        neu.start = o.start
+        neu.end = o.end
+        ll.append(self.add_or_update_part(c, neu))
+        cop = (c, o, ll)
         self.timetable[o.start.hour][o.start.weekday()].append(cop)
-        self.add_new_part(c, o)
-    for part in participations:
-      self.add_or_update_part(part)
 
-  def add_or_update_part(self, part):
+  def add_or_update_part(self, course, part):
     if self.participation_map.has_key(self.part_hash(part)):
       for o in self.participation_map[self.part_hash(part)]:
         del self.fields[o]
         del self.participation_map[o]
       self.participation_map[self.part_hash(part)] = set()
 
-    parts = [ cop[2] for cop in self.timetable[part.start.hour][part.start.weekday()] if part.event in cop[0].events.all() ][0]
-    if part.state != ATTENDING:
-      del parts[self.part_hash(part)]
-      return
-    horse_field = forms.ModelChoiceField(queryset=self.horses, initial=part.horse, required=False)
-    horse_key = self.add_field(part, 'horse', horse_field)
+    horse_field = MyModelChoiceField(queryset=self.horses, initial=part.horse, required=False)
+    horse_key = self.add_field(course, part, 'horse', horse_field)
     state_field = forms.ChoiceField(initial=ATTENDING, choices=PARTICIPATION_STATES, required=False)
-    state_key = self.add_field(part, 'state', state_field)
+    state_key = self.add_field(course, part, 'state', state_field)
     note_field = forms.CharField(initial=part.note, widget=forms.Textarea, required=False)
-    note_key = self.add_field(part, 'note', note_field)
-    parts[self.part_hash(part)] = (horse_key, part.participant, state_key, note_key)
-    return (horse_key, part.participant, state_key, note_key)
-
-  def add_new_part(self, course, occurrence):
-    parts = [ cop[2] for cop in self.timetable[occurrence.start.hour][occurrence.start.weekday()] if occurrence.event in course.events.all() ][0]
-    part = Participation()
-    part.state = ATTENDING
-    part.event = occurrence.event
-    part.start = occurrence.start
-    part.end = occurrence.end
-    part.participant = UserProfile()
-    part.participant.user = User()
-    part.participant.user.first_name = 'NEW'
-    part.participant.user.last_name = 'NEW'
-    horse_field = forms.ModelChoiceField(queryset=self.horses, initial=None, required=False)
-    horse_key = self.add_new_field(course, occurrence, 'horse', horse_field)
-    note_field = forms.CharField(initial="", widget=forms.Textarea, required=False)
-    note_key = self.add_new_field(course, occurrence, 'note', note_field)
-    part_field = forms.ModelChoiceField(queryset=UserProfile.objects, initial=None, required=False)
-    part_key = self.add_new_field(course, occurrence, 'participant', part_field)
-    parts['NEW'] = (horse_key, part_key, note_key)
-    self.participation_map[horse_key] = part
-    self.participation_map[part_key] = part
-    self.participation_map[note_key] = part
-
-  def add_new_field(self, course, occurrence, name, field):
-    key = self.get_new_key(course, occurrence, name)
-    self.fields[key] = field
-    return key
+    note_key = self.add_field(course, part, 'note', note_field)
+    participant_field = forms.CharField(initial=unicode(part.participant), required=False)
+    participant_key = self.add_field(course, part, 'participant', participant_field)
+    return (horse_key, participant_key, state_key, note_key)
 
   def full_clean(self):
     for k in self.changed_data:
@@ -170,8 +149,12 @@ class DashboardForm(forms.Form):
       if 'state' in k:
         p.state = int(self.data[k])
         self.participation_changed(p)
-      if 'part' in k:
-        p.participant = self.fields[k].queryset.get(id=self.data[k])
+      if 'participant' in k:
+        val = self.data[k].split()
+        f = []
+        for v in val:
+          f.append((Q(user__first_name__icontains=v) | Q(user__last_name__icontains=v)))
+        p.participant = UserProfile.objects.get(reduce(operator.and_, f))
         self.participation_changed(p)
     super(DashboardForm, self).full_clean()
 
@@ -186,8 +169,8 @@ class DashboardForm(forms.Form):
           del self.participation_map[k]
         del self.participation_map[self.part_hash(part)]
   
-  def add_field(self, participation, name, field):
-    key = self.get_key(participation, name)
+  def add_field(self, course, participation, name, field):
+    key = self.get_key(course, participation, name)
     self.fields[key] = field
     self.participation_map[key] = participation
     if (not self.participation_map.has_key(self.part_hash(participation))):
@@ -196,10 +179,9 @@ class DashboardForm(forms.Form):
     return key
 
   def part_hash(self, part):
-    return '%s%s%s' % (part.participant, part.start, part.end)
+    return '%sSS%sEE%s' % (part.participant.id, part.start, part.end)
 
-  def get_key(self, participation, name):
-    course = participation.event.course_set.all()[0]
+  def get_key(self, course, participation, name):
     if participation.id:
       key_id = 'c%s_p%s_%s' % (course.id, participation.id, name)
     else:
@@ -231,63 +213,16 @@ class DashboardForm(forms.Form):
           output.append(cop[0].name)
           output.append('</span>')
           output.append('<ul>')
-          for (key, part) in cop[2].items():
-            if key != 'NEW':
-              output.append('<li>')
-              output.append(unicode(self[part[0]]))
-              output.append(unicode(part[1]))
-              output.append(unicode(self[part[2]]))
-              output.append(unicode(self[part[3]]))
-              output.append('</li>')
-          part = cop[2]['NEW']
-          output.append('<li>')
-          output.append(unicode(self[part[0]]))
-          output.append(unicode(self[part[1]]))
-          output.append(unicode(self[part[2]]))
-          output.append('</li>')
+          for part in cop[2]:
+            output.append('<li>')
+            for field in part:
+              output.append(unicode(self[field]))
+            output.append('</li>')
           output.append('</ul>')
         output.append('</td>')
       output.append('</tr>')
     output.append('</tbody>')
     return mark_safe(u'\n'.join(output))
-'''
-    self.participations = kwargs.pop('participations')
-    self.courses = kwargs.pop('courses')
-    self.horses = kwargs.pop('horses')
-    occurrences = kwargs.pop('occurrences')
-    super(DashboardForm, self).__init__(*args, **kwargs)
-    for p in self.participations:
-      self.add_field(p)
-
-    for o in occurrences:
-      key ='c%s_s%s_e%s_attend_0' % (o.event.course_set.all()[0].id, o.start.isoformat(), o.end.isoformat())
-      self.fields[key] = forms.ModelChoiceField(queryset=UserProfile.objects, required=False)
-      self.participation_map[key] = o
-      key = 'c%s_s%s_e%s_horse_0' % (o.event.course_set.all()[0].id, o.start.isoformat(), o.end.isoformat())
-      self.fields[key] = forms.ModelChoiceField(queryset=self.horses, required=False)
-      self.participation_map[key] = o
-
-  def clean(self):
-    super(DashboardForm, self).clean()
-    if self.is_valid():
-      for (k,v) in self.cleaned_data.items():
-        if 'state' in k:
-          part = self.parameter_map[k]
-          part.state = int(v)
-          if part.state != ATTENDING:
-            part.horse = None
-
-  def add_field(self, p):
-    if p.id:
-      key_id = 'c%s_p%s' % (p.event.course_set.all()[0].id, p.id)
-    else:
-      key_id = 'c%s_r%s_s%s_e%s' % (p.event.course_set.all()[0].id, p.participant.id, p.start.isoformat(), p.end.isoformat())
-    self.fields['%s_horse' % key_id] = forms.ModelChoiceField(queryset=self.horses, initial=p.horse, required=False)
-    self.fields['%s_state' % key_id] = forms.ChoiceField(initial=ATTENDING, choices=PARTICIPATION_STATES, required=False)
-    self.participation_map['%s_horse' % key_id] = p
-    self.participation_map['%s_state' % key_id] = p
-    return p
-'''
 
 @permission_required('stables.change_participation')
 def dashboard(request, week=None):
@@ -296,15 +231,15 @@ def dashboard(request, week=None):
     week = int(week)
     year = datetime.date.today().year
     mon = datetime.datetime(*(time.strptime('%s %s 1' % (year, week), '%Y %W %w'))[:6])
-    courses = Course.objects.exclude(end__lte=mon)
+    courses = Course.objects.exclude(end__lt=mon)
     if request.method == 'POST':
-      form = DashboardForm(request.POST, week=week, courses=courses, horses=Horse.objects)
+      form = DashboardForm(request.POST, week=week, courses=courses, horses=Horse.objects.all())
       if form.is_valid():
         for p in form.changed_participations:
           p.save()
-        form = DashboardForm(week=week, courses=courses, horses=Horse.objects)
+        return redirect(request.path)
     else:
-      form = DashboardForm(week=week, courses=courses, horses=Horse.objects)
+      form = DashboardForm(week=week, courses=courses, horses=Horse.objects.all())
 
     return render_response(request, 'stables/dashboard.html', { 'week': week, 'form': form });
 
@@ -478,7 +413,7 @@ class HorseParticipationForm(forms.Form):
     del kwargs['horses']
     super(HorseParticipationForm, self).__init__(*args, **kwargs)
     for p in participations:
-      self.fields['rider_id_'+str(p.participant.id)] = forms.ModelChoiceField(queryset=horses, label=str(p.participant), initial=p.horse, required=False)
+      self.fields['rider_id_'+str(p.participant.id)] = MyModelChoiceField(queryset=horses, label=str(p.participant), initial=p.horse, required=False)
 
 from django.contrib.admin import widgets
 class ParticipationTimeForm(forms.Form):
@@ -575,3 +510,36 @@ def update_rider_levels(request):
     ids = request.GET.get('ids').split(',')
     form = admin.RiderLevelForm()
   return render(request, 'stables/riderlevels.html', { 'form': form, 'act': reverse('stables.views.update_rider_levels'), 'riders': ids })
+
+class MyModelChoiceIterator(forms.models.ModelChoiceIterator):
+    """note that only line with # *** in it is actually changed"""
+    def __init__(self, field):
+        forms.models.ModelChoiceIterator.__init__(self, field)
+
+    def __iter__(self):
+        if self.field.empty_label is not None:
+            yield (u"", self.field.empty_label)
+        if self.field.cache_choices:
+            if self.field.choice_cache is None:
+                self.field.choice_cache = [
+                    self.choice(obj) for obj in self.queryset.all()
+                ]
+            for choice in self.field.choice_cache:
+                yield choice
+        else:
+            for obj in self.queryset: # ***
+                yield self.choice(obj)
+
+
+class MyModelChoiceField(forms.ModelChoiceField):
+    """only purpose of this class is to call another ModelChoiceIterator"""
+    def __init__(*args, **kwargs):
+        forms.ModelChoiceField.__init__(*args, **kwargs)
+
+    def _get_choices(self):
+        if hasattr(self, '_choices'):
+            return self._choices
+
+        return MyModelChoiceIterator(self)
+
+    choices = property(_get_choices, forms.ModelChoiceField._set_choices)

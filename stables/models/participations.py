@@ -466,25 +466,23 @@ class ParticipationManager(models.Manager):
         return self.filter(start=occurrence.original_start, end=occurrence.original_end, ).order_by('last_state_change_on')
 
     def generate_attending_participations(self, start, end):
-        equery = Enroll.objects.filter(state=ATTENDING)
-        pquery = Participation.objects.filter(start__gte=start, end__lte=end)
-        ret = []
-        for p in pquery:
-            equery = equery.exclude(course__events=p.event, participant=p.participant)
-            #yield p
-            if p.state == ATTENDING:
-              ret.append(p)
-        for e in equery:
-            for o in e.course.get_occurrences(start=start, delta=end-start):
+        courses = Course.objects.filter(Q(start__lte=end), Q(end__gte=start) | Q(end__isnull=True))
+        occurrences = Occurrence.objects.filter(Q(start__lte=end), Q(end__gte=start) | Q(end__isnull=True))
+        events = Event.objects.filter(Q(rule__frequency='WEEKLY') & (Q(end_recurring_period__gte=start) | Q(end_recurring_period__isnull=True))).select_related('rule').prefetch_related('course_set')
+        ret = {}
+        for event in events:
+            for occ in event.get_occurrences(start, end):
+              parts = list(Participation.objects.filter(event=event, start=occ.original_start, end=occ.original_end).select_related('participant__user', 'horse'))
+              enrolls = list(Enroll.objects.filter(Q(course__in=event.course_set.all()) & Q(state=ATTENDING) & ~Q(participant__in=[ p.participant.id for p in parts ])).select_related('participant__user').prefetch_related('course'))
+              for e in enrolls:
                 p = Participation()
                 p.participant = e.participant
-                p.event = o.event
-                p.start = o.start
-                p.end = o.end
-                #yield p
-                ret.append(p)
-        return ret 
-            
+                p.event = occ.event
+                p.start = occ.start
+                p.end = occ.end
+                parts.append(p)
+              ret[occ] = (event.course_set.all()[0], [ p for p in parts if p.state == ATTENDING ])
+        return ret
 
 class Participation(models.Model):
     class Meta:
