@@ -251,6 +251,7 @@ class Course(models.Model):
             parti.event = occurrence.event
             parti.start = occurrence.original_start
             parti.end = occurrence.original_end
+            parti.note = ""
 
         if state in pstates or force:
             reversion.set_comment("State change")
@@ -282,6 +283,7 @@ class Course(models.Model):
             parti.event = occurrence.event
             parti.start = occurrence.original_start
             parti.end = occurrence.original_end
+            parti.note = ""
         return parti
 
     def enroll(self, rider):
@@ -480,6 +482,7 @@ class ParticipationManager(models.Manager):
                 p.event = occ.event
                 p.start = occ.start
                 p.end = occ.end
+                p.note = ""
                 parts.append(p)
               ret[occ] = (event.course_set.all()[0], [ p for p in parts if p.state == ATTENDING ])
         return ret
