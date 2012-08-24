@@ -108,15 +108,13 @@ class UserProfileAdmin(admin.ModelAdmin):
   actions = ['update_riderlevels']
   search_fields = ['user__first_name', 'user__last_name', 'user__username']
 
-  def change_view(self, request, form_url='', extra_context=None):
-    self.form = UserProfileAdminForm
-    self.exclude = ['rider', 'customer', 'user']
-    return super(UserProfileAdmin, self).change_view(request, form_url, extra_context)
-
-  def add_view(self, request, form_url='', extra_context=None):
-    self.form = UserProfileAdminAddForm
-    self.exclude = ['rider', 'customer', 'user']
-    return super(UserProfileAdmin, self).add_view(request, form_url, extra_context)
+  def get_form(self, request, obj=None, **kwargs):
+      self.exclude = ['rider', 'customer', 'user']
+      if obj is None:
+          self.form = UserProfileAdminAddForm
+      else:
+          self.form = UserProfileAdminForm
+      return super(UserProfileAdmin, self).get_form(request, obj, **kwargs)
 
   def update_riderlevels(self, request, queryset):
     selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
