@@ -61,10 +61,11 @@ def _get_week():
 
 from babel.dates import format_date
 from django.utils.translation import get_language
+from django.db.models import Max
 def list_course(request):
     if (request.user.has_perm('stables.change_participation')):
       return redirect('stables.views.dashboard')
-    courses = Course.objects.exclude(end__lte=datetime.date.today())
+    courses = Course.objects.exclude(end__lte=datetime.date.today()).annotate(start_hour=Max('events__start')).order_by('start_hour')
     occs = {}
     for c in courses:
       for o in c.get_occurrences(delta=datetime.timedelta(days=6), start=datetime.date.today()):
@@ -235,7 +236,7 @@ def dashboard(request, week=None):
     week = int(week)
     year = datetime.date.today().year
     mon = datetime.datetime(*(time.strptime('%s %s 1' % (year, week), '%Y %W %w'))[:6])
-    courses = Course.objects.exclude(end__lt=mon)
+    courses = Course.objects.exclude(end__lt=mon).annotate(start_hour=Max('events__start')).order_by('-start_hour')
     if request.method == 'POST':
       form = DashboardForm(request.POST, week=week, courses=courses, horses=Horse.objects.all())
       if form.is_valid():
