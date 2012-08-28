@@ -1,7 +1,24 @@
 {% extends "site_base.html" %}
-{% load thumbnail %}
+{% load thumbnail i18n sekizai_tags filer_tags looptags %}
 {% block body %}
+{% addtoblock "js" %}
+<script type='text/javascript' src="{{ STATIC_URL }}stables/js/horse.js"></script>
+{% endaddtoblock %}
+{% addtoblock "css" %}
+<link href="{{ STATIC_URL }}stables/css/horse.css" rel="stylesheet" type="text/css" />
+{% endaddtoblock %}
+<article>
+<div class='horse_info'>
+<div class='horse_image'>
 <h1>{{ horse.name }}</h1>
-<img src="{% thumbnail horse.mugshot 100x200 %}"/>
-<div class="birthday">{{ horse.birthday }}</div>
+<img src="{% thumbnail horse.mugshot 200x300 crop %}"/>
+</div>
+{% include 'stables/horse_info.html' %}
+</div>
+<div class='horse_content'>
+<div class='description'>{{ horse.description }}</div>
+{% include 'stables/horse_gallery.html' %}
+<span style="color: white;">Lisää sisältöä tulossa myöhemmin.</span>
+</div>
+</article>
 {% endblock body %}

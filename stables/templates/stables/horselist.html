@@ -10,6 +10,7 @@
 <ul class="horselist">
 {% for horse in horses %}
 <li>
+<div class='horse_info'>
 <div class='horse_image'>
 <a href="{{ horse.get_absolute_url }}">
 <img src="{% thumbnail horse.mugshot 200x300 crop %}"/>
@@ -18,33 +19,8 @@
 <a href="{{ horse.get_absolute_url }}">
 <h1>{{ horse.name }}</h1>
 </a>
-{% if horse.gender %}
-<div class='horse_gender'>{% trans horse.gender %}</div>
-{% endif %}
-{% if horse.nickname %}
-<div class='horse_nickname'>
-{% blocktrans with horse.nickname as nickname %}
-"{{ nickname }}"
-{% endblocktrans %}
+{% include 'stables/horse_info.html' %}
 </div>
-{% endif %}
-{% if horse.breed %}
-<div class='horse_breed'>{% trans horse.breed %}</div>
-{% endif %}
-{% if horse.birthday %}
-<div class="horse_birthday">
-{% blocktrans with horse.birthday|date:"Y" as birthday %}
-Birth: {{ birthday }}
-{% endblocktrans %}
-</div>
-{% endif %}
-{% if horse.withers %}
-<div class="horse_withers">
-{% blocktrans with horse.withers as withers %}
-Withers: ca. {{ withers }} cm.
-{% endblocktrans %}
-</div>
-{% endif %}
 </li>
 {% endfor %}
 </ul>
