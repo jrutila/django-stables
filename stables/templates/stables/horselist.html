@@ -13,7 +13,9 @@
 <div class='horse_info'>
 <div class='horse_image'>
 <a href="{{ horse.get_absolute_url }}">
+{% if horse.mugshot %}
 <img src="{% thumbnail horse.mugshot 200x300 crop %}"/>
+{% endif %}
 </a>
 </div>
 <a href="{{ horse.get_absolute_url }}">

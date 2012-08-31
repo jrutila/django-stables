@@ -11,7 +11,9 @@
 <div class='horse_info'>
 <div class='horse_image'>
 <h1>{{ horse.name }}</h1>
+{% if horse.mugshot %}
 <img src="{% thumbnail horse.mugshot 200x300 crop %}"/>
+{% endif %}
 </div>
 {% include 'stables/horse_info.html' %}
 </div>
