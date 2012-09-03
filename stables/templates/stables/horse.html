@@ -7,7 +7,6 @@
 {% addtoblock "css" %}
 <link href="{{ STATIC_URL }}stables/css/horse.css" rel="stylesheet" type="text/css" />
 {% endaddtoblock %}
-<article>
 <div class='horse_info'>
 <div class='horse_image'>
 <h1>{{ horse.name }}</h1>
@@ -22,5 +21,4 @@
 {% include 'stables/horse_gallery.html' %}
 <span style="color: white;">Lisää sisältöä tulossa myöhemmin.</span>
 </div>
-</article>
 {% endblock body %}
