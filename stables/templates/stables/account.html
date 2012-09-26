@@ -9,6 +9,8 @@
 <a href="{% url socialauth_disconnect 'facebook' %}">{% trans "Disconnect Facebook" %}</a>
 {% else %}
 <a href="{% url socialauth_begin 'facebook' %}">{% trans "Connect Facebook" %}</a>
+{% trans "or" %}
+<a href="{% url django.contrib.auth.views.password_change %}">{% trans "Change password" %}</a>
 {% endif %}
 <side>
 <ul>
