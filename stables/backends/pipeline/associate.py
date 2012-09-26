@@ -13,8 +13,13 @@ def associate_by_name_and_empty_email(details, *args, **kwargs):
     last_name = details.get('last_name')
 
     try:
-        return {'user': User.objects.get(email='', first_name=first_name, last_name=last_name)}
+        return {'user': User.objects.get(email=email, first_name=first_name, last_name=last_name, is_staff=False, is_superuser=False)}
     except MultipleObjectsReturned:
-        raise AuthException(kwargs['backend'], 'Not unique name or email is set.')
+        raise AuthException(kwargs['backend'], 'Not unique name and email is set.')
     except User.DoesNotExist:
-        pass
+        try:
+            return {'user': User.objects.get(email='', first_name=first_name, last_name=last_name, is_staff=False, is_superuser=False)}
+        except MultipleObjectsReturned:
+            raise AuthException(kwargs['backend'], 'Not unique name is set.')
+        except User.DoesNotExist:
+            pass
