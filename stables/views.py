@@ -65,7 +65,7 @@ from django.db.models import Max
 def list_course(request):
     if (request.user.has_perm('stables.change_participation')):
       return redirect('stables.views.dashboard')
-    courses = Course.objects.exclude(end__lte=datetime.date.today()).annotate(start_hour=Max('events__start')).order_by('start_hour')
+    courses = Course.objects.exclude(end__lt=datetime.date.today()).annotate(start_hour=Max('events__start')).order_by('start_hour')
     occs = {}
     for c in courses:
       for o in c.get_occurrences(delta=datetime.timedelta(days=6), start=datetime.date.today()):
