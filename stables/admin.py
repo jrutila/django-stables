@@ -17,7 +17,7 @@ class CourseAdmin(admin.ModelAdmin):
     form =  CourseForm
 
 class ParticipationAdmin(reversion.VersionAdmin):
-    pass
+    list_display = ('participant', 'state', 'start', 'end')
 
 class CustomerInfoAdmin(admin.ModelAdmin):
     model = CustomerInfo
