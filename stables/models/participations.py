@@ -371,7 +371,7 @@ class CourseForm(forms.ModelForm):
       super(CourseForm, self).__init__(*args, **kwargs)
       if self.instance.pk:
         last_event = CourseForm.get_course_last_event(self.instance)
-        if last_event:
+        if last_event and last_event.rule:
           self.initial['starttime'] = last_event.start.time()
           self.initial['endtime'] = last_event.end.time()
           if last_event.end_recurring_period:
@@ -380,7 +380,7 @@ class CourseForm(forms.ModelForm):
     def save(self, force_insert=False, force_update=False, commit=True):
         instance = super(forms.ModelForm, self).save(commit=True)
         last_event = CourseForm.get_course_last_event(instance)
-        if not last_event or (self.cleaned_data['starttime'] != last_event.start.time() or self.cleaned_data['endtime'] != last_event.end.time()):
+        if self.cleaned_data['starttime'] and self.cleaned_data['endtime'] and (not last_event or (self.cleaned_data['starttime'] != last_event.start.time() or self.cleaned_data['endtime'] != last_event.end.time())):
             next_start = self.cleaned_data['start']
             next_end = self.cleaned_data['start']
             if last_event:
@@ -407,7 +407,7 @@ class CourseForm(forms.ModelForm):
               e.end_recurring_period = datetime.datetime.combine(self.cleaned_data['end'], self.cleaned_data['endtime'])
             e.save()
             instance.events.add(e)
-        else:
+        elif last_event:
             if not self.cleaned_data['end'] and last_event.end_recurring_period:
                 last_event.end_recurring_period = None
                 last_event.save()
