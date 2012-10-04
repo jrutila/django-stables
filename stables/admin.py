@@ -3,6 +3,7 @@ from stables.models import CustomerForm, CourseForm
 from stables.models import Course, Participation, Enroll
 from stables.models import Transaction, Ticket, ParticipationTransactionActivator, CourseTransactionActivator, CourseParticipationActivator, TicketType
 from stables.models import RiderLevel
+from schedule.models import Event
 from django import forms
 from django.contrib import admin
 from django.contrib.auth.models import User
@@ -13,8 +14,21 @@ import reversion
 
 #class HorseAdmin(reversion.VersionAdmin):
     #pass
+
 class CourseAdmin(admin.ModelAdmin):
     form =  CourseForm
+    fieldsets = (
+      (_('Basic information'), {
+        'fields': ('name','start', 'end', 'creator', 'created_on', 'max_participants', 'default_participation_fee', 'course_fee', 'allowed_levels' )
+      }),
+      (_('Recurring information'), {
+        'description': _('Do NOT input anything here if you have one time events.'),
+        'fields': ('starttime', 'endtime')
+      }),
+      (_('Advanced'), {
+        'fields': ('events',)
+      }),
+    )
 
 class ParticipationAdmin(reversion.VersionAdmin):
     list_display = ('participant', 'state', 'start', 'end')
