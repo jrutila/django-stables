@@ -558,6 +558,9 @@ class MyModelChoiceField(forms.ModelChoiceField):
     def __init__(*args, **kwargs):
         forms.ModelChoiceField.__init__(*args, **kwargs)
 
+    def label_from_instance(self, obj):
+        return obj.nickname
+
     def _get_choices(self):
         if hasattr(self, '_choices'):
             return self._choices
