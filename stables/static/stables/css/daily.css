@@ -1,0 +1,32 @@
+.dailytitle
+{
+  font-weight: bold;
+}
+
+.daily
+{
+  display: table;
+}
+
+.daily li
+{
+  display: table-row;
+}
+
+.daily .rider, .daily .horse
+{
+  display: table-cell;
+}
+
+@media print
+{
+  .daily .rider
+  {
+    width: 300px;
+  }
+
+  .daily
+  {
+    margin-bottom: 100px;
+  }
+}

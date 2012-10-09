@@ -81,6 +81,7 @@ def list_course(request):
     return render_response(request, 'stables/courselist.html',
             { 'courses': courses, 'occurrences': occs, 'week': week })
 
+
 class DashboardForm(forms.Form):
   participation_map = dict()
   participations = []
@@ -246,7 +247,23 @@ def dashboard(request, week=None):
     else:
       form = DashboardForm(week=week, courses=courses, horses=Horse.objects.all())
 
-    return render_response(request, 'stables/dashboard.html', { 'week': week, 'form': form });
+    return render_response(request, 'stables/dashboard.html', { 'week': week, 'form': form })
+
+@permission_required('stables.view_participation')
+def daily(request, date=None):
+    if date == None:
+      date = datetime.date.today()
+    else:
+      date = datetime.datetime.strptime(date, "%Y-%m-%d").date()
+    participations = Participation.objects.filter(start__gte=date, end__lt=date+datetime.timedelta(days=1)).order_by('event__start')
+
+    events = {}
+    for p in participations:
+      if not p.event in events:
+        events[p.event] = []
+      events[p.event].append(p)
+
+    return render_response(request, 'stables/daily.html', { 'daily_date': date, 'events': events })
 
 def view_course(request, course_id):
     course = Course.objects.get(pk=course_id)
