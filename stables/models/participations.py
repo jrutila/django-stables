@@ -386,6 +386,7 @@ class CourseForm(forms.ModelForm):
             if last_event:
               next_start = last_event.next_occurrence().start.date()
               next_end = last_event.next_occurrence().end.date()
+            # Create a new event with starttime and endtime
             e = Event()
             e.start = datetime.datetime.combine(next_start, self.cleaned_data['starttime'])
             e.end = datetime.datetime.combine(next_end, self.cleaned_data['endtime'])
@@ -395,9 +396,11 @@ class CourseForm(forms.ModelForm):
               p.start=datetime.datetime.combine(p.start.date(), e.start.time())
               p.end=datetime.datetime.combine(p.end.date(), e.end.time())
               p.save()
+            # End the last event
             if last_event:
               last_event.end_recurring_period=next_start-datetime.timedelta(days=1)
               last_event.save()
+            # Update event title
             e.title = self.cleaned_data['name']
             e.calendar = Calendar.objects.get(pk=1)
             e.creator = self.cleaned_data['creator']
@@ -415,6 +418,7 @@ class CourseForm(forms.ModelForm):
                 last_event.end_recurring_period = datetime.datetime.combine(self.cleaned_data['end'], self.cleaned_data['endtime'])
                 last_event.save()
 
+        # Update all names
         if self.cleaned_data['name']:
           for e in instance.events.all():
             e.title = self.cleaned_data['name']
@@ -469,10 +473,11 @@ class ParticipationManager(models.Manager):
 
     def generate_attending_participations(self, start, end):
         courses = Course.objects.filter(Q(start__lte=end), Q(end__gte=start) | Q(end__isnull=True))
-        occurrences = Occurrence.objects.filter(Q(start__lte=end), Q(end__gte=start) | Q(end__isnull=True))
-        events = Event.objects.filter(Q(rule__frequency='WEEKLY') & (Q(end_recurring_period__gte=start) | Q(end_recurring_period__isnull=True))).select_related('rule').prefetch_related('course_set')
+        events = Event.objects.filter((Q(rule__frequency='WEEKLY') & (Q(end_recurring_period__gte=start) | Q(end_recurring_period__isnull=True))) | (Q(rule__isnull=True) & Q(start__gte=start) & Q(end__lte=end))).select_related('rule').prefetch_related('course_set')
         ret = {}
         for event in events:
+            if event.course_set.count() == 0:
+              continue
             for occ in event.get_occurrences(start, end):
               parts = list(Participation.objects.filter(event=event, start=occ.original_start, end=occ.original_end).select_related('participant__user', 'horse'))
               enrolls = list(Enroll.objects.filter(Q(course__in=event.course_set.all()) & Q(state=ATTENDING) & ~Q(participant__in=[ p.participant.id for p in parts ])).select_related('participant__user').prefetch_related('course'))

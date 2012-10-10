@@ -183,7 +183,7 @@ class DashboardForm(forms.Form):
     return key
 
   def part_hash(self, part):
-    return '%sSS%sEE%s' % (part.participant.id, part.start, part.end)
+    return '%sCC%sSS%sEE%s' % (part.participant.id, part.event.id, part.start, part.end)
 
   def get_key(self, course, participation, name):
     if participation.id:
