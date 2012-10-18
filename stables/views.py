@@ -51,6 +51,40 @@ def list_horse(request):
     horses = Horse.objects.all()
     return render_response(request, 'stables/horselist.html', { 'horses': horses })
 
+class HorseModelMultipleChoiceField(forms.ModelMultipleChoiceField):
+    def label_from_instance(self, obj):
+        return obj.nickname
+
+class ReportForm(forms.Form):
+    horses = HorseModelMultipleChoiceField(queryset=Horse.objects.all(), widget=forms.CheckboxSelectMultiple())
+    report_date_start = forms.DateField()
+    report_date_end = forms.DateField(required=False)
+
+def report(request):
+    form = ReportForm(request.GET)
+    if form.is_valid():
+      report_date_start = form.cleaned_data['report_date_start']
+      report_date_end = form.cleaned_data['report_date_end']
+      if not report_date_end:
+        report_date_end = report_date_start
+      horses = form.cleaned_data['horses']
+      for h in horses:
+        parts = Participation.objects.filter(horse=h, start__gte=report_date_start, end__lt=report_date_end+datetime.timedelta(days=1))
+        h.participations = {"total": 0}
+        for p in parts:
+          if not p.start.date() in h.participations:
+            h.participations[p.start.date()] = 0
+          h.participations[p.start.date()] = h.participations[p.start.date()]+1
+          h.participations["total"] = h.participations["total"] + 1
+      report_interval = []
+      ri = report_date_start
+      while ri <= report_date_end:
+        report_interval.append(ri)
+        ri = ri + datetime.timedelta(days=1)
+      return render_response(request, 'stables/horsereport/report.html', { 'horses': horses, 'report_interval': report_interval })
+    else:
+      return render_response(request, 'stables/horsereport/index.html', { 'form': form })
+
 def _get_week():
     week = {}
     today = datetime.date.today()

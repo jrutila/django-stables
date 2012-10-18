@@ -91,3 +91,6 @@ def state(state):
 def week_range(week):
   return range(week-3,week+4)
 
+@register.filter
+def getitem ( item, string ):
+  return item.get(string,'')
