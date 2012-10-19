@@ -48,7 +48,7 @@ def view_horse(request, horse_id):
     return render_response(request, 'stables/horse.html', { 'horse': horse })
 
 def list_horse(request):
-    horses = Horse.objects.all()
+    horses = Horse.objects.exclude(last_usage_date__lt=datetime.date.today())
     return render_response(request, 'stables/horselist.html', { 'horses': horses })
 
 class HorseModelMultipleChoiceField(forms.ModelMultipleChoiceField):
@@ -272,14 +272,15 @@ def dashboard(request, week=None):
     year = datetime.date.today().year
     mon = datetime.datetime(*(time.strptime('%s %s 1' % (year, week), '%Y %W %w'))[:6])
     courses = Course.objects.exclude(end__lt=mon).annotate(start_hour=Max('events__start')).order_by('-start_hour')
+    horses = Horse.objects.exclude(last_usage_date__lt=mon)
     if request.method == 'POST':
-      form = DashboardForm(request.POST, week=week, courses=courses, horses=Horse.objects.all())
+      form = DashboardForm(request.POST, week=week, courses=courses, horses=horses)
       if form.is_valid():
         for p in form.changed_participations:
           p.save()
         return redirect(request.path)
     else:
-      form = DashboardForm(week=week, courses=courses, horses=Horse.objects.all())
+      form = DashboardForm(week=week, courses=courses, horses=horses)
 
     return render_response(request, 'stables/dashboard.html', { 'week': week, 'form': form })
 
