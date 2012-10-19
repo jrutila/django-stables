@@ -283,7 +283,7 @@ def dashboard(request, week=None):
 
     return render_response(request, 'stables/dashboard.html', { 'week': week, 'form': form })
 
-@permission_required('stables.view_participation')
+@permission_required('stables.view_participations')
 def daily(request, date=None):
     if date == None:
       date = datetime.date.today()
