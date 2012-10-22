@@ -69,7 +69,7 @@ def report(request):
         report_date_end = report_date_start
       horses = form.cleaned_data['horses']
       for h in horses:
-        parts = Participation.objects.filter(horse=h, start__gte=report_date_start, end__lt=report_date_end+datetime.timedelta(days=1))
+        parts = Participation.objects.filter(state=ATTENDING, horse=h, start__gte=report_date_start, end__lt=report_date_end+datetime.timedelta(days=1))
         h.participations = {"total": 0}
         for p in parts:
           if not p.start.date() in h.participations:
@@ -289,7 +289,7 @@ def daily(request, date=None):
       date = datetime.date.today()
     else:
       date = datetime.datetime.strptime(date, "%Y-%m-%d").date()
-    participations = Participation.objects.filter(start__gte=date, end__lt=date+datetime.timedelta(days=1)).order_by('event__start')
+    participations = Participation.objects.filter(state=ATTENDING, start__gte=date, end__lt=date+datetime.timedelta(days=1)).order_by('event__start')
 
     events = {}
     for p in participations:
