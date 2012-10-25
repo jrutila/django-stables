@@ -44,11 +44,11 @@ def add_horse(request):
     return render_response(request, 'stables/addhorse.html', { 'form': form })
 
 def view_horse(request, horse_id):
-    horse = Horse.objects.get(pk=horse_id)
+    horse = Horse.objects.get(pk=horse_id, public=True)
     return render_response(request, 'stables/horse.html', { 'horse': horse })
 
 def list_horse(request):
-    horses = Horse.objects.exclude(last_usage_date__lt=datetime.date.today())
+    horses = Horse.objects.filter((Q(last_usage_date__gte=datetime.date.today()) | Q(last_usage_date__isnull=True)), public=True)
     return render_response(request, 'stables/horselist.html', { 'horses': horses })
 
 class HorseModelMultipleChoiceField(forms.ModelMultipleChoiceField):

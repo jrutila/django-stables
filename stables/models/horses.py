@@ -19,6 +19,7 @@ class Horse(models.Model):
     gender = models.CharField(_('gender'), max_length=1, choices=(('G', _('Gelding')), ('M', _('Mare')), ('S', _('Stallion'))), null=True, blank=True)
     mugshot = FilerImageField(null=True, blank=True)
     tags = TaggableManager(_('tags'))
+    public = models.BooleanField(default=True)
     #owner = models.ForeignKey(Owner)
     last_usage_date = models.DateField(_('last usage date'), null=True, blank=True)
 
