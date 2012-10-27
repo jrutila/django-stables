@@ -432,8 +432,8 @@ class CourseForm(forms.ModelForm):
 
     @classmethod
     def get_course_last_event(csl, course):
-        if course.events.count() > 0:
-          return course.events.order_by('-start')[0]
+        if course.events.filter(rule__isnull=False).count() > 0:
+          return course.events.filter(rule__isnull=False).order_by('-start')[0]
         return None
 
 class CourseParticipationActivator(models.Model):
