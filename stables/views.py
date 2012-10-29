@@ -289,13 +289,16 @@ def daily(request, date=None):
       date = datetime.date.today()
     else:
       date = datetime.datetime.strptime(date, "%Y-%m-%d").date()
-    participations = Participation.objects.filter(state=ATTENDING, start__gte=date, end__lt=date+datetime.timedelta(days=1)).order_by('event__start')
-
-    events = {}
-    for p in participations:
-      if not p.event in events:
-        events[p.event] = []
-      events[p.event].append(p)
+    participations = Participation.objects.filter(state=ATTENDING, start__gte=date, end__lt=date+datetime.timedelta(days=1))
+    # directory is not sorted
+    dir_events = {}
+    # this is the sorted list of event tuples
+    events = []
+    for p in sorted(participations, key=lambda part: part.event.start.hour):
+      if not p.event in dir_events:
+        dir_events[p.event] = []
+        events.append((p.event, dir_events[p.event]))
+      dir_events[p.event].append(p)
 
     return render_response(request, 'stables/daily.html', { 'daily_date': date, 'events': events })
 

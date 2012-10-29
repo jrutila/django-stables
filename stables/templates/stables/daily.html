@@ -6,7 +6,7 @@
 <link href="{{ STATIC_URL }}stables/css/daily.css" rel="stylesheet" type="text/css" />
 {% endaddtoblock %}
 <h1>{{ daily_date|date:"DATE_FORMAT" }}</h1>
-{% for e, ps in events.items %}
+{% for e, ps in events %}
   <span class="dailytitle">{{ e.title }}</span>
   <span class="dailytime">{{ e.start.time }} - {{ e.end.time }}</span>
   <ul class="daily">
