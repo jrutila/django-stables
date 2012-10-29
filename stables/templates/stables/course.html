@@ -63,4 +63,7 @@ Enrolled: {{ attending }}/{{ space }}
     </li>
     {% endfor %}
 </ul>
+{% if perms.stables.change_course %}
+<a href="{% url stables.views.add_event course.id %}">{% trans "Add one-time event" %}</a><br/>
+{% endif %}
 {% endblock body %}
