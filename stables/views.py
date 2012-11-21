@@ -200,12 +200,6 @@ class DashboardForm(forms.Form):
     if self.part_hash(part) not in self.already_changed:
       self.changed_participations.append(part)
       self.already_changed.add(self.part_hash(part))
-    if part.state != ATTENDING:
-      if self.participation_map.has_key(self.part_hash(part)):
-        for k in self.participation_map[self.part_hash(part)]:
-          del self.fields[k]
-          del self.participation_map[k]
-        del self.participation_map[self.part_hash(part)]
   
   def add_field(self, course, participation, name, field):
     key = self.get_key(course, participation, name)

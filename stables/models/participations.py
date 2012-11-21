@@ -391,11 +391,6 @@ class CourseForm(forms.ModelForm):
             e.start = datetime.datetime.combine(next_start, self.cleaned_data['starttime'])
             e.end = datetime.datetime.combine(next_end, self.cleaned_data['endtime'])
             e.save()
-            for p in Participation.objects.filter(event=last_event, start__gte=next_start):
-              p.event=e
-              p.start=datetime.datetime.combine(p.start.date(), e.start.time())
-              p.end=datetime.datetime.combine(p.end.date(), e.end.time())
-              p.save()
             # End the last event
             if last_event:
               last_event.end_recurring_period=next_start-datetime.timedelta(days=1)
@@ -410,6 +405,12 @@ class CourseForm(forms.ModelForm):
               e.end_recurring_period = datetime.datetime.combine(self.cleaned_data['end'], self.cleaned_data['endtime'])
             e.save()
             instance.events.add(e)
+            instance.save()
+            for p in Participation.objects.filter(event=last_event, start__gte=next_start):
+              p.event=e
+              p.start=datetime.datetime.combine(p.start.date(), e.start.time())
+              p.end=datetime.datetime.combine(p.end.date(), e.end.time())
+              p.save()
         elif last_event:
             if not self.cleaned_data['end'] and last_event.end_recurring_period:
                 last_event.end_recurring_period = None
