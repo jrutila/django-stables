@@ -162,33 +162,40 @@ class DashboardForm(forms.Form):
         del self.participation_map[o]
       self.participation_map[self.part_hash(part)] = set()
 
-    horse_field = MyModelChoiceField(queryset=self.horses, initial=part.horse, required=False)
+    horse_field = MyModelChoiceField(queryset=self.horses, initial=part.horse, required=False, show_hidden_initial=True)
     horse_key = self.add_field(course, part, 'horse', horse_field)
+
     state_field = forms.ChoiceField(initial=ATTENDING, choices=PARTICIPATION_STATES, required=False)
     state_key = self.add_field(course, part, 'state', state_field)
-    note_field = forms.CharField(initial=part.note, widget=forms.Textarea, required=False)
+
+    note_field = forms.CharField(initial=part.note, widget=forms.Textarea, required=False, show_hidden_initial=True)
     note_key = self.add_field(course, part, 'note', note_field)
-    participant_field = forms.CharField(initial=unicode(part.participant), required=False)
+
+    participant_field = forms.CharField(initial=unicode(part.participant), required=False, show_hidden_initial=True)
     participant_key = self.add_field(course, part, 'participant', participant_field)
+
     return (horse_key, participant_key, state_key, note_key)
 
   def full_clean(self):
     for k in self.changed_data:
+      key = k
+      if key not in self.data:
+        continue
       p = self.participation_map[k]
-      if 'horse' in k and (not p.horse or (self.data[k] == "" and p.horse != None) or p.horse.id != int(self.data[k])):
-        if self.data[k] == "":
+      if 'horse' in k and (not p.horse or (self.data[key] == "" and p.horse != None) or p.horse.id != int(self.data[key])):
+        if self.data[key] == "":
           p.horse = None
         else:
-          p.horse = self.fields[k].queryset.get(id=self.data[k])
+          p.horse = self.fields[k].queryset.get(id=self.data[key])
         self.participation_changed(p)
       if 'note' in k:
-        p.note = unicode(self.data[k])
+        p.note = unicode(self.data[key])
         self.participation_changed(p)
       if 'state' in k:
-        p.state = int(self.data[k])
+        p.state = int(self.data[key])
         self.participation_changed(p)
       if 'participant' in k:
-        val = self.data[k].split()
+        val = self.data[key].split()
         f = []
         for v in val:
           f.append((Q(user__first_name__icontains=v) | Q(user__last_name__icontains=v)))
@@ -214,10 +221,7 @@ class DashboardForm(forms.Form):
     return '%sCC%sSS%sEE%s' % (part.participant.id, part.event.id, part.start, part.end)
 
   def get_key(self, course, participation, name):
-    if participation.id:
-      key_id = 'c%s_p%s_%s' % (course.id, participation.id, name)
-    else:
-      key_id = 'c%s_r%s_s%s_e%s_%s' % (course.id, participation.participant.id, participation.start.isoformat(), participation.end.isoformat(), name)
+    key_id = 'c%s_r%s_s%s_e%s_%s' % (course.id, participation.participant.id, participation.start.isoformat(), participation.end.isoformat(), name)
     return key_id
 
   def get_new_key(self, course, occurrence, name):
