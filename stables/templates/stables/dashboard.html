@@ -17,10 +17,10 @@
 
 
 <ul id='week_navigation'>
-{% for i in week|week_range %}
+{% for i,y in form.monday|week_range %}
 <li{% ifequal i week %} class='selected'{% endifequal %}>
 {% ifnotequal i week %}
-<a href="{% url stables.views.dashboard week=i %}">
+<a href="{% url stables.views.dashboard week=i %}{% if y %}?year={{ y }}{% endif %}">
 {% endifnotequal %}
 {{ i }}
 {% ifnotequal i week %}

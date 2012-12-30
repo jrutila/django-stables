@@ -13,6 +13,7 @@ from django.db.models import Q
 import operator
 import datetime
 import time
+from isoweek import Week
 from django.contrib.auth.decorators import permission_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.http import require_POST
@@ -129,13 +130,14 @@ class DashboardForm(forms.Form):
     self.courses = kwargs.pop('courses')
     self.week = kwargs.pop('week')
     self.horses = kwargs.pop('horses')
+    self.year = kwargs.pop('year')
     self.timetable = {}
     self.participation_map = {}
     self.changed_participations = []
     self.already_changed = set()
+    self.monday = datetime.datetime(*(Week(self.year, self.week).monday().timetuple()[:6]))
     super(DashboardForm, self).__init__(*args, **kwargs)
-    mon = datetime.datetime(*(time.strptime('%s %s 1' % (datetime.date.today().year, self.week), '%Y %W %w'))[:6])
-    participations = Participation.objects.generate_attending_participations(mon, mon+datetime.timedelta(days=6, hours=23, minutes=59))
+    participations = Participation.objects.generate_attending_participations(self.monday, self.monday+datetime.timedelta(days=6, hours=23, minutes=59))
     for (o, (c, parts)) in participations.items():
         if not self.timetable.has_key(o.start.hour):
           self.timetable[o.start.hour] = {}
@@ -232,9 +234,8 @@ class DashboardForm(forms.Form):
     # THEAD
     output.append('<thead>')
     output.append('<th></th>')
-    mon = datetime.datetime(*(time.strptime('%s %s 1' % (datetime.date.today().year, self.week), '%Y %W %w'))[:6])
-    _s = mon
-    while (_s <= mon+datetime.timedelta(days=6)):
+    _s = self.monday
+    while (_s <= self.monday+datetime.timedelta(days=6)):
       output.append('<th>%s</th>' % format_date(_s, 'EE dd.MM', locale=get_language()))
       _s = _s + datetime.timedelta(days=1)
     output.append('</thead>')
@@ -267,18 +268,19 @@ def dashboard(request, week=None):
     if week == None:
         week = datetime.date.today().isocalendar()[1]
     week = int(week)
-    year = datetime.date.today().year
-    mon = datetime.datetime(*(time.strptime('%s %s 1' % (year, week), '%Y %W %w'))[:6])
+    # Default year is now
+    year = int(request.GET.get('year', datetime.date.today().year))
+    mon = datetime.datetime(*(Week(year, week).monday().timetuple()[:6]))
     courses = Course.objects.exclude(end__lt=mon).annotate(start_hour=Max('events__start')).order_by('-start_hour')
     horses = Horse.objects.exclude(last_usage_date__lt=mon)
     if request.method == 'POST':
-      form = DashboardForm(request.POST, week=week, courses=courses, horses=horses)
+      form = DashboardForm(request.POST, week=week, year=year, courses=courses, horses=horses)
       if form.is_valid():
         for p in form.changed_participations:
           p.save()
-        return redirect(request.path)
+        return redirect('%s?%s' % (request.path, request.GET.urlencode()))
     else:
-      form = DashboardForm(week=week, courses=courses, horses=horses)
+      form = DashboardForm(week=week, year=year, courses=courses, horses=horses)
 
     return render_response(request, 'stables/dashboard.html', { 'week': week, 'form': form })
 

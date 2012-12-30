@@ -87,9 +87,24 @@ def participate_button(context, user, course, occurrence=None):
 def state(state):
   return PARTICIPATION_STATES[state][1]
 
+from isoweek import Week
 @register.filter()
-def week_range(week):
-  return range(week-3,week+4)
+def week_range(monday):
+  r = []
+  year = Week.withdate(monday).year
+  week = Week.withdate(monday).week
+  for i in range(week-3, week+4):
+    y = year
+    if i <=0:
+      i = 52+i
+      y = y-1
+    if i > 52:
+      i = i-52
+      y = y+1
+    if y == datetime.date.today().year:
+      y = None
+    r.append((i, y))
+  return r
 
 @register.filter
 def getitem ( item, string ):
