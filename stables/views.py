@@ -10,6 +10,7 @@ from django.template import RequestContext
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.db.models import Q
+from django.core.exceptions import MultipleObjectsReturned
 import operator
 import datetime
 import time
@@ -178,7 +179,7 @@ class DashboardForm(forms.Form):
 
     return (horse_key, participant_key, state_key, note_key)
 
-  def full_clean(self):
+  def _post_clean(self):
     for k in self.changed_data:
       key = k
       if key not in self.data:
@@ -196,14 +197,33 @@ class DashboardForm(forms.Form):
       if 'state' in k:
         p.state = int(self.data[key])
         self.participation_changed(p)
-      if 'participant' in k:
+      if 'participant' in k and 'selector' not in k:
         val = self.data[key].split()
         f = []
-        for v in val:
-          f.append((Q(user__first_name__icontains=v) | Q(user__last_name__icontains=v)))
-        p.participant = UserProfile.objects.get(reduce(operator.and_, f))
+        selkey = 'selector-%s' % key
+        tryget=True
+
+        if self.data[key].isdigit():
+          f.append(Q(pk=int(self.data[key])))
+        elif selkey in self.data and self.data[selkey].isdigit():
+          f.append(Q(pk=int(self.data[selkey])))
+        else:
+          for v in val:
+            f.append((Q(user__first_name__icontains=v) | Q(user__last_name__icontains=v)))
+
+        if tryget:
+          try:
+            p.participant = UserProfile.objects.get(reduce(operator.and_, f))
+          except MultipleObjectsReturned:
+            self._handle_name_error(key, UserProfile.objects.filter(reduce(operator.and_, f)))
         self.participation_changed(p)
-    super(DashboardForm, self).full_clean()
+
+  def _handle_name_error(self, key, queryset):
+    key = 'selector-%s' % key
+    self._errors[key] = self.error_class([_("Please select rider")])
+    self._errors['__all__'] = self.error_class([_("There was unambiguous riders")])
+    participant_field = forms.ModelChoiceField(queryset=queryset, required=True)
+    self.fields[key] = participant_field
 
   def participation_changed(self, part):
     if self.part_hash(part) not in self.already_changed:
@@ -255,6 +275,11 @@ class DashboardForm(forms.Form):
           for part in cop[2]:
             output.append('<li>')
             for field in part:
+              if 'participant' in field and 'selector-%s' % field in self.fields:
+                output.append(self[field].as_hidden())
+                field = 'selector-%s' % field
+              if self._errors and field in self._errors:
+                output.append(unicode(self._errors[field]))
               output.append(unicode(self[field]))
             output.append('</li>')
           output.append('</ul>')

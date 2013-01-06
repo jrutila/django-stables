@@ -73,3 +73,9 @@ white-space: nowrap;
 {
   vertical-align: top;
 }
+
+.errorlist
+{
+  color: red;
+  font-weight: bold;
+}

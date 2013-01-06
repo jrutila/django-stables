@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-05-11 08:03+0300\n"
+"POT-Creation-Date: 2013-01-06 23:16+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -58,7 +58,15 @@ msgstr "Tilaa"
 msgid "Full"
 msgstr "Täynnä"
 
-#: models/financial.py:25 models/horses.py:12
+#: views.py:223
+msgid "Please select rider"
+msgstr "Valitse ratsastaja"
+
+#: views.py:224
+msgid "There was unambiguous riders"
+msgstr "Ratsastajan nimi ei ole yksilöivä"
+
+#: models/financial.py:25 models/horses.py:13
 msgid "name"
 msgstr "nimi"
 
