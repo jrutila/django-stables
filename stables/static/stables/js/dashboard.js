@@ -13,10 +13,10 @@ $(document).ready(function() {
     $(this).parent().attr('data-tooltip', $(this).val());
   });
   $("select[name$='state']").change(function() {
-    $(this).css('background-color', 'red');
+    $(this).addClass('changed');
   });
   $("select[name$='horse']").change(function() {
-    $(this).css('background-color', 'green');
+    $(this).addClass('changed');
   });
 });
 

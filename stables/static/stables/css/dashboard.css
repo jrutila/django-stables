@@ -54,7 +54,7 @@ select[name$='state']
   height: 24px;
 }
 
-select[name$='state'].changed
+select.changed
 {
   background-color: red;
 }

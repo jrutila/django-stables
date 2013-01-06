@@ -184,6 +184,8 @@ class DashboardForm(forms.Form):
       key = k
       if key not in self.data:
         continue
+      self.fields[key].widget.attrs['class'] = 'changed'
+      self.fields[key].show_hidden_initial = False
       p = self.participation_map[k]
       if 'horse' in k and (not p.horse or (self.data[key] == "" and p.horse != None) or p.horse.id != int(self.data[key])):
         if self.data[key] == "":
