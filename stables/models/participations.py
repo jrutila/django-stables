@@ -474,7 +474,7 @@ class ParticipationManager(models.Manager):
 
     def generate_attending_participations(self, start, end):
         courses = Course.objects.filter(Q(start__lte=end), Q(end__gte=start) | Q(end__isnull=True))
-        events = Event.objects.filter((Q(rule__frequency='WEEKLY') & (Q(end_recurring_period__gte=start) | Q(end_recurring_period__isnull=True))) | (Q(rule__isnull=True) & Q(start__gte=start) & Q(end__lte=end))).select_related('rule').prefetch_related('course_set')
+        events = Event.objects.filter((Q(rule__frequency='WEEKLY') & (Q(end_recurring_period__gte=start) | Q(end_recurring_period__isnull=True))) | (Q(rule__isnull=True) & Q(start__gte=start) & Q(end__lte=end)) | (Q(occurrence__start__gte=start) & Q(occurrence__end__lte=end))).select_related('rule').prefetch_related('course_set')
         ret = {}
         for event in events:
             if event.course_set.count() == 0:
@@ -499,12 +499,15 @@ class Participation(models.Model):
     def __unicode__(self):
         date_format = u'l, %s' % ugettext("DATE_FORMAT")
         time_format = u'%s' % ugettext("TIME_FORMAT")
+        occ = self.get_occurrence()
+        if not occ:
+          return ugettext('%(name)s %(state)s No Occurrence')
         return ugettext('%(name)s %(state)s %(event)s: %(start)s %(starttime)s - %(endtime)s') % {
             'name': self.participant,
             'state': PARTICIPATION_STATES[self.state][1],
             'event': self.event.title,
-            'start': date(self.get_occurrence().start.date(), date_format),
-            'starttime': time(self.get_occurrence().start.time(), time_format),
+            'start': date(occ.start.date(), date_format),
+            'starttime': time(occ.start.time(), time_format),
             'endtime': time(self.get_occurrence().end.time(), time_format),
         }
     def short(self):
@@ -571,7 +574,10 @@ class Participation(models.Model):
         occ = self.event.get_occurrence(self.start)
         if occ:
             return occ
-        return Occurrence.objects.get(event = self.event, original_start = self.start)
+        try:
+          return Occurrence.objects.get(event = self.event, original_start = self.start)
+        except DoesNotExist:
+          return None
 
 #class RiderEvent(models.Model):
     #allowed_levels = models.CharField(max_length=20, choices=RIDER_LEVELS)
