@@ -42,6 +42,11 @@ Enrolled: {{ attending }}/{{ space }}
         <a href="{% url stables.views.modify_participation_time course_id=course.id occurrence_start=c.start.isoformat %}">{% trans "Change time" %}</a>
         {% endif %}
         <ul>
+        {% for instr in c.instructors %}
+          <li>
+            {{ instr }}
+          </li>
+        {% endfor %}
         {% for part in c.parts %}
           <li>
           {% if perms.stables.view_participation %}

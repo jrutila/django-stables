@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-01-06 23:16+0200\n"
+"POT-Creation-Date: 2013-02-22 23:15+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -62,19 +62,19 @@ msgstr ""
 msgid "Course Plugin"
 msgstr "Tuntiviittaus"
 
-#: views.py:112
+#: views.py:113
 msgid "Space"
 msgstr "Tilaa"
 
-#: views.py:114
+#: views.py:115
 msgid "Full"
 msgstr "Täynnä"
 
-#: views.py:223
+#: views.py:259
 msgid "Please select rider"
 msgstr "Valitse ratsastaja"
 
-#: views.py:224
+#: views.py:260
 msgid "There was unambiguous riders"
 msgstr "Ratsastajan nimi ei ole yksilöivä"
 
@@ -162,7 +162,7 @@ msgstr "Varalla"
 msgid "Waiting for payment"
 msgstr "Odottaa maksua"
 
-#: models/participations.py:335 models/participations.py:511
+#: models/participations.py:335 models/participations.py:514
 #, python-format
 msgid "%(name)s %(state)s"
 msgstr ""
@@ -175,9 +175,24 @@ msgstr ""
 msgid "TIME_FORMAT"
 msgstr ""
 
-#: models/participations.py:502
+#: models/participations.py:504
+#, python-format
+msgid "%(name)s %(state)s No Occurrence"
+msgstr ""
+
+#: models/participations.py:505
 #, python-format
 msgid "%(name)s %(state)s %(event)s: %(start)s %(starttime)s - %(endtime)s"
+msgstr ""
+
+#: models/participations.py:599
+#, python-format
+msgid "Instructor: %(name)s"
+msgstr "Opettaja: %(name)s"
+
+#: models/participations.py:599
+#, python-format
+msgid "%(firstname)s %(lastname)s"
 msgstr ""
 
 #: templates/stables/account.html:6
@@ -267,7 +282,7 @@ msgstr "Aseta hevoset"
 msgid "Change time"
 msgstr "Vaihda ajankohtaa"
 
-#: templates/stables/course.html:67
+#: templates/stables/course.html:72
 msgid "Add one-time event"
 msgstr "Lisää kertatapahtuma"
 
