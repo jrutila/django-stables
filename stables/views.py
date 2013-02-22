@@ -152,8 +152,8 @@ class DashboardForm(forms.Form):
         neu.participant.id = 0
         neu.participant.user = User()
         neu.event = o.event
-        neu.start = o.start
-        neu.end = o.end
+        neu.start = o.original_start
+        neu.end = o.original_end
         ll.append(self.add_or_update_part(c, neu))
         cop = (c, o, ll)
         self.timetable[o.start.hour][o.start.weekday()].append(cop)
