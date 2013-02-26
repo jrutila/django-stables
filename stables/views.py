@@ -88,24 +88,30 @@ def report(request):
     else:
       return render_response(request, 'stables/horsereport/index.html', { 'form': form })
 
-def _get_week():
+def _get_week(today):
     week = {}
-    today = datetime.date.today()
-    while today < datetime.date.today()+datetime.timedelta(days=7):
-      week[today.weekday()] = (today, format_date(today, 'EE', locale=get_language()))
+    for i in range(0,6):
+      week[today.weekday()] = (today, format_date(today, 'EE dd.MM', locale=get_language()))
       today = today+datetime.timedelta(days=1)
     return week
 
 from babel.dates import format_date
 from django.utils.translation import get_language
 from django.db.models import Max
-def list_course(request):
+def list_course(request, week=None):
     if (request.user.has_perm('stables.change_participation')):
       return redirect('stables.views.dashboard')
-    courses = Course.objects.exclude(end__lt=datetime.date.today()).annotate(start_hour=Max('events__start')).order_by('start_hour')
+    if week == None:
+        week = datetime.date.today().isocalendar()[1]
+    week = int(week)
+    year = int(request.GET.get('year', datetime.date.today().year))
+
+    monday = datetime.datetime(*(Week(year, week).monday().timetuple()[:6]))
+    sunday = monday+datetime.timedelta(days=6, hours=23, minutes=59)
+    courses = Course.objects.exclude(end__lt=sunday).annotate(start_hour=Max('events__start')).order_by('start_hour')
     occs = {}
     for c in courses:
-      for o in c.get_occurrences(delta=datetime.timedelta(days=6), start=datetime.date.today()):
+      for o in c.get_occurrences(delta=datetime.timedelta(days=6), start=monday):
         if not occs.has_key(o.start.hour):
           occs[o.start.hour] = {}
           for i in range(0,7):
@@ -113,10 +119,12 @@ def list_course(request):
         full = _("Space")
         if c.is_full(o):
           full = _("Full")
-        occs[o.start.hour][o.start.weekday()].append((c, full))
-    week = _get_week()
+        ins = InstructorParticipation.objects.filter(event=o.event, start=o.original_start, end=o.original_end)
+        occs[o.start.hour][o.start.weekday()].append((c, full, ins[0] if ins else None, o, request.user.get_profile() if request.user.is_authenticated() else None))
+    week = _get_week(monday)
+    today_week = Week.thisweek().week
     return render_response(request, 'stables/courselist.html',
-            { 'courses': courses, 'occurrences': occs, 'week': week })
+            { 'courses': courses, 'occurrences': occs, 'week_dates': week, 'week': Week.withdate(monday).week, 'week_range': [(today_week,), (today_week+1,), (today_week+2,)] })
 
 
 class DashboardForm(forms.Form):

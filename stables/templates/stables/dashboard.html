@@ -6,17 +6,11 @@
 {% endaddtoblock %}
 {% addtoblock "css" %}
 <link href="{{ STATIC_URL }}stables/css/dashboard.css" rel="stylesheet" type="text/css" />
+<link href="{{ STATIC_URL }}stables/css/course.css" rel="stylesheet" type="text/css" />
 {% endaddtoblock %}
-<form method='POST'>
-{% csrf_token %}
-<input type='submit' value='{% trans "Save Changes" %}'/>
-{{ form.non_field_errors }}
-<table class='timetable'>
-{{ form.as_table }}
-</table>
-</form>
 
-
+<div>
+{% trans "Select week" %}
 <ul id='week_navigation'>
 {% for i,y in form.monday|week_range %}
 <li{% ifequal i week %} class='selected'{% endifequal %}>
@@ -30,5 +24,17 @@
 </li>
 {% endfor %}
 </ul>
+</div>
+
+<form method='POST'>
+{% csrf_token %}
+<input type='submit' value='{% trans "Save Changes" %}'/>
+{{ form.non_field_errors }}
+<table class='timetable'>
+{{ form.as_table }}
+</table>
+</form>
+
+
 
 {% endblock body %}

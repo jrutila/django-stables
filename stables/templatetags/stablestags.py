@@ -89,11 +89,11 @@ def state(state):
 
 from isoweek import Week
 @register.filter()
-def week_range(monday):
+def week_range(monday, before=3, after=4):
   r = []
   year = Week.withdate(monday).year
   week = Week.withdate(monday).week
-  for i in range(week-3, week+4):
+  for i in range(week-before, week+after):
     y = year
     if i <=0:
       i = 52+i
