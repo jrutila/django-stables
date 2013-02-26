@@ -8,3 +8,16 @@ table.timetable thead th:first-of-type
 {
   width: auto;
 }
+
+#week_navigation
+{
+  clear: both;
+  display: block;
+}
+
+#week_navigation li
+{
+  display: inline;
+  margin-left: 10px;
+  margin-right: 10px;
+}

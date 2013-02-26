@@ -1,15 +1,33 @@
 {% extends "site_base.html" %}
-{% load i18n sekizai_tags cms_tags %}
+{% load i18n sekizai_tags cms_tags stablestags %}
 {% block body %}
 {% show_placeholder "content" request.current_page.parent_id %}
 {% addtoblock "css" %}
 <link href="{{ STATIC_URL }}stables/css/course.css" rel="stylesheet" type="text/css" />
 {% endaddtoblock %}
+
+<div>
+{% trans "Select week" %}
+<ul id='week_navigation'>
+{% for i,y in week_range %}
+<li{% ifequal i week %} class='selected'{% endifequal %}>
+{% ifnotequal i week %}
+<a href="{% url stables.views.list_course week=i %}{% if y %}?year={{ y }}{% endif %}">
+{% endifnotequal %}
+{{ i }}
+{% ifnotequal i week %}
+</a>
+{% endifnotequal %}
+</li>
+{% endfor %}
+</ul>
+</div>
+
 <table class='timetable'>
   <thead>
     <tr>
     <th></th>
-    {% for i,d in week.items %}
+    {% for i,d in week_dates.items %}
       <th>{{ d.1 }}</th>
     {% endfor %}
     </tr>
@@ -20,15 +38,21 @@
       <td>{{ t }}</td>
       {% for i, d in o.items %}
         <td>
-        {% for c, f in d %}
-          <a href="{{ c.get_absolute_url }}">{{ c.name }}</a>
-          <span>
-          {% if c.is_full %}
-            {{ f }}
-          {% else %}
-            {{ f }}
+        {% for course, full_text, ins, occ, rider in d %}
+          <a href="{{ course.get_absolute_url }}">{{ course.name }}</a>
+          {% if ins %}
+            <div>{{ ins }}</div>
           {% endif %}
-          </span>
+          <div>
+          {% if course.is_full %}
+            {{ full_text }}
+          {% else %}
+            {{ full_text }}
+          {% endif %}
+          {% if user.is_authenticated %}
+            {% participate_button rider course occ %}
+          {% endif %}
+          </div>
         {% endfor %}
         </td>
       {% endfor %}
@@ -36,9 +60,4 @@
     {% endfor %}
   </tbody>
 </table>
-<ul>
-    {% for c in courses %}
-    <li><a href="{{ c.get_absolute_url }}">{{ c.name }}</a></li>
-    {% endfor %}
-</ul>
 {% endblock body %}

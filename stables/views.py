@@ -1,4 +1,5 @@
-from models import HorseForm, Horse, Course, Participation, PARTICIPATION_STATES
+from models import HorseForm, Horse, Course, Participation, PARTICIPATION_STATES, InstructorParticipation
+from models import InstructorInfo
 from models import Enroll
 from models import UserProfile
 from models import Transaction
@@ -87,24 +88,30 @@ def report(request):
     else:
       return render_response(request, 'stables/horsereport/index.html', { 'form': form })
 
-def _get_week():
+def _get_week(today):
     week = {}
-    today = datetime.date.today()
-    while today < datetime.date.today()+datetime.timedelta(days=7):
-      week[today.weekday()] = (today, format_date(today, 'EE', locale=get_language()))
+    for i in range(0,6):
+      week[today.weekday()] = (today, format_date(today, 'EE dd.MM', locale=get_language()))
       today = today+datetime.timedelta(days=1)
     return week
 
 from babel.dates import format_date
 from django.utils.translation import get_language
 from django.db.models import Max
-def list_course(request):
+def list_course(request, week=None):
     if (request.user.has_perm('stables.change_participation')):
       return redirect('stables.views.dashboard')
-    courses = Course.objects.exclude(end__lt=datetime.date.today()).annotate(start_hour=Max('events__start')).order_by('start_hour')
+    if week == None:
+        week = datetime.date.today().isocalendar()[1]
+    week = int(week)
+    year = int(request.GET.get('year', datetime.date.today().year))
+
+    monday = datetime.datetime(*(Week(year, week).monday().timetuple()[:6]))
+    sunday = monday+datetime.timedelta(days=6, hours=23, minutes=59)
+    courses = Course.objects.exclude(end__lt=sunday).annotate(start_hour=Max('events__start')).order_by('start_hour')
     occs = {}
     for c in courses:
-      for o in c.get_occurrences(delta=datetime.timedelta(days=6), start=datetime.date.today()):
+      for o in c.get_occurrences(delta=datetime.timedelta(days=6), start=monday):
         if not occs.has_key(o.start.hour):
           occs[o.start.hour] = {}
           for i in range(0,7):
@@ -112,18 +119,22 @@ def list_course(request):
         full = _("Space")
         if c.is_full(o):
           full = _("Full")
-        occs[o.start.hour][o.start.weekday()].append((c, full))
-    week = _get_week()
+        ins = InstructorParticipation.objects.filter(event=o.event, start=o.original_start, end=o.original_end)
+        occs[o.start.hour][o.start.weekday()].append((c, full, ins[0] if ins else None, o, request.user.get_profile() if request.user.is_authenticated() else None))
+    week = _get_week(monday)
+    today_week = Week.thisweek().week
     return render_response(request, 'stables/courselist.html',
-            { 'courses': courses, 'occurrences': occs, 'week': week })
+            { 'courses': courses, 'occurrences': occs, 'week_dates': week, 'week': Week.withdate(monday).week, 'week_range': [(today_week,), (today_week+1,), (today_week+2,)] })
 
 
 class DashboardForm(forms.Form):
   participation_map = dict()
+  course_occ_map = dict()
   participations = []
   horses = None
   timetable = {}
   changed_participations = []
+  deleted_participations = []
   already_changed = set()
   newparts = {}
 
@@ -137,8 +148,19 @@ class DashboardForm(forms.Form):
     self.changed_participations = []
     self.already_changed = set()
     self.monday = datetime.datetime(*(Week(self.year, self.week).monday().timetuple()[:6]))
+    self.sunday = self.monday+datetime.timedelta(days=6, hours=23, minutes=59)
     super(DashboardForm, self).__init__(*args, **kwargs)
-    participations = Participation.objects.generate_attending_participations(self.monday, self.monday+datetime.timedelta(days=6, hours=23, minutes=59))
+
+    instructors = InstructorParticipation.objects.get_participations(self.monday, self.sunday)
+    ii = dict()
+    for (o, (c, ins)) in instructors.items():
+        if ins:
+          if not c.id in ii:
+              ii[c.id] = {}
+          if not o.start in ii[c.id]:
+              ii[c.id][o.start] = ins
+
+    participations = Participation.objects.generate_attending_participations(self.monday, self.sunday)
     for (o, (c, parts)) in participations.items():
         if not self.timetable.has_key(o.start.hour):
           self.timetable[o.start.hour] = {}
@@ -155,8 +177,13 @@ class DashboardForm(forms.Form):
         neu.start = o.original_start
         neu.end = o.original_end
         ll.append(self.add_or_update_part(c, neu))
-        cop = (c, o, ll)
+        field = MyModelChoiceField(queryset=InstructorInfo.objects.all(), required=False, initial=ii[c.id][o.start][0].instructor.instructor.id if c.id in ii and o.start in ii[c.id] else None, show_hidden_initial=True)
+        key = 'c%s_s%s_e%s_instructor' % (c.id, o.start.isoformat(), o.end.isoformat())
+        self.fields[key] = field
+        self.course_occ_map[key] = (c, o)
+        cop = (c, o, ll, ii[c.id][o.start] if c.id in ii else [])
         self.timetable[o.start.hour][o.start.weekday()].append(cop)
+
 
   def add_or_update_part(self, course, part):
     if self.participation_map.has_key(self.part_hash(part)):
@@ -186,6 +213,21 @@ class DashboardForm(forms.Form):
         continue
       self.fields[key].widget.attrs['class'] = 'changed'
       self.fields[key].show_hidden_initial = False
+      if 'instructor' in k:
+        (c,o) = self.course_occ_map[key]
+        id = self.data[k]
+        if id:
+          usrprf = UserProfile.objects.get(instructor__id=self.data[k])
+          instrprt = InstructorParticipation()
+          instrprt.instructor = usrprf
+          instrprt.event = o.event
+          instrprt.start = o.original_start
+          instrprt.end = o.original_end
+          self.changed_participations.append(instrprt)
+        else:
+          instrprt = InstructorParticipation.objects.filter(event=o.event, start=o.start, end=o.end)
+          self.deleted_participations.append(instrprt)
+        continue
       p = self.participation_map[k]
       if 'horse' in k and (not p.horse or (self.data[key] == "" and p.horse != None) or p.horse.id != int(self.data[key])):
         if self.data[key] == "":
@@ -273,6 +315,7 @@ class DashboardForm(forms.Form):
           output.append(cop[0].name)
           output.append('</a>')
           output.append('</span>')
+          output.append(unicode(self['c%s_s%s_e%s_instructor' % (cop[0].id, cop[1].start.isoformat(), cop[1].end.isoformat())]))
           output.append('<ul>')
           for part in cop[2]:
             output.append('<li>')
@@ -305,6 +348,8 @@ def dashboard(request, week=None):
       if form.is_valid():
         for p in form.changed_participations:
           p.save()
+        for p in form.deleted_participations:
+          p.delete()
         return redirect('%s?%s' % (request.path, request.GET.urlencode()))
     else:
       form = DashboardForm(week=week, year=year, courses=courses, horses=horses)
@@ -344,6 +389,8 @@ def view_course(request, course_id):
     parts = Participation.objects.filter(event__in=course.events.all())
     occs = []
 
+    instructors = InstructorParticipation.objects.filter(event__in=course.events.all())
+
     for o in occurrences:
       pp = dict(estates) 
       for p in parts.filter(start=o.original_start):
@@ -351,7 +398,9 @@ def view_course(request, course_id):
       pp = sorted(pp.values(), key=lambda x: x.last_state_change_on )
       atnd = filter(lambda x: x.state == ATTENDING, pp)
       resv = filter(lambda x: x.state == RESERVED, pp)
-      occs.append({'occurrence': o, 'attending_amount': len(atnd), 'start': o.start, 'end': o.end, 'parts': atnd+resv })
+      instructors = InstructorParticipation.objects.filter(event__in=course.events.all(), start=o.original_start)
+      occs.append({'occurrence': o, 'attending_amount': len(atnd), 'start': o.start, 'end': o.end, 'parts': atnd+resv, 'instructors': instructors })
+
 
     return render_response(request, 'stables/course.html',
             { 'course': course, 'occurrences': occs })
@@ -648,7 +697,9 @@ class MyModelChoiceField(forms.ModelChoiceField):
         forms.ModelChoiceField.__init__(*args, **kwargs)
 
     def label_from_instance(self, obj):
-        return obj.nickname
+        if hasattr(obj, 'nickname'):
+            return obj.nickname
+        return unicode(obj)
 
     def _get_choices(self):
         if hasattr(self, '_choices'):

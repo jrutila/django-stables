@@ -14,6 +14,7 @@ urlpatterns = patterns('',
     url(r'^daily/$', 'stables.views.daily'),
     url(r'^daily/(?P<date>\d{4}-\d{2}-\d{2})/$', 'stables.views.daily'),
     url(r'^dashboard/(?P<week>\d+)/$', 'stables.views.dashboard'),
+    url(r'^week/(?P<week>\d+)/$', 'stables.views.list_course'),
     url(r'^$', 'stables.views.list_course'),
     url(r'^confirm/(?P<action>.*)/$', 'stables.views.confirm'),
 )

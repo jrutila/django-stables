@@ -30,6 +30,7 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User)
     rider = models.OneToOneField('RiderInfo', null=True, blank=True)
     customer = models.OneToOneField('CustomerInfo', null=True, blank=True)
+    instructor = models.OneToOneField('InstructorInfo', null=True, blank=True)
 
     phone_number = models.CharField(max_length=30, null=True, blank=True)
 
@@ -79,6 +80,12 @@ class RiderInfo(models.Model):
     def _get_unused_tickets(self):
         return self.ticket_set.filter(transaction__isnull=True).exclude(expires__lt=datetime.datetime.now())
     unused_tickets = property(_get_unused_tickets)
+
+class InstructorInfo(models.Model):
+    class Meta:
+        app_label = 'stables'
+    def __unicode__(self):
+        return UserProfile.objects.filter(instructor=self)[0].__unicode__()
 
 class CustomerForm(forms.ModelForm):
     class Meta:

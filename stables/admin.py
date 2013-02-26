@@ -1,6 +1,6 @@
-from stables.models import Horse, UserProfile, RiderInfo, CustomerInfo, RiderLevel
+from stables.models import Horse, UserProfile, RiderInfo, CustomerInfo, RiderLevel, InstructorInfo
 from stables.models import CustomerForm, CourseForm
-from stables.models import Course, Participation, Enroll
+from stables.models import Course, Participation, Enroll, InstructorParticipation
 from stables.models import Transaction, Ticket, ParticipationTransactionActivator, CourseTransactionActivator, CourseParticipationActivator, TicketType
 from stables.models import RiderLevel
 from schedule.models import Event
@@ -45,6 +45,7 @@ class UserProfileAdminForm(forms.ModelForm):
   last_name = forms.CharField(max_length=500, required=True)
   levels = forms.ModelMultipleChoiceField(queryset=RiderLevel.objects.all(), required=False)
   rider_customer = forms.ModelChoiceField(queryset=CustomerInfo.objects.all(), required=True, label=_('Customer'))
+  is_instructor = forms.BooleanField(required=False)
   #address = forms.CharField(max_length=500, widget=forms.Textarea, required=False)
 
   def __init__(self, *args, **kwargs):
@@ -55,9 +56,11 @@ class UserProfileAdminForm(forms.ModelForm):
     self.fields['phone_number'].initial=instance.phone_number
     self.fields['first_name'].initial=instance.user.first_name
     self.fields['last_name'].initial=instance.user.last_name
+    self.fields['is_instructor'].initial=instance.instructor != None
 
   class Meta:
     model = UserProfile
+    exclude = ('instructor',)
 
   def save(self, force_insert=False, force_update=False, commit=True):
     instance = super(UserProfileAdminForm, self).save(commit)
@@ -68,6 +71,11 @@ class UserProfileAdminForm(forms.ModelForm):
       instance.rider.levels = self.cleaned_data['levels']
     if self.cleaned_data['rider_customer']:
       instance.rider.customer = self.cleaned_data['rider_customer']
+    if self.cleaned_data['is_instructor'] and instance.instructor == None:
+      instance.instructor = InstructorInfo.objects.create()
+    if not self.cleaned_data['is_instructor'] and instance.instructor != None:
+      instance.instructor.delete()
+      instance.instructor = None
     instance.rider.save()
     return instance
 
@@ -134,12 +142,16 @@ class UserProfileAdmin(admin.ModelAdmin):
     selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
     return HttpResponseRedirect(reverse('stables.views.update_rider_levels')+'?ids='+','.join(selected))
 
+class InstructorParticipationAdmin(admin.ModelAdmin):
+  list_display = ('instructor', 'event', 'start', 'end')
+
 #admin.site.register(Horse, HorseAdmin)
 admin.site.register(Horse)
 admin.site.register(UserProfile, UserProfileAdmin)
 admin.site.register(RiderInfo)
 admin.site.register(CustomerInfo, CustomerInfoAdmin)
 admin.site.register(Participation, ParticipationAdmin)
+admin.site.register(InstructorParticipation, InstructorParticipationAdmin)
 admin.site.register(RiderLevel)
 admin.site.register(Enroll)
 admin.site.register(Ticket)

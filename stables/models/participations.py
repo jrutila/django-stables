@@ -579,5 +579,28 @@ class Participation(models.Model):
         except DoesNotExist:
           return None
 
+class InstructorParticipationManager(models.Manager):
+    def get_participations(self, start, end):
+        courses = Course.objects.filter(Q(start__lte=end), Q(end__gte=start) | Q(end__isnull=True))
+        events = Event.objects.filter((Q(rule__frequency='WEEKLY') & (Q(end_recurring_period__gte=start) | Q(end_recurring_period__isnull=True))) | (Q(rule__isnull=True) & Q(start__gte=start) & Q(end__lte=end)) | (Q(occurrence__start__gte=start) & Q(occurrence__end__lte=end))).select_related('rule').prefetch_related('course_set')
+        ret = {}
+        for event in events:
+            if event.course_set.count() == 0:
+              continue
+            for occ in event.get_occurrences(start, end):
+                ret[occ] = (event.course_set.all()[0], list(InstructorParticipation.objects.filter(event=event, start=occ.original_start, end=occ.original_end)))
+
+        return ret
+
+class InstructorParticipation(models.Model):
+    class Meta:
+      app_label = 'stables'
+    def __unicode__(self):
+      return ugettext('%(firstname)s %(lastname)s') % { 'firstname': self.instructor.user.first_name, 'lastname': self.instructor.user.last_name }
+    instructor = models.ForeignKey(UserProfile)
+    event = models.ForeignKey(Event)
+    start = models.DateTimeField()
+    end = models.DateTimeField()
+    objects = InstructorParticipationManager()
 #class RiderEvent(models.Model):
     #allowed_levels = models.CharField(max_length=20, choices=RIDER_LEVELS)

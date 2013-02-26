@@ -18,6 +18,9 @@ $(document).ready(function() {
   $("select[name$='horse']").change(function() {
     $(this).addClass('changed');
   });
+  $("select[name$='instructor']").change(function() {
+    $(this).addClass('changed');
+  });
 });
 
 function set_has_text(textarea)
