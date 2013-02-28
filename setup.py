@@ -11,6 +11,17 @@ setup(
     url = "http://rutila.fi",
     include_package_data = True,
     install_requires=[
-      "isoweek >= 1.2.0"
+      "isoweek >= 1.2.0",
+      'django-schedule',
+      'django-reversion',
+      'easy-thumbnails',
+      'django-filer',
+      'django-taggit',
+      'simple_translation',
+    ],
+    dependency_links = [
+      'http://github.com/jrutila/django-schedule/tarball/master#egg=django-schedule',
+      'http://github.com/jrutila/django-filer/tarball/master#egg=django-filer',
     ]
+
 )
