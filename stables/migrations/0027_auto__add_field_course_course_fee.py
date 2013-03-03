@@ -3,13 +3,14 @@ import datetime
 from south.db import db
 from south.v2 import SchemaMigration
 from django.db import models
+from decimal import Decimal
 
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
         
         # Adding field 'Course.course_fee'
-        db.add_column('stables_course', 'course_fee', self.gf('stables.models.financial.CurrencyField')(default=0.0, max_digits=10, decimal_places=2), keep_default=False)
+        db.add_column('stables_course', 'course_fee', self.gf('stables.models.financial.CurrencyField')(default=Decimal(0.0), max_digits=10, decimal_places=2), keep_default=False)
 
 
     def backwards(self, orm):
