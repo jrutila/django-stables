@@ -3,13 +3,12 @@
 from distutils.core import setup
 setup(
     name = "django-stables",
-    version = "0.0",
-    packages = [],
+    version = "0.0.1",
+    packages = ['stables'],
     author = "Juho Rutila",
     author_email = "juho.rutila@iki.fi",
     description = "Horse stable management package",
     url = "http://rutila.fi",
-    include_package_data = True,
     install_requires=[
       "isoweek >= 1.2.0",
       'django-schedule',
