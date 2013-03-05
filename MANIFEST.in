@@ -1,3 +1,3 @@
 include *.txt
 recursive-include stables *
-recurive-exclude * *.pyc
+recursive-exclude * *.pyc
