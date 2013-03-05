@@ -10,7 +10,7 @@ setup(
     description = "Horse stable management package",
     url = "http://rutila.fi",
     install_requires=[
-      "isoweek >= 1.2.0",
+      "isoweek>=1.2.0",
       'django-schedule',
       'django-reversion',
       'easy-thumbnails',
