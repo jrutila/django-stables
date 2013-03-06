@@ -4,7 +4,7 @@ from distutils.core import setup
 setup(
     name = "django-stables",
     version = "0.0.1",
-    packages = ['stables'],
+    packages = ['stables', 'stables.models'],
     author = "Juho Rutila",
     author_email = "juho.rutila@iki.fi",
     description = "Horse stable management package",
