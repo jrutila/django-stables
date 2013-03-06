@@ -10,6 +10,7 @@ setup(
     description = "Horse stable management package",
     url = "http://rutila.fi",
     install_requires=[
+      "Babel",
       "isoweek>=1.2.0",
       'django-schedule',
       'django-reversion',
