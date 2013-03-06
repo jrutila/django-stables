@@ -1,0 +1,2 @@
+recursive-include stables/templates *
+recursive-include stables/locale *
