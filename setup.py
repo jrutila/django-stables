@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 
-from setuptools import setup
+from setuptools import setup, find_packages
 setup(
     name = "django-stables",
     version = "0.0.1",
-    packages = ['stables', 'stables.models', 'stables.backends', 'stables.migrations', 'stables.templatetags'],
+    packages=find_packages(),
+    include_package_data=True,
     author = "Juho Rutila",
     author_email = "juho.rutila@iki.fi",
     description = "Horse stable management package",
     url = "http://rutila.fi",
-    package_data={'stables': ['*.html']},
     install_requires=[
       "Babel",
       "isoweek>=1.2.0",
