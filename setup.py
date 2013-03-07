@@ -9,6 +9,7 @@ setup(
     author_email = "juho.rutila@iki.fi",
     description = "Horse stable management package",
     url = "http://rutila.fi",
+    package_data={'stables': ['templates/*', 'locale/*', 'static/*']},
     install_requires=[
       "Babel",
       "isoweek>=1.2.0",

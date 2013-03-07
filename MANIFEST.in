@@ -1,2 +1,3 @@
 recursive-include stables/templates *
+recursive-include stables/static *
 recursive-include stables/locale *
