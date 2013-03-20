@@ -145,6 +145,9 @@ class UserProfileAdmin(admin.ModelAdmin):
 class InstructorParticipationAdmin(admin.ModelAdmin):
   list_display = ('instructor', 'event', 'start', 'end')
 
+class TransactionAdmin(admin.ModelAdmin):
+  list_display = ('customer', 'amount', 'created_on', 'content_type')
+
 #admin.site.register(Horse, HorseAdmin)
 admin.site.register(Horse)
 admin.site.register(UserProfile, UserProfileAdmin)
@@ -156,7 +159,7 @@ admin.site.register(RiderLevel)
 admin.site.register(Enroll)
 admin.site.register(Ticket)
 admin.site.register(TicketType)
-admin.site.register(Transaction)
+admin.site.register(Transaction, TransactionAdmin)
 admin.site.register(Course, CourseAdmin)
 admin.site.register(ParticipationTransactionActivator)
 admin.site.register(CourseTransactionActivator)
