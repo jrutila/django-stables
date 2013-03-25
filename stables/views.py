@@ -12,6 +12,7 @@ from django.contrib.auth.models import User
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.db.models import Q
 from django.core.exceptions import MultipleObjectsReturned
+from django.contrib.contenttypes.models import ContentType
 import operator
 import datetime
 import time
@@ -374,6 +375,50 @@ def daily(request, date=None):
       dir_events[p.event].append(p)
 
     return render_response(request, 'stables/daily.html', { 'daily_date': date, 'events': events })
+
+@permission_required('stables.can_add_transaction')
+def widget(request, date=None):
+    if date == None:
+      date = datetime.date.today()
+    else:
+      date = datetime.datetime.strptime(date, "%Y-%m-%d").date()
+    participations = Participation.objects.filter(state=ATTENDING, start__gte=date, end__lt=date+datetime.timedelta(days=1))
+    # directory is not sorted
+    dir_events = {}
+    # this is the sorted list of event tuples
+    events = []
+
+    part_ct = ContentType.objects.get_for_model(Participation)
+    transactions = list(Transaction.objects.filter(active=True, content_type=part_ct, object_id__in=participations).order_by('object_id', 'created_on').prefetch_related('ticket_set'))
+    participations = list(participations)
+
+    p_id = 0
+    t_id = 0
+    while t_id < len(transactions) and p_id < len(participations):
+        part = participations[p_id]
+        if not hasattr(part, 'saldo'):
+            setattr(part, 'transactions', [])
+            setattr(part, 'saldo', 0)
+            setattr(part, 'ticket_used', None)
+        participations[p_id] = part
+        t = transactions[t_id]
+        if part.id == t.object_id:
+            if t.ticket_set.count() == 1:
+                part.ticket_used=t.ticket_set.all()[0]
+                part.saldo=0.00
+            if not part.ticket_used:
+                part.saldo = part.saldo+t.amount
+            part.transactions.append(t)
+            t_id = t_id + 1
+        else:
+            p_id = p_id + 1
+
+    for p in sorted(participations, key=lambda part: part.event.start.hour):
+      if not p.event in dir_events:
+        dir_events[p.event] = []
+        events.append((p.event, dir_events[p.event]))
+      dir_events[p.event].append(p)
+    return render_response(request, 'stables/widget.html', { 'events': events })
 
 def view_course(request, course_id):
     course = Course.objects.get(pk=course_id)

@@ -28,7 +28,7 @@ class UserProfile(models.Model):
         return self.user.first_name + ' ' + self.user.last_name
     objects = UserManager()
     user = models.OneToOneField(User)
-    rider = models.OneToOneField('RiderInfo', null=True, blank=True)
+    rider = models.OneToOneField('RiderInfo', null=True, blank=True, related_name='user')
     customer = models.OneToOneField('CustomerInfo', null=True, blank=True)
     instructor = models.OneToOneField('InstructorInfo', null=True, blank=True)
 
@@ -71,7 +71,7 @@ class RiderInfo(models.Model):
         app_label = 'stables'
     def __unicode__(self):
         try:
-            return UserProfile.objects.filter(rider=self)[0].__unicode__() + ": " + ','.join(str(n) for n in self.levels.all())
+            return self.user.__unicode__() + ": " + ','.join(str(n) for n in self.levels.all())
         except:
             return str(self.id) + ": " + str(self.levels)
     levels = models.ManyToManyField(RiderLevel, related_name='+', blank=True)

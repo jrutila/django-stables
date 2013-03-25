@@ -129,7 +129,7 @@ class Transaction(models.Model):
     created_on = models.DateTimeField(default = datetime.datetime.now)
     content_type = models.ForeignKey(ContentType, null=True, blank=True)
     object_id = models.PositiveIntegerField(null=True, blank=True)
-    source = generic.GenericForeignKey()
+    source = generic.GenericForeignKey('content_type', 'object_id')
     def delete(self):
         self.ticket_set.clear()
         super(Transaction, self).delete()
