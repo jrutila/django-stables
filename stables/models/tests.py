@@ -68,6 +68,8 @@ class DashboardFormTest(unittest.TestCase):
         self.data['c1_r0_s%s_e%s_state' % (self.o.start.isoformat(), self.o.end.isoformat())] = "0"
         self.data['c1_r0_s%s_e%s_participant' % (self.o.start.isoformat(), self.o.end.isoformat())] = '' 
         self.data['initial-c1_r0_s%s_e%s_participant' % (self.o.start.isoformat(), self.o.end.isoformat())] = '' 
+        self.week = datetime.date.today().isocalendar()[1]
+        self.year = datetime.date.today().year
 
     def getKey(self, rider, name):
       return 'c1_r%d_s%s_e%s_%s' % (0, self.o.start.isoformat(), self.o.end.isoformat(), name)
@@ -77,31 +79,28 @@ class DashboardFormTest(unittest.TestCase):
       with reversion.create_revision():
         p = self.course.create_participation(self.user.get_profile(), o, ATTENDING, True)
 
-      week = datetime.date.today().isocalendar()[1]
-      form = DashboardForm(week=week, courses=Course.objects.all(), horses=None)
+      form = DashboardForm(year=self.year, week=self.week, courses=Course.objects.all(), horses=None)
 
-      self.assertEqual(len(form.fields), 8)
+      self.assertEqual(len(form.fields), 9)
 
     def testFormCreationEnroll(self):
       with reversion.create_revision():
         self.course.enroll(self.user.get_profile())
 
-      week = datetime.date.today().isocalendar()[1]
-      form = DashboardForm(week=week, courses=Course.objects.all(), horses=None)
+      form = DashboardForm(year=self.year, week=self.week, courses=Course.objects.all(), horses=None)
 
-      self.assertEqual(len(form.fields), 8)
+      self.assertEqual(len(form.fields), 9)
 
     def testFormUpdateParticipation(self):
       with reversion.create_revision():
         p = self.course.create_participation(self.user.get_profile(), self.o, ATTENDING, True)
 
-      week = datetime.date.today().isocalendar()[1]
       self.data['c1_r1_s%s_e%s_state' % (self.o.start.isoformat(), self.o.end.isoformat())] = str(RESERVED)
 
-      form = DashboardForm(self.data, week=week, courses=Course.objects.all(), horses=None)
+      form = DashboardForm(self.data, year=self.year, week=self.week, courses=Course.objects.all(), horses=None)
       self.assertTrue(form.is_valid())
 
-      self.assertEqual(len(form.fields), 8)
+      self.assertEqual(len(form.fields), 9)
       self.assertEqual(len(form.changed_data), 1)
 
     def testFormUnattendEnroll(self):
@@ -110,14 +109,13 @@ class DashboardFormTest(unittest.TestCase):
 
       self.data['c1_r1_s%s_e%s_state' % (self.o.start.isoformat(), self.o.end.isoformat())] = unicode(RESERVED)
 
-      week = datetime.date.today().isocalendar()[1]
-      form = DashboardForm(self.data, week=week, courses=Course.objects.all(), horses=None)
+      form = DashboardForm(self.data, year=self.year, week=self.week, courses=Course.objects.all(), horses=None)
       self.assertTrue(form.is_valid())
 
       self.assertEqual(len(form.changed_participations), 1)
       for part in form.changed_participations:
         self.assertEqual(part.id, None)
-      self.assertEqual(len(form.fields), 8)
+      self.assertEqual(len(form.fields), 9)
 
     def testFormUpdateEnroll(self):
       Horse.objects.create(name='Test')
@@ -128,8 +126,7 @@ class DashboardFormTest(unittest.TestCase):
       self.data['c1_r1_s%s_e%s_horse' % (self.o.start.isoformat(), self.o.end.isoformat())] = unicode(1)
       self.data[state_key] = unicode(ATTENDING)
 
-      week = datetime.date.today().isocalendar()[1]
-      form = DashboardForm(self.data, week=week, courses=Course.objects.all(), horses=Horse.objects.all())
+      form = DashboardForm(self.data, year=self.year, week=self.week, courses=Course.objects.all(), horses=Horse.objects.all())
       self.assertTrue(form.is_valid())
 
       self.assertEqual(len(form.changed_participations), 1)
@@ -137,7 +134,7 @@ class DashboardFormTest(unittest.TestCase):
         self.assertEqual(part.id, None)
         part.save()
         form.add_or_update_part(self.course, part)
-      self.assertEqual(len(form.fields), 8)
+      self.assertEqual(len(form.fields), 9)
       self.assertEqual(form.fields[state_key].initial, 0)
 
     def testFormUpdateEnrollDouble(self):
@@ -155,8 +152,7 @@ class DashboardFormTest(unittest.TestCase):
       self.data['c1_r2_s%s_e%s_participant' % (self.o.start.isoformat(), self.o.end.isoformat())] = ' ' +user2.last_name
       r2_horse_key = 'c1_r2_s%s_e%s_horse' % (self.o.start.isoformat(), self.o.end.isoformat())
 
-      week = datetime.date.today().isocalendar()[1]
-      form = DashboardForm(self.data, week=week, courses=Course.objects.all(), horses=Horse.objects.all())
+      form = DashboardForm(self.data, year=self.year, week=self.week, courses=Course.objects.all(), horses=Horse.objects.all())
       self.assertTrue(form.is_valid())
 
       self.assertEqual(len(form.changed_participations), 2)
@@ -164,7 +160,7 @@ class DashboardFormTest(unittest.TestCase):
         self.assertEqual(part.id, None)
         part.save()
         form.add_or_update_part(self.course, part)
-      self.assertEqual(len(form.fields), 12)
+      self.assertEqual(len(form.fields), 13)
       self.assertEqual(form.fields[state_key].initial, 0)
       self.assertEqual(form.fields[r2_horse_key].initial.id, test_horse.id)
 
@@ -486,7 +482,7 @@ class ActivatorTestCase(unittest.TestCase):
         endtime = ee.time()
         start = ss.date()-datetime.timedelta(days=7)
         course = setupCourse('course1', start, None, starttime, endtime)
-        course.default_participation_fee=45.16
+        course.default_participation_fee=Decimal('45.16')
         course.save()
         o = course.get_occurrences()[1]
         pa = ParticipationTransactionActivator.objects.filter()
@@ -543,7 +539,7 @@ class ActivatorTestCase(unittest.TestCase):
         pa = ParticipationTransactionActivator()
         pa.participation = p1
         pa.activate_before_hours = 15
-        pa.fee = 45.15
+        pa.fee = Decimal('45.15')
         pa.save()
         t = pa.try_activate()
         self.assertIsNone(t)
