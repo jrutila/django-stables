@@ -57,6 +57,13 @@ class ParticipationTransactionActivatorManager(models.Manager):
         act.ticket_type = ticket_type
         return act
 
+def _use_ticket(ticket_query, transaction):
+    tickets = ticket_query
+    if tickets.count() > 0:
+        ticket = tickets.order_by('expires')[0]
+        ticket.transaction = transaction
+        ticket.save()
+
 class ParticipationTransactionActivator(TransactionActivator):
     class Meta:
         app_label = 'stables'
@@ -77,23 +84,38 @@ class ParticipationTransactionActivator(TransactionActivator):
                 t.customer = self.participation.participant.rider.customer
                 t.source = self.participation
                 t.save()
-                tickets = self.participation.participant.rider.unused_tickets
-                tickets = tickets.filter(type__in=self.ticket_type.all())
-                if tickets.count() > 0:
-                    ticket = tickets.order_by('expires')[0]
-                    ticket.transaction = t
-                    ticket.save()
+                tickets = self.participation.participant.rider.unused_tickets.filter(type__in=self.ticket_type.all())
+                _use_ticket(tickets, t)
             self.delete()
         return t
-
 
 @receiver(post_save, sender=Participation)
 def handle_Participation_save(sender, **kwargs):
     parti = kwargs['instance']
     # Only if the user is attending
+    trans=Transaction.objects.filter(
+        content_type=ContentType.objects.get_for_model(parti),
+        object_id=parti.id
+        )
     if parti.state == participations.ATTENDING:
+        # If there is deactivated stuff
+        trans = trans.filter(active=False)
         course = Course.objects.filter(events__in=[parti.event])[0]
-        ParticipationTransactionActivator.objects.try_create(parti, course.default_participation_fee, course.ticket_type.all())
+        if trans:
+          for t in trans:
+            t.active=True
+            t.save()
+            if not Ticket.objects.filter(transaction=t).exists() and t.amount < 0:
+              tickets = parti.participant.rider.unused_tickets.filter(type__in=course.ticket_type.all())
+              _use_ticket(tickets, t)
+        else:
+          ParticipationTransactionActivator.objects.try_create(parti, course.default_participation_fee, course.ticket_type.all())
+    elif parti.state == participations.CANCELED:
+        ParticipationTransactionActivator.objects.filter(participation=parti).delete()
+        trans.deactivate()
+        for ticket in Ticket.objects.filter(transaction__in=trans):
+          ticket.transaction = None
+          ticket.save()
 
 from participations import Enroll
 class CourseTransactionActivator(TransactionActivator):
@@ -112,7 +134,18 @@ class CourseTransactionActivator(TransactionActivator):
         t.save()
         self.delete()
 
+class TransactionQuerySet(models.query.QuerySet):
+  def deactivate(self):
+    for t in self:
+      t.active = False
+      t.save()
+
+class TransactionManager(models.Manager):
+  def get_query_set(self):
+    return TransactionQuerySet(self.model, using=self._db)
+
 class Transaction(models.Model):
+    objects = TransactionManager()
     class Meta:
         app_label = 'stables'
         permissions = (

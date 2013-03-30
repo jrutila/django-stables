@@ -64,7 +64,10 @@ class CustomerInfo(models.Model):
     def saldo(self):
         from stables.models import Transaction
         from django.db.models import Sum
-        return Transaction.objects.filter(customer=self, ticket__isnull=True, active=True).aggregate(Sum('amount'))['amount__sum']
+        saldo = Transaction.objects.filter(customer=self, ticket__isnull=True, active=True).aggregate(Sum('amount'))['amount__sum']
+        if not saldo:
+          return 0.00
+        return saldo
 
 class RiderInfo(models.Model):
     class Meta:

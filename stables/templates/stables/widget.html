@@ -3,23 +3,50 @@
 {% load stablestags %}
 {% block body %}
 {% addtoblock "css" %}
-<link href="{{ STATIC_URL }}stables/css/daily.css" rel="stylesheet" type="text/css" />
+<link href="{{ STATIC_URL }}stables/css/widget.css" rel="stylesheet" type="text/css" />
+{% endaddtoblock %}
+{% addtoblock "js" %}
+<script type='text/javascript'>
+  $('.row').click(function() {
+      $(this).next().toggle();
+      });
+</script>
 {% endaddtoblock %}
 <h1>WIDGET</h1>
+<div>
+<a href="">&lt;</a>
+<input type='date'/>
+<a href="">&gt;</a>
+</div>
 {% for e, ps in events %}
   <span class="dailytitle">{{ e.title }}</span>
   <span class="dailytime">{{ e.start.time }} - {{ e.end.time }}</span>
   <ul class="daily">
   {% for p in ps %}
-  <li>
+  <li class='row'>
     <span class="id">{{ p.id }}</span>
     <span class="rider">{{ p.participant }}</span>
+    <span class="state">{{ p.state|state }}</span>
     <span class="horse">{{ p.horse.nickname }}</span>
     <span class="saldo">
       {{ p.saldo }}
       {% if p.ticket_used %}
       ({{ p.ticket_used.type }})
       {% endif %}
+    </span>
+  </li>
+   <li class='details'>
+     <div>
+      {% if p.saldo and perms.stables.add_transaction %}
+      {% pay_button p %}
+      {% if p.tickets.total %}
+      {% for tid, ttype in p.tickets.types.items %}
+        {% pay_button p ttype %}
+      {% endfor %}
+      {% endif %}
+      {% endif %}
+      {{ p.participant.rider.ticket.count }}
+      {% participate_button p.participant e p.get_occurrence %}
       <ul class='saldo_info'>
       {% for t in p.transactions %}
       <li>
@@ -31,8 +58,8 @@
       {% endif %}
       {% endfor %}
       </ul>
-    </span>
-  </li>
+     </div>
+   </li>
   {% endfor %}
   </ul>
 {% endfor %}
