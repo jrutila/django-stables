@@ -14,9 +14,7 @@
 {% endaddtoblock %}
 <h1>WIDGET</h1>
 <div>
-<a href="">&lt;</a>
-<input type='date'/>
-<a href="">&gt;</a>
+  {% date_picker %}
 </div>
 {% for e, ps in events %}
   <span class="dailytitle">{{ e.title }}</span>
