@@ -6,6 +6,7 @@ from urllib import urlencode
 from django.contrib.auth.decorators import permission_required
 from django.contrib.contenttypes.models import ContentType
 from stables.models import Transaction
+from schedule.models import Event
 import datetime
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -30,17 +31,40 @@ def make_widget(field,attributes):
                 attr[key] = value
     return field.as_widget(attrs=attr)
 
+@register.inclusion_tag('stables/date_picker.html', takes_context=True)
+def date_picker(context):
+    picker = {}
+    current_view = context['request'].current_view
+    today = datetime.datetime.strptime(current_view['kwargs']['date'], '%Y-%m-%d').date()
+    picker['yesterday_url'] = reverse(current_view['name'], kwargs={'date': today-datetime.timedelta(days=1) })
+    picker['tomorrow_url'] = reverse(current_view['name'], kwargs={'date': today+datetime.timedelta(days=1) })
+    picker['today'] = today
+    return picker
+
+@register.inclusion_tag('stables/pay_button.html', takes_context=True)
+def pay_button(context, participation, ticket_type=None):
+    button = { 'button_text': _('Cash') }
+    button['redirect'] = reverse('stables.views.widget')
+    button['participation_id'] = participation.id
+    button['action'] = reverse('stables.views.pay')
+    if ticket_type:
+      button['ticket'] = ticket_type.id
+      button['button_text'] = ticket_type.name
+    return { 'button': button }
+
 @register.inclusion_tag('stables/participate_button.html', takes_context=True)
 def participate_button(context, user, course, occurrence=None):
     buttons = []
+    has_change_perm=context['request'].user.has_perm('stables.change_participation')
+
+    if isinstance(course, Event):
+      course = course.course_set.all()[0]
 
     # If occurrence is none, this is participate button for course enroll
     if occurrence:
       occ = occurrence
-      states = course.get_possible_states(user, occ)
+      states = course.get_possible_states(user, occ, has_change_perm)
 
-      if len(states) == 0 and context['request'].user.has_perm('stables.change_participation'):
-        states = [ATTENDING]
 
       participation_id = 0
       start = None
@@ -51,17 +75,23 @@ def participate_button(context, user, course, occurrence=None):
           participation_id = p.id
           start = p.start
           end = p.end
+          if p.state != SKIPPED and has_change_perm:
+            states.append(SKIPPED)
 
       for s in states:
           if s == ATTENDING:
               btn_text = _('Attend')
               action = reverse('stables.views.attend_course', args=[course.id])
+          elif s == SKIPPED:
+              btn_text = _('Skipped')
+              action = reverse('stables.views.skip', args=[course.id])
           elif s == CANCELED:
               btn_text = _('Cancel')
               action = reverse('stables.views.cancel', args=[course.id])
-              if p:
-                  part_type = ContentType.objects.get_for_model(p)
-                  if Transaction.objects.filter(content_type=part_type, object_id=p.id).exists():
+              if p and not has_change_perm:
+                  if Transaction.objects.filter(
+                      content_type=ContentType.objects.get_for_model(p),
+                      object_id=p.id).exists():
                       action = reverse('stables.views.confirm', kwargs={'action':action})+"?"+urlencode({'title': ugettext('You still have to pay. Are you sure you want to cancel?').encode('utf-8')})
           elif s == RESERVED:
               btn_text = _('Reserve')

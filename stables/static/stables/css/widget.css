@@ -1,0 +1,56 @@
+.dailytitle
+{
+  font-weight: bold;
+}
+
+.daily
+{
+  display: table;
+}
+
+.daily li
+{
+  list-style-type: none;
+  margin-bottom: 20px;
+}
+
+.daily .row
+{
+  display: table-row;
+}
+
+.daily .details
+{
+  display: none;
+  width: 100%;
+  height: 110px;
+}
+
+.daily .details div
+{
+  position: absolute;
+}
+
+.daily .row span
+{
+  display: table-cell;
+}
+
+.daily .row span.id, .daily .row span.horse
+{
+  display: none;
+}
+
+
+@media print
+{
+  .daily .rider
+  {
+    width: 300px;
+  }
+
+  .daily
+  {
+    margin-bottom: 100px;
+  }
+}

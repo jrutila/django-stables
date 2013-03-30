@@ -135,10 +135,10 @@ class Course(models.Model):
       else:
         return Enroll.objects.filter(Q(state=ATTENDING), course=self).count()
 
-    def get_possible_states(self, rider, occurrence=None):
+    def get_possible_states(self, rider, occurrence=None, ignore_date_check=False):
       if occurrence:
         # If this course is in the past (end date gone), can't do anything
-        if occurrence.end < datetime.datetime.now():
+        if not ignore_date_check and occurrence.end < datetime.datetime.now():
             return []
 
         enroll = self.enroll_set.filter(participant=rider)

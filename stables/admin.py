@@ -19,7 +19,10 @@ class CourseAdmin(admin.ModelAdmin):
     form =  CourseForm
     fieldsets = (
       (_('Basic information'), {
-        'fields': ('name','start', 'end', 'creator', 'created_on', 'max_participants', 'default_participation_fee', 'course_fee', 'allowed_levels' )
+        'fields': ('name','start', 'end', 'creator', 'created_on', 'max_participants', 'allowed_levels' )
+      }),
+      (_('Payment information'), {
+        'fields': ('default_participation_fee', 'course_fee', 'ticket_type' )
       }),
       (_('Recurring information'), {
         'description': _('Do NOT input anything here if you have one time events.'),
@@ -31,7 +34,8 @@ class CourseAdmin(admin.ModelAdmin):
     )
 
 class ParticipationAdmin(reversion.VersionAdmin):
-    list_display = ('participant', 'state', 'start', 'end')
+    list_display = ('participant', 'state', 'start', 'end', 'created_on')
+    search_fields = ['participant__user__first_name', 'participant__user__last_name',]
 
 class CustomerInfoAdmin(admin.ModelAdmin):
     model = CustomerInfo
@@ -145,6 +149,26 @@ class UserProfileAdmin(admin.ModelAdmin):
 class InstructorParticipationAdmin(admin.ModelAdmin):
   list_display = ('instructor', 'event', 'start', 'end')
 
+class TransactionAdmin(reversion.VersionAdmin):
+  list_display = ('customer', 'amount', 'source', 'active')
+  search_fields = ['customer__userprofile__user__first_name', 'customer__userprofile__user__last_name',]
+  ordering = ['-created_on']
+
+class TicketAdminForm(forms.ModelForm):
+  class Meta:
+    model = Ticket
+    #exclude = ['transaction' ]
+  rider = forms.ModelChoiceField(queryset=RiderInfo.objects.prefetch_related('levels', 'user__user').all())
+  transaction = forms.IntegerField(required=False)
+
+  def clean(self):
+    if self.data['transaction']:
+      self.cleaned_data['transaction'] = Transaction.objects.get(id=int(self.data['transaction']))
+    return self.cleaned_data
+
+class TicketAdmin(admin.ModelAdmin):
+  form = TicketAdminForm
+
 #admin.site.register(Horse, HorseAdmin)
 admin.site.register(Horse)
 admin.site.register(UserProfile, UserProfileAdmin)
@@ -154,9 +178,9 @@ admin.site.register(Participation, ParticipationAdmin)
 admin.site.register(InstructorParticipation, InstructorParticipationAdmin)
 admin.site.register(RiderLevel)
 admin.site.register(Enroll)
-admin.site.register(Ticket)
+admin.site.register(Ticket, TicketAdmin)
 admin.site.register(TicketType)
-admin.site.register(Transaction)
+admin.site.register(Transaction, TransactionAdmin)
 admin.site.register(Course, CourseAdmin)
 admin.site.register(ParticipationTransactionActivator)
 admin.site.register(CourseTransactionActivator)

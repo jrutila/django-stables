@@ -2,7 +2,7 @@ from models import HorseForm, Horse, Course, Participation, PARTICIPATION_STATES
 from models import InstructorInfo
 from models import Enroll
 from models import UserProfile
-from models import Transaction
+from models import Transaction, Ticket, TicketType
 from models import ATTENDING, RESERVED, SKIPPED, CANCELED
 from schedule.models import Occurrence, Event, Calendar
 from django.shortcuts import render_to_response, redirect, render, get_object_or_404
@@ -10,8 +10,9 @@ from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.template import RequestContext
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext, ugettext_lazy as _
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.core.exceptions import MultipleObjectsReturned
+from django.contrib.contenttypes.models import ContentType
 import operator
 import datetime
 import time
@@ -22,7 +23,7 @@ from django.views.decorators.http import require_POST
 import models as enum
 import dateutil.parser
 from django import forms
-import re
+import reversion
 
 from django.utils.safestring import mark_safe
 
@@ -375,6 +376,90 @@ def daily(request, date=None):
 
     return render_response(request, 'stables/daily.html', { 'daily_date': date, 'events': events })
 
+@permission_required('stables.add_transaction')
+def pay(request):
+    pid = request.POST.get('participation_id')
+    transactions = Transaction.objects.filter(
+        active=True,
+        content_type=ContentType.objects.get_for_model(Participation),
+        object_id=pid)
+    saldo = 0
+    for t in transactions:
+      if t.ticket_set.count() == 0:
+        saldo = saldo + t.amount
+    if saldo < 0:
+      tid = request.POST.get('ticket')
+      participant = Participation.objects.get(id=pid).participant
+      if tid:
+        ticket = Ticket.objects.filter(type__id=tid, rider=participant.rider, transaction__isnull=True)[0]
+        ticket.transaction = transactions.filter(amount__lt=0)[0]
+        ticket.save()
+      else:
+        customer = participant.customer
+        Transaction.objects.create(
+          active=True,
+          content_type=ContentType.objects.get_for_model(Participation),
+          object_id=pid,
+          amount=-1*saldo,
+          customer=customer)
+    return redirect(request.META['HTTP_REFERER'])
+
+@permission_required('stables.view_transaction')
+def widget(request, date=None):
+    if date == None:
+      date = datetime.date.today()
+    else:
+      date = datetime.datetime.strptime(date, "%Y-%m-%d").date()
+    participations = Participation.objects.filter(start__gte=date, end__lt=date+datetime.timedelta(days=1)).order_by('id')
+    unused_tickets = Ticket.objects.filter(rider__user__in=participations.values_list('participant', flat=True), transaction__isnull=True).values('rider__user', 'type', 'type__name').annotate(Count('id')).order_by('rider')
+    # directory is not sorted
+    dir_events = {}
+    # this is the sorted list of event tuples
+    events = []
+
+    # Sort the tickets by rider
+    tickets = {}
+    for ut in unused_tickets:
+      tt = tickets.setdefault(ut['rider__user'], {'total': 0, 'types': {}})
+      tt['total'] = tt['total'] + 1
+      tt['types'].setdefault(ut['type'], TicketType(id=ut['type'], name=ut['type__name']))
+      #tt['types'][ut['type']]['amount'] += 1
+
+    part_ct = ContentType.objects.get_for_model(Participation)
+    transactions = list(Transaction.objects.filter(active=True, content_type=part_ct, object_id__in=participations).order_by('object_id', 'created_on').prefetch_related('ticket_set'))
+    participations = list(participations)
+
+    p_id = 0
+    t_id = 0
+    while t_id < len(transactions) and p_id < len(participations):
+        part = participations[p_id]
+        #if part.participant.user.first_name == "Tuija":
+          #import pdb; pdb.set_trace()
+        if not hasattr(part, 'saldo'):
+            setattr(part, 'transactions', [])
+            setattr(part, 'saldo', 0)
+            setattr(part, 'ticket_used', None)
+            setattr(part, 'tickets', tickets.get(part.participant.id))
+        participations[p_id] = part
+        t = transactions[t_id]
+        if part.id == t.object_id:
+            if t.ticket_set.count() == 1:
+                part.ticket_used=t.ticket_set.all()[0]
+                part.saldo=0.00
+            if not part.ticket_used:
+                part.saldo = part.saldo+t.amount
+            part.transactions.append(t)
+            t_id = t_id + 1
+        else:
+            p_id = p_id + 1
+
+    for p in sorted(participations, key=lambda part: part.event.start.hour):
+      if not p.event in dir_events:
+        dir_events[p.event] = []
+        events.append((p.event, dir_events[p.event]))
+      dir_events[p.event].append(p)
+    return render_response(request, 'stables/widget.html', { 'events': events })
+
 def view_course(request, course_id):
     course = Course.objects.get(pk=course_id)
     if (request.user.has_perm('stables.change_participation')):
@@ -474,6 +559,20 @@ def cancel(request, course_id):
         enroll = Enroll.objects.filter(course=course_id, participant=user)[0]
         enroll.cancel()
         #return redirect('stables.views.modify_enrolls', course_id=int(course_id))
+    return redirect(request.META['HTTP_REFERER'])
+
+def skip(request, course_id):
+    # Only user that has right to change permission
+    user = get_user_or_404(request, request.POST.get('username'), request.user.has_perm('stables.change_participation'))
+    pid = request.POST.get('participation_id')
+    start = request.POST.get('start')
+    if start:
+        start = dateutil.parser.parse(start)
+    if pid and int(pid) > 0:
+        pid = int(pid)
+        participation = get_object_or_404(Participation, pk=pid)
+        participation.state = SKIPPED
+        participation.save()
     return redirect(request.META['HTTP_REFERER'])
 
 def view_account(request):

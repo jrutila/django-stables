@@ -1,0 +1,9 @@
+<form method='POST' action='{{ button.action }}' style='display: inline;'>
+  <input type='hidden' name='participation_id' value='{{ button.participation_id }}'/>
+  <input type='hidden' name='redirect' value='{{ button.redirect }}'/>
+  {% if button.ticket %}
+  <input type='hidden' name='ticket' value='{{ button.ticket }}'/>
+  {% endif %}
+  <input type='submit' value='{{ button.button_text }}' />
+  {% csrf_token %}
+</form>
