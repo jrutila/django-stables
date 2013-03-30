@@ -19,6 +19,9 @@ setup(
       'django-filer',
       'django-taggit',
       'simple_translation',
+      'south',
+      'PIL',
+      'django-reversion',
     ],
     dependency_links = [
       'http://github.com/jrutila/django-schedule/tarball/master#egg=django-schedule',
