@@ -149,9 +149,10 @@ class UserProfileAdmin(admin.ModelAdmin):
 class InstructorParticipationAdmin(admin.ModelAdmin):
   list_display = ('instructor', 'event', 'start', 'end')
 
-class TransactionAdmin(admin.ModelAdmin):
-  list_display = ('customer', 'amount', 'created_on', 'content_type')
+class TransactionAdmin(reversion.VersionAdmin):
+  list_display = ('customer', 'amount', 'source', 'active')
   search_fields = ['customer__userprofile__user__first_name', 'customer__userprofile__user__last_name',]
+  ordering = ['-created_on']
 
 class TicketAdminForm(forms.ModelForm):
   class Meta:
@@ -161,7 +162,8 @@ class TicketAdminForm(forms.ModelForm):
   transaction = forms.IntegerField(required=False)
 
   def clean(self):
-    self.cleaned_data['transaction'] = Transaction.objects.get(id=int(self.data['transaction']))
+    if self.data['transaction']:
+      self.cleaned_data['transaction'] = Transaction.objects.get(id=int(self.data['transaction']))
     return self.cleaned_data
 
 class TicketAdmin(admin.ModelAdmin):
