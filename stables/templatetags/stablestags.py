@@ -31,13 +31,18 @@ def make_widget(field,attributes):
                 attr[key] = value
     return field.as_widget(attrs=attr)
 
+# TODO: This is not related to stables per se, move it!
 @register.inclusion_tag('stables/date_picker.html', takes_context=True)
 def date_picker(context):
     picker = {}
     current_view = context['request'].current_view
-    today = datetime.datetime.strptime(current_view['kwargs']['date'], '%Y-%m-%d').date()
+    if 'date' in current_view['kwargs']:
+      today = datetime.datetime.strptime(current_view['kwargs']['date'], '%Y-%m-%d').date()
+    else:
+      today = datetime.date.today()
     picker['yesterday_url'] = reverse(current_view['name'], kwargs={'date': today-datetime.timedelta(days=1) })
     picker['tomorrow_url'] = reverse(current_view['name'], kwargs={'date': today+datetime.timedelta(days=1) })
+    picker['base_url'] = reverse(current_view['name'])
     picker['today'] = today
     return picker
 

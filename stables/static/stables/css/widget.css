@@ -36,12 +36,6 @@
   display: table-cell;
 }
 
-.daily .row span.id, .daily .row span.horse
-{
-  display: none;
-}
-
-
 @media print
 {
   .daily .rider
