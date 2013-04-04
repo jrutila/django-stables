@@ -1,6 +1,7 @@
 {% extends "site_base.html" %}
 {% load i18n %}
 {% block body %}
+<a href="{% url django.contrib.auth.views.logout %}" data-role='button'>{% trans "Logout" %}</a>
 <h1>{{ user }}</h1>
 <p>
 {% trans "E-mail" %}: {{ user.user.email }}
