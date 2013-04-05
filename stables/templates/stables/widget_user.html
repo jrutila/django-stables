@@ -25,16 +25,17 @@
   </ul>
 </div>
  <div>
-  {% if p.saldo and perms.stables.add_transaction %}
-  <div class="ui-grid-a">
-    <div class='ui-block-a'>{% pay_button p %}</div>
-  {% if p.tickets.total %}
-  {% for tid, ttype in p.tickets.types.items %}
-    <div class='ui-block-b'>{% pay_button p ttype %}</div>
+  <div>
+  {% if perms.stables.add_transaction %}
+    {% if p.saldo or p.ticket_used %}
+    <div>{% pay_button p %}</div>
+    {% endif %}
+
+  {% for ttype in p.tickets %}
+    <div>{% pay_button p ttype %}</div>
   {% endfor %}
   {% endif %}
   </div>
-  {% endif %}
   {{ p.participant.rider.ticket.count }}
   {% participate_button p redirect='stables.views.widget' %}
  </div>

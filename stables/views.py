@@ -378,23 +378,44 @@ def daily(request, date=None):
 
 @permission_required('stables.add_transaction')
 def pay(request):
+   # TODO: Move this business logic elsewhere
     pid = request.POST.get('participation_id')
     transactions = Transaction.objects.filter(
         active=True,
         content_type=ContentType.objects.get_for_model(Participation),
         object_id=pid)
     saldo = 0
+    ticket_used=None
     for t in transactions:
       if t.ticket_set.count() == 0:
         saldo = saldo + t.amount
+      elif t.ticket_set.count() > 0:
+        ticket_used=t.ticket_set.all()[0]
+
+    tid = request.POST.get('ticket')
+    participant = Participation.objects.get(id=pid).participant
+    if ticket_used:
+      ticket_used.transaction=None
+      ticket_used.save()
+
+    saldo = 0
+    for t in transactions:
+      if t.ticket_set.count() == 0:
+        saldo = saldo + t.amount
+
+    if tid:
+      if saldo == 0:
+        transactions.filter(amount__gt=0).delete()
+      ticket = Ticket.objects.filter(type__id=tid, rider=participant.rider, transaction__isnull=True)[0]
+      ticket.transaction = transactions.filter(amount__lt=0)[0]
+      ticket.save()
+
+    saldo = 0
+    for t in transactions:
+      if t.ticket_set.count() == 0:
+        saldo = saldo + t.amount
+
     if saldo < 0:
-      tid = request.POST.get('ticket')
-      participant = Participation.objects.get(id=pid).participant
-      if tid:
-        ticket = Ticket.objects.filter(type__id=tid, rider=participant.rider, transaction__isnull=True)[0]
-        ticket.transaction = transactions.filter(amount__lt=0)[0]
-        ticket.save()
-      else:
         customer = participant.customer
         Transaction.objects.create(
           active=True,
@@ -458,11 +479,15 @@ def widget_user(request, pid):
     setattr(part, 'transactions', [])
     setattr(part, 'saldo', 0)
     setattr(part, 'ticket_used', None)
-    setattr(part, 'tickets', list(unused_tickets))
+    setattr(part, 'tickets', set())
+
+    for ut in unused_tickets:
+      part.tickets.add(ut.type)
 
     for t in transactions:
         if t.ticket_set.count() == 1:
             part.ticket_used=t.ticket_set.all()[0]
+            part.tickets.discard(part.ticket_used.type)
             part.saldo=0.00
         if not part.ticket_used:
             part.saldo = part.saldo+t.amount
