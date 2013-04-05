@@ -6,24 +6,22 @@
 <link href="{{ STATIC_URL }}stables/css/widget.css" rel="stylesheet" type="text/css" />
 {% endaddtoblock %}
 <h1>WIDGET</h1>
-<div>
-  {% date_picker %}
-</div>
+{% date_picker %}
+<ul class="daily" data-role='listview'>
 {% for e, ps in events %}
-<div>
+  <li data-role='list-divider'>
   <span class="dailytitle">{{ e.title }}</span>
   <span class="dailytime">{{ e.start.time }} - {{ e.end.time }}</span>
-  <ul class="daily">
+  </li>
   {% for p in ps %}
-    <li class='row' data-role='collapsible'>
+    <li>
     <!--<span class="id">{{ p.id }}</span>-->
     <a class="rider" href="{% url stables.views.widget_user pid=p.id %}">
       {{ p.participant }} {{ p.state|state }} {{ p.saldo }}
     </a>
     </li>
   {% endfor %}
-  </ul>
-</div>
 {% endfor %}
+</ul>
 
 {% endblock body %}

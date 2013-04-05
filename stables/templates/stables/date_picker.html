@@ -1,11 +1,11 @@
-<div class='ui-grid-b'>
-  <div class='ui-block-a'>
-  <a href="{{ yesterday_url }}" data-role='button'>&lt;</a>
-  </div>
-  <div class='ui-block-b'>
+<div class='ui-grid-b datepicker'>
+  <span class='ui-block-a'>
+    <a href="{{ yesterday_url }}" data-role='button'>&lt;</a>
+  </span>
+  <span class='ui-block-b'>
     <input id="date_picker" data-baseurl="{{ base_url }}" type='date' value="{{ today.isoformat }}"/>
-  </div>
-  <div class='ui-block-c'>
-  <a href="{{ tomorrow_url }}" data-role='button'>&gt;</a>
-  </div>
+  </span>
+  <span class='ui-block-c'>
+    <a href="{{ tomorrow_url }}" data-role='button'>&gt;</a>
+  </span>
 </div>
