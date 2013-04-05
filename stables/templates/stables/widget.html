@@ -17,39 +17,9 @@
   {% for p in ps %}
     <li class='row' data-role='collapsible'>
     <!--<span class="id">{{ p.id }}</span>-->
-      <h3 class="rider">{{ p.participant }} {{ p.state|state }} {{ p.saldo }}</h3>
-      <span class="horse">{{ p.horse.nickname }}</span>
-      <div class="saldo" data-role='collapsible'>
-        <h4>{{ p.saldo }}
-        {% if p.ticket_used %}
-        ({{ p.ticket_used.type }})
-        {% endif %}</h4>
-        <ul class='saldo_info'>
-        {% for t in p.transactions %}
-        <li>
-        {{ t.amount }}
-        {{ t.created_on }}
-        </li>
-        {% if t.ticket_set.count > 0 %}
-        <li>{{ t.ticket_set.all.0.type }} {{ t.created_on }}</li>
-        {% endif %}
-        {% endfor %}
-        </ul>
-      </div>
-       <div>
-        {% if p.saldo and perms.stables.add_transaction %}
-        <div class="ui-grid-a">
-          <div class='ui-block-a'>{% pay_button p %}</div>
-        {% if p.tickets.total %}
-        {% for tid, ttype in p.tickets.types.items %}
-          <div class='ui-block-b'>{% pay_button p ttype %}</div>
-        {% endfor %}
-        {% endif %}
-        </div>
-        {% endif %}
-        {{ p.participant.rider.ticket.count }}
-        {% participate_button p.participant e p.get_occurrence %}
-       </div>
+    <a class="rider" href="{% url stables.views.widget_user pid=p.id %}">
+      {{ p.participant }} {{ p.state|state }} {{ p.saldo }}
+    </a>
     </li>
   {% endfor %}
   </ul>

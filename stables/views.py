@@ -402,7 +402,7 @@ def pay(request):
           object_id=pid,
           amount=-1*saldo,
           customer=customer)
-    return redirect(request.META['HTTP_REFERER'])
+    return redirect(request.POST.get('redirect', request.META['HTTP_REFERER']))
 
 @permission_required('stables.view_transaction')
 def widget(request, date=None):
@@ -411,22 +411,12 @@ def widget(request, date=None):
     else:
       date = datetime.datetime.strptime(date, "%Y-%m-%d").date()
     participations = Participation.objects.filter(start__gte=date, end__lt=date+datetime.timedelta(days=1)).order_by('id')
-    unused_tickets = Ticket.objects.filter(rider__user__in=participations.values_list('participant', flat=True), transaction__isnull=True).values('rider__user', 'type', 'type__name').annotate(Count('id')).order_by('rider')
     # directory is not sorted
     dir_events = {}
     # this is the sorted list of event tuples
     events = []
 
-    # Sort the tickets by rider
-    tickets = {}
-    for ut in unused_tickets:
-      tt = tickets.setdefault(ut['rider__user'], {'total': 0, 'types': {}})
-      tt['total'] = tt['total'] + 1
-      tt['types'].setdefault(ut['type'], TicketType(id=ut['type'], name=ut['type__name']))
-      #tt['types'][ut['type']]['amount'] += 1
-
-    part_ct = ContentType.objects.get_for_model(Participation)
-    transactions = list(Transaction.objects.filter(active=True, content_type=part_ct, object_id__in=participations).order_by('object_id', 'created_on').prefetch_related('ticket_set'))
+    transactions = list(Transaction.objects.filter(active=True, content_type=ContentType.objects.get_for_model(Participation), object_id__in=participations).order_by('object_id', 'created_on').prefetch_related('ticket_set'))
     participations = list(participations)
 
     p_id = 0
@@ -439,7 +429,6 @@ def widget(request, date=None):
             setattr(part, 'transactions', [])
             setattr(part, 'saldo', 0)
             setattr(part, 'ticket_used', None)
-            setattr(part, 'tickets', tickets.get(part.participant.id))
         participations[p_id] = part
         t = transactions[t_id]
         if part.id == t.object_id:
@@ -459,6 +448,28 @@ def widget(request, date=None):
         events.append((p.event, dir_events[p.event]))
       dir_events[p.event].append(p)
     return render_response(request, 'stables/widget.html', { 'events': events })
+
+@permission_required('stables.view_transaction')
+def widget_user(request, pid):
+    part = Participation.objects.get(pk=pid)
+    unused_tickets = Ticket.objects.filter(rider__user=part.participant, transaction__isnull=True)
+    transactions = list(Transaction.objects.filter(active=True, content_type=ContentType.objects.get_for_model(Participation), object_id=part.id).order_by('object_id', 'created_on').prefetch_related('ticket_set'))
+
+    setattr(part, 'transactions', [])
+    setattr(part, 'saldo', 0)
+    setattr(part, 'ticket_used', None)
+    setattr(part, 'tickets', list(unused_tickets))
+
+    for t in transactions:
+        if t.ticket_set.count() == 1:
+            part.ticket_used=t.ticket_set.all()[0]
+            part.saldo=0.00
+        if not part.ticket_used:
+            part.saldo = part.saldo+t.amount
+        part.transactions.append(t)
+
+    return render_response(request, 'stables/widget_user.html', { 'p': part })
+
 
 def view_course(request, course_id):
     course = Course.objects.get(pk=course_id)
@@ -506,13 +517,13 @@ def attend_course(request, course_id):
       course.create_participation(user, occurrence, ATTENDING, True)
     else:
       course.attend(user, occurrence)
-    return redirect(request.META['HTTP_REFERER'])
+    return redirect(request.POST.get('redirect', request.META['HTTP_REFERER']))
 
 def enroll_course(request, course_id):
     user = get_user_or_404(request, request.POST.get('username'), request.user.has_perm('stables.change_participation'))
     course = get_object_or_404(Course, pk=course_id)
     course.enroll(user)
-    return redirect(request.META['HTTP_REFERER'])
+    return redirect(request.POST.get('redirect', request.META['HTTP_REFERER']))
 
 class AddEventForm(forms.Form):
     start = forms.DateTimeField(widget=forms.SplitDateTimeWidget())
@@ -559,7 +570,7 @@ def cancel(request, course_id):
         enroll = Enroll.objects.filter(course=course_id, participant=user)[0]
         enroll.cancel()
         #return redirect('stables.views.modify_enrolls', course_id=int(course_id))
-    return redirect(request.META['HTTP_REFERER'])
+    return redirect(request.POST.get('redirect', request.META['HTTP_REFERER']))
 
 def skip(request, course_id):
     # Only user that has right to change permission
@@ -573,7 +584,7 @@ def skip(request, course_id):
         participation = get_object_or_404(Participation, pk=pid)
         participation.state = SKIPPED
         participation.save()
-    return redirect(request.META['HTTP_REFERER'])
+    return redirect(request.POST.get('redirect', request.META['HTTP_REFERER']))
 
 def view_account(request):
     user = request.user.get_profile()

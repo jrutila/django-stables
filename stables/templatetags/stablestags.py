@@ -58,9 +58,19 @@ def pay_button(context, participation, ticket_type=None):
     return { 'button': button }
 
 @register.inclusion_tag('stables/participate_button.html', takes_context=True)
-def participate_button(context, user, course, occurrence=None):
+def participate_button(context, user, course=None, occurrence=None, redirect=None):
     buttons = []
     has_change_perm=context['request'].user.has_perm('stables.change_participation')
+
+    if redirect:
+      redirect = reverse(redirect)
+
+    if not course and not occurrence:
+      # We have a participation on user
+      p = user
+      user = p.participant
+      course = p.event
+      occurrence = p.event.get_occurrences(p.start, p.end)[0]
 
     if isinstance(course, Event):
       course = course.course_set.all()[0]
@@ -101,7 +111,10 @@ def participate_button(context, user, course, occurrence=None):
           elif s == RESERVED:
               btn_text = _('Reserve')
               action = reverse('stables.views.attend_course', args=[course.id])
-          buttons.append({ 'start': occ.start, 'end': occ.end, 'action': action, 'button_text': btn_text, 'participation_id': participation_id, 'username': user.user.username})
+          btn = { 'start': occ.start, 'end': occ.end, 'action': action, 'button_text': btn_text, 'participation_id': participation_id, 'username': user.user.username}
+          if redirect:
+            btn['redirect'] = redirect
+          buttons.append(btn)
     else:
       states = course.get_possible_states(user)
       for s in states:
