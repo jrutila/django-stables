@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-02-22 23:15+0200\n"
+"POT-Creation-Date: 2013-04-11 22:25+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,19 +22,24 @@ msgid "Basic information"
 msgstr "Perustiedot"
 
 #: admin.py:24
+#, fuzzy
+msgid "Payment information"
+msgstr "Perustiedot"
+
+#: admin.py:27
 msgid "Recurring information"
 msgstr "Toistuvien tapahtumien tiedot"
 
-#: admin.py:25
+#: admin.py:28
 msgid "Do NOT input anything here if you have one time events."
 msgstr "Älä syötä tähän mitään, jos sinulla on yksittäistapahtumia."
 
-#: admin.py:28
+#: admin.py:31
 #, fuzzy
 msgid "Advanced"
 msgstr "Peruttu"
 
-#: admin.py:47
+#: admin.py:51
 msgid "Customer"
 msgstr "Asiakastieto"
 
@@ -62,19 +67,19 @@ msgstr ""
 msgid "Course Plugin"
 msgstr "Tuntiviittaus"
 
-#: views.py:113
+#: views.py:120
 msgid "Space"
 msgstr "Tilaa"
 
-#: views.py:115
+#: views.py:122
 msgid "Full"
 msgstr "Täynnä"
 
-#: views.py:259
+#: views.py:268
 msgid "Please select rider"
 msgstr "Valitse ratsastaja"
 
-#: views.py:260
+#: views.py:269
 msgid "There was unambiguous riders"
 msgstr "Ratsastajan nimi ei ole yksilöivä"
 
@@ -142,7 +147,7 @@ msgstr "tunnit"
 msgid "Attending"
 msgstr "Osallistuu"
 
-#: models/participations.py:312
+#: models/participations.py:312 templatetags/stablestags.py:101
 msgid "Skipped"
 msgstr "Ei osallistunut"
 
@@ -187,31 +192,30 @@ msgstr ""
 
 #: models/participations.py:599
 #, python-format
-msgid "Instructor: %(name)s"
-msgstr "Opettaja: %(name)s"
-
-#: models/participations.py:599
-#, python-format
 msgid "%(firstname)s %(lastname)s"
 msgstr ""
 
-#: templates/stables/account.html:6
+#: templates/stables/account.html:4
+msgid "Logout"
+msgstr ""
+
+#: templates/stables/account.html:7
 msgid "E-mail"
 msgstr "Sähköposti"
 
-#: templates/stables/account.html:9
+#: templates/stables/account.html:10
 msgid "Disconnect Facebook"
 msgstr ""
 
-#: templates/stables/account.html:11
+#: templates/stables/account.html:12
 msgid "Connect Facebook"
 msgstr ""
 
-#: templates/stables/account.html:12
+#: templates/stables/account.html:13
 msgid "or"
 msgstr ""
 
-#: templates/stables/account.html:13
+#: templates/stables/account.html:14
 msgid "Change password"
 msgstr "Vaihda salasana"
 
@@ -286,6 +290,10 @@ msgstr "Vaihda ajankohtaa"
 msgid "Add one-time event"
 msgstr "Lisää kertatapahtuma"
 
+#: templates/stables/courselist.html:10 templates/stables/dashboard.html:13
+msgid "Select week"
+msgstr "Valitse viikko"
+
 #: templates/stables/customer.html:6
 #, python-format
 msgid ""
@@ -293,7 +301,7 @@ msgid ""
 "Saldo: %(saldo)s\n"
 msgstr ""
 
-#: templates/stables/dashboard.html:12
+#: templates/stables/dashboard.html:31
 msgid "Save Changes"
 msgstr "Tallenna muutokset"
 
@@ -355,25 +363,32 @@ msgstr "Takaisin"
 msgid "Total"
 msgstr "Yhteensä"
 
-#: templatetags/stablestags.py:57
+#: templatetags/stablestags.py:51
+msgid "Cash"
+msgstr ""
+
+#: templatetags/stablestags.py:98
 msgid "Attend"
 msgstr "Osallistu"
 
-#: templatetags/stablestags.py:60 templatetags/stablestags.py:77
+#: templatetags/stablestags.py:104 templatetags/stablestags.py:125
 msgid "Cancel"
 msgstr "Peru"
 
-#: templatetags/stablestags.py:65
+#: templatetags/stablestags.py:110
 msgid "You still have to pay. Are you sure you want to cancel?"
 msgstr "Sinun täytyy silti maksaa. Haluatko varmasti peruuttaa?"
 
-#: templatetags/stablestags.py:67 templatetags/stablestags.py:80
+#: templatetags/stablestags.py:112 templatetags/stablestags.py:128
 msgid "Reserve"
 msgstr "Varaa"
 
-#: templatetags/stablestags.py:74
+#: templatetags/stablestags.py:122
 msgid "Enroll"
 msgstr "Ilmoittaudu"
+
+#~ msgid "Instructor: %(name)s"
+#~ msgstr "Opettaja: %(name)s"
 
 #~ msgid "Add %s"
 #~ msgstr "Lisää %s"
@@ -381,14 +396,14 @@ msgstr "Ilmoittaudu"
 #~ msgid "Attended"
 #~ msgstr "Osallistui"
 
-#~ msgid "M"
-#~ msgstr "T"
+msgid "M"
+msgstr "T"
 
-#~ msgid "G"
-#~ msgstr "R"
+msgid "G"
+msgstr "R"
 
-#~ msgid "S"
-#~ msgstr "O"
+msgid "S"
+msgstr "O"
 
 #~ msgid "Name"
 #~ msgstr "Nimi"
