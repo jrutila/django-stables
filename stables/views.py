@@ -182,7 +182,7 @@ class DashboardForm(forms.Form):
         key = 'c%s_s%s_e%s_instructor' % (c.id, o.start.isoformat(), o.end.isoformat())
         self.fields[key] = field
         self.course_occ_map[key] = (c, o)
-        cop = (c, o, ll, ii[c.id][o.start] if c.id in ii else [])
+        cop = (c, o, ll, ii[c.id][o.start] if c.id in ii and o.start in ii[c.id] else [])
         self.timetable[o.start.hour][o.start.weekday()].append(cop)
 
 
