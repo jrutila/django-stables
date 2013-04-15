@@ -43,8 +43,6 @@ class TransactionActivator(models.Model):
         app_label = 'stables'
         abstract = True
 
-from participations import Course, Participation
-import participations
 class ParticipationTransactionActivatorManager(models.Manager):
     def try_create(self, participation, fee, ticket_type=None):
         if self.filter(participation=participation).count() > 0:
@@ -63,6 +61,51 @@ def _use_ticket(ticket_query, transaction):
         ticket = tickets.order_by('expires')[0]
         ticket.transaction = transaction
         ticket.save()
+
+def _count_saldo(transactions):
+    saldo = 0
+    ticket_used = None
+    for t in transactions:
+      if t.ticket_set.count() == 0:
+        saldo = saldo + t.amount
+      elif t.ticket_set.count() > 0:
+        ticket_used=t.ticket_set.all()[0]
+    return (saldo, ticket_used)
+
+def get_saldo(self):
+    return _count_saldo(Transaction.objects.filter(active=True,
+          content_type=ContentType.objects.get_for_model(self),
+          object_id=self.id))
+
+import participations
+from participations import Course, Participation
+Participation.get_saldo = get_saldo
+
+def pay_participation(participation, ticket=None):
+    transactions = Transaction.objects.filter(
+        active=True,
+        content_type=ContentType.objects.get_for_model(participation),
+        object_id=participation.id)
+    saldo, ticket_used = _count_saldo(transactions)
+
+    if ticket_used:
+      ticket_used.transaction=None
+      ticket_used.save()
+
+    if ticket:
+      ticket.transaction = transactions.filter(amount__lt=0)[0]
+      ticket.save()
+    
+    saldo = _count_saldo(transactions)[0]
+
+    if saldo < 0:
+        customer = participation.participant.customer
+        Transaction.objects.create(
+          active=True,
+          content_type=ContentType.objects.get_for_model(Participation),
+          object_id=participation.id,
+          amount=-1*saldo,
+          customer=customer)
 
 class ParticipationTransactionActivator(TransactionActivator):
     class Meta:

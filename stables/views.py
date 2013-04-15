@@ -2,8 +2,10 @@ from models import HorseForm, Horse, Course, Participation, PARTICIPATION_STATES
 from models import InstructorInfo
 from models import Enroll
 from models import UserProfile
+from models import pay_participation
 from models import Transaction, Ticket, TicketType
 from models import ATTENDING, RESERVED, SKIPPED, CANCELED
+from stables.models import financial
 from schedule.models import Occurrence, Event, Calendar
 from django.shortcuts import render_to_response, redirect, render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, Http404
@@ -24,6 +26,7 @@ import models as enum
 import dateutil.parser
 from django import forms
 import reversion
+from collections import defaultdict
 
 from django.utils.safestring import mark_safe
 
@@ -378,51 +381,13 @@ def daily(request, date=None):
 
 @permission_required('stables.add_transaction')
 def pay(request):
-   # TODO: Move this business logic elsewhere
     pid = request.POST.get('participation_id')
-    transactions = Transaction.objects.filter(
-        active=True,
-        content_type=ContentType.objects.get_for_model(Participation),
-        object_id=pid)
-    saldo = 0
-    ticket_used=None
-    for t in transactions:
-      if t.ticket_set.count() == 0:
-        saldo = saldo + t.amount
-      elif t.ticket_set.count() > 0:
-        ticket_used=t.ticket_set.all()[0]
-
     tid = request.POST.get('ticket')
-    participant = Participation.objects.get(id=pid).participant
-    if ticket_used:
-      ticket_used.transaction=None
-      ticket_used.save()
-
-    saldo = 0
-    for t in transactions:
-      if t.ticket_set.count() == 0:
-        saldo = saldo + t.amount
-
+    participation = Participation.objects.get(id=pid)
     if tid:
-      if saldo == 0:
-        transactions.filter(amount__gt=0).delete()
-      ticket = Ticket.objects.filter(type__id=tid, rider=participant.rider, transaction__isnull=True)[0]
-      ticket.transaction = transactions.filter(amount__lt=0)[0]
-      ticket.save()
-
-    saldo = 0
-    for t in transactions:
-      if t.ticket_set.count() == 0:
-        saldo = saldo + t.amount
-
-    if saldo < 0:
-        customer = participant.customer
-        Transaction.objects.create(
-          active=True,
-          content_type=ContentType.objects.get_for_model(Participation),
-          object_id=pid,
-          amount=-1*saldo,
-          customer=customer)
+        pay_participation(participation, ticket=Ticket.objects.get(id=tid))
+    else:
+        pay_participation(participation)
     return redirect(request.POST.get('redirect', request.META['HTTP_REFERER']))
 
 @permission_required('stables.view_transaction')
@@ -442,6 +407,7 @@ def widget(request, date=None):
 
     p_id = 0
     t_id = 0
+    transbypart = defaultdict(list)
     while t_id < len(transactions) and p_id < len(participations):
         part = participations[p_id]
         #if part.participant.user.first_name == "Tuija":
@@ -453,11 +419,9 @@ def widget(request, date=None):
         participations[p_id] = part
         t = transactions[t_id]
         if part.id == t.object_id:
-            if t.ticket_set.count() == 1:
-                part.ticket_used=t.ticket_set.all()[0]
-                part.saldo=0.00
-            if not part.ticket_used:
-                part.saldo = part.saldo+t.amount
+            transbypart[part].append(t)
+            # TODO: Count this only when we have the last saldo
+            part.saldo = financial._count_saldo(transbypart[part])[0]
             part.transactions.append(t)
             t_id = t_id + 1
         else:
@@ -488,10 +452,8 @@ def widget_user(request, pid):
         if t.ticket_set.count() == 1:
             part.ticket_used=t.ticket_set.all()[0]
             part.tickets.discard(part.ticket_used.type)
-            part.saldo=0.00
-        if not part.ticket_used:
-            part.saldo = part.saldo+t.amount
         part.transactions.append(t)
+    part.saldo = part.get_saldo()[0]
 
     return render_response(request, 'stables/widget_user.html', { 'p': part })
 
