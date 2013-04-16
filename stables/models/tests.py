@@ -64,8 +64,6 @@ class DashboardFormTest(unittest.TestCase):
         Horse.objects.all().delete()
         self.o = self.course.get_occurrences()[1]
         self.data = {}
-        self.data['initial-c1_r1_s%s_e%s_participant' % (self.o.start.isoformat(), self.o.end.isoformat())] = ' ' +self.user.last_name
-        self.data['c1_r1_s%s_e%s_participant' % (self.o.start.isoformat(), self.o.end.isoformat())] = ' ' +self.user.last_name
         self.data['c1_r0_s%s_e%s_state' % (self.o.start.isoformat(), self.o.end.isoformat())] = "0"
         self.data['c1_r0_s%s_e%s_participant' % (self.o.start.isoformat(), self.o.end.isoformat())] = '' 
         self.data['initial-c1_r0_s%s_e%s_participant' % (self.o.start.isoformat(), self.o.end.isoformat())] = '' 
@@ -145,13 +143,14 @@ class DashboardFormTest(unittest.TestCase):
         self.course.enroll(self.user.get_profile())
         self.course.enroll(user2.get_profile())
 
-      state_key = 'c1_r1_s%s_e%s_state' % (self.o.start.isoformat(), self.o.end.isoformat())
-      self.data['c1_r1_s%s_e%s_horse' % (self.o.start.isoformat(), self.o.end.isoformat())] = unicode(1)
-      self.data[state_key] = unicode(ATTENDING)
-      self.data['c1_r2_s%s_e%s_horse' % (self.o.start.isoformat(), self.o.end.isoformat())] = unicode(1)
-      self.data['c1_r2_s%s_e%s_state' % (self.o.start.isoformat(), self.o.end.isoformat())] = unicode(ATTENDING)
-      self.data['c1_r2_s%s_e%s_participant' % (self.o.start.isoformat(), self.o.end.isoformat())] = ' ' +user2.last_name
-      r2_horse_key = 'c1_r2_s%s_e%s_horse' % (self.o.start.isoformat(), self.o.end.isoformat())
+      ttime = (self.o.start.isoformat(), self.o.end.isoformat())
+
+      self.data['c1_r1_s%s_e%s_horse' % ttime] = unicode(1)
+      self.data['c1_r1_s%s_e%s_state' % ttime] = unicode(ATTENDING)
+      self.data['c1_r2_s%s_e%s_horse' % ttime] = unicode(1)
+      self.data['c1_r2_s%s_e%s_state' % ttime] = unicode(ATTENDING)
+      r2_horse_key = 'c1_r2_s%s_e%s_horse' % ttime
+      state_key = 'c1_r1_s%s_e%s_state' % ttime
 
       form = DashboardForm(self.data, year=self.year, week=self.week, courses=Course.objects.all(), horses=Horse.objects.all())
       self.assertTrue(form.is_valid())

@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django import forms
+from django.core.urlresolvers import reverse
 import datetime
 
 class UserManager(models.Manager):
@@ -40,6 +41,9 @@ class UserProfile(models.Model):
 
     def get_next_participations(self):
         return self.get_participations().filter(state=0)[:3]
+
+    def get_absolute_url(self):
+        return reverse('stables.views.view_rider', args=(self.user.username,))
 
 def create_user_profile(sender, instance, created, **kwargs):
     if created:

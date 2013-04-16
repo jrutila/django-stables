@@ -130,6 +130,15 @@ def list_course(request, week=None):
     return render_response(request, 'stables/courselist.html',
             { 'courses': courses, 'occurrences': occs, 'week_dates': week, 'week': Week.withdate(monday).week, 'week_range': [(today_week,), (today_week+1,), (today_week+2,)] })
 
+class ParticipantLink(forms.Widget):
+  def __init__(self, participant, attrs=None, required=True):
+    self.attrs = attrs or {}
+    self.required = required
+    self.participant = participant
+
+  def render(self, name, value, attrs=None):
+    return mark_safe('<span class="ui-stbl-db-user"><a href="%s">%s</a></span>'
+        % (self.participant.get_absolute_url(), self.participant.__unicode__()))
 
 class DashboardForm(forms.Form):
   participation_map = dict()
@@ -205,9 +214,18 @@ class DashboardForm(forms.Form):
     note_field = forms.CharField(initial=part.note, widget=forms.Textarea, required=False, show_hidden_initial=True)
     note_key = self.add_field(course, part, 'note', note_field)
 
-    participant_field = forms.CharField(initial=unicode(part.participant), required=False, show_hidden_initial=True)
-    participant_key = self.add_field(course, part, 'participant', participant_field)
+    if not part.participant.id: # Only new participations
+      participant_field = forms.CharField(
+          initial='',
+          show_hidden_initial=True,
+          required=False)
+    else:
+      participant_field = forms.CharField(
+          initial='',
+          required=False,
+          widget=ParticipantLink(participant=part.participant))
 
+    participant_key = self.add_field(course, part, 'participant', participant_field)
     return (horse_key, participant_key, state_key, note_key)
 
   def _post_clean(self):
@@ -324,6 +342,7 @@ class DashboardForm(forms.Form):
           for part in cop[2]:
             output.append('<li>')
             for field in part:
+              if not field: continue
               if 'participant' in field and 'selector-%s' % field in self.fields:
                 output.append(self[field].as_hidden())
                 field = 'selector-%s' % field
