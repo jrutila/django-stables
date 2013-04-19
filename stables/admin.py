@@ -158,7 +158,6 @@ class TicketAdminForm(forms.ModelForm):
   class Meta:
     model = Ticket
     #exclude = ['transaction' ]
-  rider = forms.ModelChoiceField(queryset=RiderInfo.objects.prefetch_related('levels', 'user__user').all())
   transaction = forms.IntegerField(required=False)
 
   def clean(self):

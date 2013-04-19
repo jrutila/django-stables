@@ -409,9 +409,9 @@ class TicketTestCase(unittest.TestCase):
 
     def testUnusedTickets(self):
         rider = self.user.get_profile().rider
-        t1 = Ticket.objects.create(type=self.ticket_type, rider=rider, expires=datetime.datetime.now()+datetime.timedelta(days=10))
-        t2 = Ticket.objects.create(type=self.ticket_type, rider=rider, expires=datetime.datetime.now()+datetime.timedelta(days=5))
-        t3 = Ticket.objects.create(type=self.ticket_type, rider=rider, expires=None)
+        t1 = Ticket.objects.create(type=self.ticket_type, owner=rider, expires=datetime.datetime.now()+datetime.timedelta(days=10))
+        t2 = Ticket.objects.create(type=self.ticket_type, owner=rider, expires=datetime.datetime.now()+datetime.timedelta(days=5))
+        t3 = Ticket.objects.create(type=self.ticket_type, owner=rider, expires=None)
 
         tickets = rider.unused_tickets
         self.assertEqual(tickets.count(), 3)
@@ -426,7 +426,7 @@ class TicketTestCase(unittest.TestCase):
 
     def testAutomaticTicketUsage(self):
         rider = self.user.get_profile().rider
-        t1 = Ticket.objects.create(type=self.ticket_type, rider=rider, expires=datetime.datetime.now()+datetime.timedelta(days=10))
+        t1 = Ticket.objects.create(type=self.ticket_type, owner=rider, expires=datetime.datetime.now()+datetime.timedelta(days=10))
 
         tickets = rider.unused_tickets
         self.assertEqual(tickets.count(), 1)
@@ -454,30 +454,52 @@ class TicketTestCase(unittest.TestCase):
     def testParticipationPayWithTicket(self):
         t = ParticipationTransactionActivator.objects.all()[0].try_activate()
         
-        t1 = Ticket.objects.create(type=self.ticket_type, rider=self.user.get_profile().rider, expires=datetime.datetime.now()+datetime.timedelta(days=10))
+        t1 = Ticket.objects.create(type=self.ticket_type, owner=self.user.get_profile().rider, expires=datetime.datetime.now()+datetime.timedelta(days=10))
 
-        pay_participation(self.participation, ticket=t1)
+        pay_participation(self.participation, ticket=self.ticket_type)
 
         self.assertEqual(Transaction.objects.count(), 1)
 
         t = Transaction.objects.latest('id')
+        t1 = Ticket.objects.get(pk=t1.id)
 
         self.assertEqual(t.amount, Decimal('-45.17'))
         self.assertEqual(t1.transaction, t)
 
-    def testParticipationPayWithAnotherTicket(self):
-        t1 = Ticket.objects.create(type=self.ticket_type, rider=self.user.get_profile().rider, expires=datetime.datetime.now()+datetime.timedelta(days=10))
-
+    def testParticipationPayWithNextExpiringTicket(self):
         t = ParticipationTransactionActivator.objects.all()[0].try_activate()
-        self.assertEqual(Ticket.objects.get(pk=t1.pk).transaction, t)
         
-        t2 = Ticket.objects.create(type=self.ticket_type, rider=self.user.get_profile().rider, expires=datetime.datetime.now()+datetime.timedelta(days=20))
+        t1 = Ticket.objects.create(type=self.ticket_type, owner=self.user.get_profile().rider, expires=datetime.datetime.now()+datetime.timedelta(days=11))
+        t2 = Ticket.objects.create(type=self.ticket_type, owner=self.user.get_profile().rider, expires=datetime.datetime.now()+datetime.timedelta(days=10))
 
-        pay_participation(self.participation, ticket=t2)
+        pay_participation(self.participation, ticket=self.ticket_type)
 
         self.assertEqual(Transaction.objects.count(), 1)
 
         t = Transaction.objects.latest('id')
+        t1 = Ticket.objects.get(pk=t1.id)
+        t2 = Ticket.objects.get(pk=t2.id)
+
+        self.assertEqual(t.amount, Decimal('-45.17'))
+        self.assertEqual(t1.transaction, None)
+        self.assertEqual(t2.transaction, t)
+
+    def testParticipationPayWithAnotherTicket(self):
+        type2, created = TicketType.objects.get_or_create(name='testtype2')
+        t1 = Ticket.objects.create(type=self.ticket_type, owner=self.user.get_profile().rider, expires=datetime.datetime.now()+datetime.timedelta(days=10))
+
+        t = ParticipationTransactionActivator.objects.all()[0].try_activate()
+        self.assertEqual(Ticket.objects.get(pk=t1.pk).transaction, t)
+        
+        t2 = Ticket.objects.create(type=type2, owner=self.user.get_profile().rider, expires=datetime.datetime.now()+datetime.timedelta(days=20))
+
+        pay_participation(self.participation, ticket=type2)
+
+        self.assertEqual(Transaction.objects.count(), 1)
+
+        t = Transaction.objects.latest('id')
+        t1 = Ticket.objects.get(pk=t1.id)
+        t2 = Ticket.objects.get(pk=t2.id)
 
         self.assertEqual(t.amount, Decimal('-45.17'))
         self.assertEqual(Ticket.objects.get(pk=t1.pk).transaction, None)
@@ -486,7 +508,7 @@ class TicketTestCase(unittest.TestCase):
     def testParticipationPayWithTicketAfterCash(self):
         t = ParticipationTransactionActivator.objects.all()[0].try_activate()
         
-        t1 = Ticket.objects.create(type=self.ticket_type, rider=self.user.get_profile().rider, expires=datetime.datetime.now()+datetime.timedelta(days=10))
+        t1 = Ticket.objects.create(type=self.ticket_type, owner=self.user.get_profile().rider, expires=datetime.datetime.now()+datetime.timedelta(days=10))
 
         pay_participation(self.participation)
 
@@ -497,7 +519,7 @@ class TicketTestCase(unittest.TestCase):
         self.assertEqual(t.amount, Decimal('45.17'))
         self.assertEqual(Ticket.objects.get(pk=t1.pk).transaction, None)
 
-        pay_participation(self.participation, ticket=t1)
+        pay_participation(self.participation, ticket=self.ticket_type)
 
         self.assertEqual(Transaction.objects.count(), 2)
 

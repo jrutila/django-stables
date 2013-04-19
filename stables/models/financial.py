@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from user import CustomerInfo, RiderInfo
 import datetime
 from django import forms
@@ -29,12 +30,14 @@ class Ticket(models.Model):
     class Meta:
         app_label = 'stables'
     def __unicode__(self):
-        s = self.type.__unicode__() + ' (' + self.rider.__unicode__() + ')'
+        s = self.type.__unicode__() + ' (' + unicode(self.owner) + ')'
         if self.transaction:
             s = s + "(USED)"
         return s
     type = models.ForeignKey(TicketType)
-    rider = models.ForeignKey(RiderInfo)
+    owner_type = models.ForeignKey(ContentType)
+    owner_id = models.PositiveIntegerField()
+    owner = generic.GenericForeignKey('owner_type', 'owner_id')
     transaction = models.ForeignKey("Transaction", null=True, blank=True)
     expires = models.DateTimeField(default=datetime.datetime.now()+datetime.timedelta(days=356), null=True, blank=True)
 
@@ -77,9 +80,16 @@ def get_saldo(self):
           content_type=ContentType.objects.get_for_model(self),
           object_id=self.id))
 
+def _get_unused_tickets(self):
+    qrider = Q(owner_type=ContentType.objects.get_for_model(self), owner_id=self.id)
+    qcustomer = Q(owner_type=ContentType.objects.get_for_model(self.customer), owner_id=self.customer.id)
+
+    return Ticket.objects.filter(qrider | qcustomer, transaction__isnull=True).exclude(expires__lt=datetime.datetime.now())
+
 import participations
 from participations import Course, Participation
 Participation.get_saldo = get_saldo
+RiderInfo.unused_tickets = property(_get_unused_tickets)
 
 def pay_participation(participation, ticket=None):
     transactions = Transaction.objects.filter(
@@ -93,13 +103,14 @@ def pay_participation(participation, ticket=None):
       ticket_used.save()
 
     if ticket:
+      ticket = participation.participant.rider.unused_tickets.filter(type=ticket).order_by('expires')[0]
       ticket.transaction = transactions.filter(amount__lt=0)[0]
       ticket.save()
     
     saldo = _count_saldo(transactions)[0]
 
     if saldo < 0:
-        customer = participation.participant.customer
+        customer = participation.participant.rider.customer
         Transaction.objects.create(
           active=True,
           content_type=ContentType.objects.get_for_model(Participation),
@@ -197,7 +208,7 @@ class Transaction(models.Model):
     def __unicode__(self):
         #if self.source:
             #name = self.source.__unicode__() 
-        name = self.customer.__unicode__() + ': ' + str(self.amount)
+        name = unicode(self.source) + ': ' + unicode(self.amount)
         return name
     active = models.BooleanField(default=True)
     customer = models.ForeignKey(CustomerInfo)

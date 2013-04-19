@@ -404,7 +404,7 @@ def pay(request):
     tid = request.POST.get('ticket')
     participation = Participation.objects.get(id=pid)
     if tid:
-        pay_participation(participation, ticket=Ticket.objects.get(id=tid))
+        pay_participation(participation, ticket=TicketType.objects.get(id=tid))
     else:
         pay_participation(participation)
     return redirect(request.POST.get('redirect', request.META['HTTP_REFERER']))
@@ -456,7 +456,7 @@ def widget(request, date=None):
 @permission_required('stables.view_transaction')
 def widget_user(request, pid):
     part = Participation.objects.get(pk=pid)
-    unused_tickets = Ticket.objects.filter(rider__user=part.participant, transaction__isnull=True)
+    unused_tickets = part.participant.rider.unused_tickets
     transactions = list(Transaction.objects.filter(active=True, content_type=ContentType.objects.get_for_model(Participation), object_id=part.id).order_by('object_id', 'created_on').prefetch_related('ticket_set'))
 
     setattr(part, 'transactions', [])
