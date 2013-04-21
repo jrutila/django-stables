@@ -169,6 +169,9 @@ class TicketAdminForm(forms.ModelForm):
 class TicketAdmin(admin.ModelAdmin):
   form = TicketAdminForm
 
+class EnrollAdmin(reversion.VersionAdmin):
+  search_fields = ['participant__user__first_name']
+
 #admin.site.register(Horse, HorseAdmin)
 admin.site.register(Horse)
 admin.site.register(UserProfile, UserProfileAdmin)
@@ -177,7 +180,7 @@ admin.site.register(CustomerInfo, CustomerInfoAdmin)
 admin.site.register(Participation, ParticipationAdmin)
 admin.site.register(InstructorParticipation, InstructorParticipationAdmin)
 admin.site.register(RiderLevel)
-admin.site.register(Enroll)
+admin.site.register(Enroll, EnrollAdmin)
 admin.site.register(Ticket, TicketAdmin)
 admin.site.register(TicketType)
 admin.site.register(Transaction, TransactionAdmin)
