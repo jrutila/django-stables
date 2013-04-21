@@ -83,13 +83,18 @@ def get_saldo(self):
 def _get_unused_tickets(self):
     qrider = Q(owner_type=ContentType.objects.get_for_model(self), owner_id=self.id)
     qcustomer = Q(owner_type=ContentType.objects.get_for_model(self.customer), owner_id=self.customer.id)
+    return Ticket.objects.filter(qrider | qcustomer, transaction__isnull=True).exclude(expires__lt=datetime.datetime.now())
 
+def _get_customer_unused_tickets(self):
+    qcustomer = Q(owner_type=ContentType.objects.get_for_model(self), owner_id=self.id)
+    qrider = Q(owner_type=ContentType.objects.get_for_model(RiderInfo), owner_id__in=self.riderinfo_set.all())
     return Ticket.objects.filter(qrider | qcustomer, transaction__isnull=True).exclude(expires__lt=datetime.datetime.now())
 
 import participations
 from participations import Course, Participation
 Participation.get_saldo = get_saldo
 RiderInfo.unused_tickets = property(_get_unused_tickets)
+CustomerInfo.unused_tickets = property(_get_customer_unused_tickets)
 
 def pay_participation(participation, ticket=None):
     transactions = Transaction.objects.filter(
@@ -208,7 +213,10 @@ class Transaction(models.Model):
     def __unicode__(self):
         #if self.source:
             #name = self.source.__unicode__() 
-        name = unicode(self.source) + ': ' + unicode(self.amount)
+        name = unicode(self.amount)
+        if self.ticket_set.count():
+          name = name + ' (%s)' % unicode(self.ticket_set.all()[0].type)
+        name = name + ': ' + unicode(self.source)
         return name
     active = models.BooleanField(default=True)
     customer = models.ForeignKey(CustomerInfo)
@@ -225,11 +233,18 @@ class TicketForm(forms.ModelForm):
   class Meta:
     model = Ticket
     exclude = ['transaction']
+    widgets = {
+        'owner_type': forms.HiddenInput(),
+        'owner_id': forms.HiddenInput()
+        }
 
+  to_customer = forms.BooleanField(required=False, label=_('Family ticket'))
   amount = forms.IntegerField(required=True, initial=10)
 
   def save_all(self):
     amnt = self.cleaned_data['amount']
+    if (self.cleaned_data['to_customer']):
+      self.instance.owner = self.instance.owner.customer
     for i in range(0, amnt):
       super(TicketForm, self).save(commit=True)
       self.instance.id = None

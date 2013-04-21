@@ -43,7 +43,7 @@ class UserProfile(models.Model):
         return self.get_participations().filter(state=0)[:3]
 
     def get_absolute_url(self):
-        return reverse('stables.views.view_rider', args=(self.user.username,))
+        return reverse('stables.views.view_user', args=(self.user.username,))
 
 def create_user_profile(sender, instance, created, **kwargs):
     if created:

@@ -497,7 +497,7 @@ class Participation(models.Model):
     class Meta:
         app_label = 'stables'
     def __unicode__(self):
-        date_format = u'l, %s' % ugettext("DATE_FORMAT")
+        date_format = u'%s' % ugettext("DATE_FORMAT")
         time_format = u'%s' % ugettext("TIME_FORMAT")
         occ = self.get_occurrence()
         if not occ:

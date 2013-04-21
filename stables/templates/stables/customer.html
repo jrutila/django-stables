@@ -1,7 +1,7 @@
 {% extends "site_base.html" %}
 {% load i18n %}
 {% block body %}
-<h1>{{ customer }}</h1>
+<h1><a href="{{ user.get_absolute_url }}">{{ user }}</a></h1>
 {% if saldo %}
 {% blocktrans with saldo as saldo %}
 Saldo: {{ saldo }}
@@ -10,10 +10,7 @@ Saldo: {{ saldo }}
 <ul>
 {% for t in transactions %}
 <li>
-    {{ t.source }} {{ t.amount }}
-    {% if t.ticket_set.count %}
-    ({{ t.ticket_set.all.0.type }})
-    {% endif %}
+  {{ t }}
 </li>
 {% endfor %}
 </ul>

@@ -1,7 +1,16 @@
 {% extends "site_base.html" %}
 {% load i18n %}
 {% block body %}
-<h1>{{ rider }}</h1>
+<h1><a href="{{ rider.get_absolute_url }}">{{ rider }}</a></h1>
+{% if saldo %}
+  {% if customer %}
+  <a href="{% url stables.views.view_customer customer.userprofile.user.username %}">
+  {% endif %}
+  {% trans "Saldo" %} {{ saldo }}
+  {% if customer %}
+  </a>
+  {% endif %}
+{% endif %}
 <div class="tickets">
 {% if rider.rider.unused_tickets.count %}
 {% blocktrans with rider.rider.unused_tickets.count as ticket_count %}
