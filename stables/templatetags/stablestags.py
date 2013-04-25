@@ -9,7 +9,7 @@ from stables.models import Transaction
 from schedule.models import Event
 import datetime
 
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.urlresolvers import NoReverseMatch
 from stables.models import PARTICIPATION_STATES
 from stables.models import ATTENDING, CANCELED, RESERVED, SKIPPED
 
@@ -49,7 +49,7 @@ def date_picker(context):
 @register.inclusion_tag('stables/pay_button.html', takes_context=True)
 def pay_button(context, participation, ticket_type=None):
     button = { 'button_text': _('Cash') }
-    button['redirect'] = reverse('stables.views.widget')
+    button['redirect'] = context['request'].META.get('HTTP_REFERER', reverse('stables.views.dashboard'))
     button['participation_id'] = participation.id
     button['action'] = reverse('stables.views.pay')
     if ticket_type:
@@ -63,7 +63,10 @@ def participate_button(context, user, course=None, occurrence=None, redirect=Non
     has_change_perm=context['request'].user.has_perm('stables.change_participation')
 
     if redirect:
-      redirect = reverse(redirect)
+      try:
+        redirect = reverse(redirect)
+      except NoReverseMatch:
+        redirect = redirect
 
     if not course and not occurrence:
       # We have a participation on user
@@ -113,7 +116,7 @@ def participate_button(context, user, course=None, occurrence=None, redirect=Non
               action = reverse('stables.views.attend_course', args=[course.id])
           btn = { 'start': occ.start, 'end': occ.end, 'action': action, 'button_text': btn_text, 'participation_id': participation_id, 'username': user.user.username}
           if redirect:
-            btn['redirect'] = redirect
+              btn['redirect'] = redirect
           buttons.append(btn)
     else:
       states = course.get_possible_states(user)

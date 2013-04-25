@@ -604,51 +604,44 @@ def skip(request, course_id):
     return redirect(request.POST.get('redirect', request.META['HTTP_REFERER']))
 
 def view_user(request, username):
-    if username and request.user.is_staff:
+    if username and (request.user.is_staff or username == request.user.username):
         user = User.objects.filter(username=username)[0] if username else request.user.get_profile()
-    elif username:
-        raise Http404
     else:
-        user = request.user.get_profile()
+        raise Http404
     user = user.userprofile
+
+    setattr(user, 'next', [])
+    if user.rider:
+        user.next.append(Participation.objects.get_next_participation(user))
+
     if user.customer:
         setattr(user, 'transactions', Transaction.objects.filter(
-          customer=user.customer, active=True).order_by('-created_on')[:5])
-        for t in user.transactions:
-            if t.ticket_set.count():
-               t.ticket = t.ticket_set.all()[0]
-        setattr(user, 'participations', Participation.objects.filter(participant__in=user.customer.riderinfo_set.values_list('user', flat=True)).order_by('-start')[:5])
+          customer=user.customer, active=True).order_by('-created_on')[:request.GET.get('tmore', 5)])
+        setattr(user, 'participations', Participation.objects.filter(participant__in=user.customer.riderinfo_set.values_list('user', flat=True), start__lte=datetime.datetime.now()).order_by('-start')[:request.GET.get('pmore', 5)])
         setattr(user, 'tickets', user.customer.unused_tickets)
-    else:
-      if user.rider:
-          setattr(user, 'participations', Participation.objects.filter(
-            participant=user).order_by('-start')[:5])
-          setattr(user, 'tickets', user.rider.unused_tickets)
-    return render(request, 'stables/user.html', { 'user': user })
+        setattr(user, 'saldo', user.customer.saldo)
+        for rdr in user.customer.riderinfo_set.all():
+          if rdr.user != user:
+            user.next.append(Participation.objects.get_next_participation(rdr.user))
+    elif user.rider:
+        setattr(user, 'participations', Participation.objects.filter(
+          participant=user).order_by('-start')[:request.GET.get('pmore', 5)])
+        setattr(user, 'tickets', user.rider.unused_tickets)
+
+    ticketamount = defaultdict(int)
+    ticketexp = dict()
+    for t in user.tickets:
+      ticketamount[t.type] = ticketamount[t.type] + 1
+      ticketexp[t.type] = t.expires if not t.type in ticketexp or ticketexp[t.type] > t.expires else ticketexp[t.type]
+    user.tickets = dict()
+    for tt in ticketexp.keys():
+      user.tickets[tt] = (ticketamount[tt], ticketexp[tt])
+
+    return render(request, 'stables/user/index.html', { 'user': user })
 
 def view_account(request):
     user = request.user.get_profile()
     return render(request, 'stables/account.html', { 'user': user })
-
-def view_rider(request, username):
-    rider = User.objects.filter(username=username)[0].get_profile()
-    saldo = None
-    customer = None
-    if rider.customer and (request.user.has_perm('stables.can_view_saldo') or rider.customer.userprofile.user == request.user):
-        saldo = rider.customer.saldo()
-        customer = rider.customer
-    return render_response(request, 'stables/rider.html', { 'rider': rider, 'saldo': saldo, 'customer': customer })
-
-def view_customer(request, username):
-    user = User.objects.filter(username=username)[0]
-    customer = user.get_profile().customer
-    if not customer:
-        raise Http404
-    if user != request.user and not request.user.has_perm('stables.view_transaction'):
-        raise Http404
-    trans = Transaction.objects.filter(active=True, customer=customer).order_by('-created_on')
-    saldo = customer.saldo()
-    return render_response(request, 'stables/customer.html', { 'user': user.userprofile, 'customer': customer, 'transactions': trans, 'saldo': saldo })
 
 class ModifyParticipationForm(forms.Form):
   PARTICIPATE_KEY_PREFIX='participate_'
@@ -790,19 +783,27 @@ from models import TicketForm
 @permission_required('stables.add_ticket')
 def add_tickets(request, username):
   user = get_object_or_404(UserProfile, user__username=username)
-  tf = TicketForm(initial={
-    'owner_id': user.rider.id,
-    'owner_type': ContentType.objects.get_for_model(RiderInfo)
-    })
+  if user.rider:
+    tf = TicketForm(initial={
+      'owner_id': user.rider.id,
+      'owner_type': ContentType.objects.get_for_model(RiderInfo)
+      })
+  else:
+    tf = TicketForm(initial={
+      'owner_id': user.customer.id,
+      'owner_type': ContentType.objects.get_for_model(CustomerInfo),
+      'to_customer': True
+      })
+    tf.fields['to_customer'].widget.attrs['disabled'] = 'disabled'
   if request.method == "POST":
     tf = TicketForm(request.POST)
     if tf.is_valid():
       tf.save_all()
-      return redirect('stables.views.view_rider', username)
+      return redirect('stables.views.view_user', username)
   return render(request, 'stables/addtickets.html', { 'form': tf, 'user': user, 'username': username })
 
 
-from models import admin, RiderInfo
+from models import admin, RiderInfo, CustomerInfo
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 

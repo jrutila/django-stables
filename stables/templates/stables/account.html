@@ -13,11 +13,4 @@
 {% trans "or" %}
 <a href="{% url django.contrib.auth.views.password_change %}">{% trans "Change password" %}</a>
 {% endif %}
-<side>
-<ul>
-    {% for p in user.get_participations %}
-    <li>{{ p }}</li>
-    {% endfor %}
-</ul>
-</side>
 {% endblock body %}

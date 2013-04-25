@@ -839,6 +839,7 @@ class CourseEnrollTest(unittest.TestCase):
 class CourseParticipationTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        rule, created = Rule.objects.get_or_create(name="Weekly", frequency="WEEKLY")
         user = setupRider('user')
         data = { 'start': datetime.datetime.today()-datetime.timedelta(days=14),
                  'end': datetime.datetime.today()+datetime.timedelta(days=14),
@@ -902,6 +903,36 @@ class CourseParticipationTest(unittest.TestCase):
         for (i, u) in enumerate(users):
             result = self.course.get_possible_states(u, occ)
             self.assertEqual(set(result), set(table[i][2]), "user%d: " % i + str(result) )
+
+    def testNextParticipations(self):
+        pr = self.user.get_profile()
+        target = Participation.objects.get_next_participation(pr, datetime.datetime.now())
+        self.assertEqual(target, None)
+
+    def testNextParticipationEnroll(self):
+        pr = self.user.get_profile()
+        Enroll.objects.create(course=self.course, participant=pr, state=ATTENDING)
+        target = Participation.objects.get_next_participation(pr, datetime.datetime.now())
+        self.assertEqual(target.id, None)
+        self.assertEqual(target.start.time(), datetime.time(13, 00))
+        self.assertEqual(target.end.time(), datetime.time(15, 00))
+        self.assertEqual(target.participant, pr)
+
+    def testNextParticipationParticipationBeforeEnroll(self):
+        pr = self.user.get_profile()
+        Enroll.objects.create(course=self.course, participant=pr, state=ATTENDING)
+        cocc = self.course.get_next_occurrence()
+        crs = setupCourse('crs2', cocc.start, cocc.end, datetime.time(12, 00), datetime.time(12, 30))
+        with reversion.create_revision():
+          crs.attend(pr, crs.get_next_occurrence())
+
+        target = Participation.objects.get_next_participation(pr, datetime.datetime.now())
+
+        self.assertEqual(target.id, None)
+        self.assertEqual(target.start.time(), datetime.time(12, 00))
+        self.assertEqual(target.end.time(), datetime.time(12, 30))
+        self.assertEqual(target.participant, pr)
+        
 
     def testStatesEmpty(self):
         #        enroll    , part     , allowed

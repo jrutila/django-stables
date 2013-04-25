@@ -215,7 +215,7 @@ class Transaction(models.Model):
             #name = self.source.__unicode__() 
         name = unicode(self.amount)
         if self.ticket_set.count():
-          name = name + ' (%s)' % unicode(self.ticket_set.all()[0].type)
+          name = '(%s)' % unicode(self.ticket_set.all()[0].type)
         name = name + ': ' + unicode(self.source)
         return name
     active = models.BooleanField(default=True)
