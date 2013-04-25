@@ -3,6 +3,14 @@
 {% block body %}
 <h1><a href="{{ user.get_absolute_url }}">{{ user }}</a></h1>
 
+{% ifequal user.user request.user %}
+{% include "stables/user/account.html" %}
+{% endifequal %}
+
+<p>
+{% trans "E-mail" %}: {{ user.user.email }}
+</p>
+
 {% if user.next %}
 <h3>
   {% trans "Next event" %}
@@ -29,6 +37,7 @@
   </ul>
 {% endif %}
 
+{% if user.saldo %}
 <h3>{% trans "Saldo" %}</h3>
 {{ user.saldo }}
 {% if perms.stables.add_ticket %}
@@ -43,6 +52,7 @@
 </li>
 {% endfor %}
 </ul>
+{% endif %}
 
 {% if user.transactions %}
 <h3>

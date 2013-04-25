@@ -1,10 +1,7 @@
-{% extends "site_base.html" %}
 {% load i18n %}
 {% block body %}
-<a href="{% url django.contrib.auth.views.logout %}" data-role='button'>{% trans "Logout" %}</a>
-<h1>{{ user }}</h1>
 <p>
-{% trans "E-mail" %}: {{ user.user.email }}
+<a href="{% url django.contrib.auth.views.logout %}" data-role='button'>{% trans "Logout" %}</a>
 </p>
 {% if social_auth.facebook %}
 <a href="{% url socialauth_disconnect 'facebook' %}">{% trans "Disconnect Facebook" %}</a>

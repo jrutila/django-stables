@@ -603,12 +603,15 @@ def skip(request, course_id):
         participation.save()
     return redirect(request.POST.get('redirect', request.META['HTTP_REFERER']))
 
-def view_user(request, username):
-    if username and (request.user.is_staff or username == request.user.username):
-        user = User.objects.filter(username=username)[0] if username else request.user.get_profile()
+def view_user(request, username=None):
+    if username:
+        if (request.user.is_staff or username == request.user.username):
+            user = User.objects.filter(username=username)[0]
+        else:
+            raise Http404
     else:
-        raise Http404
-    user = user.userprofile
+        user = request.user
+    user = user.get_profile()
 
     setattr(user, 'next', [])
     if user.rider:
@@ -628,20 +631,17 @@ def view_user(request, username):
           participant=user).order_by('-start')[:request.GET.get('pmore', 5)])
         setattr(user, 'tickets', user.rider.unused_tickets)
 
-    ticketamount = defaultdict(int)
-    ticketexp = dict()
-    for t in user.tickets:
-      ticketamount[t.type] = ticketamount[t.type] + 1
-      ticketexp[t.type] = t.expires if not t.type in ticketexp or ticketexp[t.type] > t.expires else ticketexp[t.type]
-    user.tickets = dict()
-    for tt in ticketexp.keys():
-      user.tickets[tt] = (ticketamount[tt], ticketexp[tt])
+    if hasattr(user, 'tickets'):
+      ticketamount = defaultdict(int)
+      ticketexp = dict()
+      for t in user.tickets:
+        ticketamount[t.type] = ticketamount[t.type] + 1
+        ticketexp[t.type] = t.expires if not t.type in ticketexp or ticketexp[t.type] > t.expires else ticketexp[t.type]
+      user.tickets = dict()
+      for tt in ticketexp.keys():
+        user.tickets[tt] = (ticketamount[tt], ticketexp[tt])
 
     return render(request, 'stables/user/index.html', { 'user': user })
-
-def view_account(request):
-    user = request.user.get_profile()
-    return render(request, 'stables/account.html', { 'user': user })
 
 class ModifyParticipationForm(forms.Form):
   PARTICIPATE_KEY_PREFIX='participate_'
