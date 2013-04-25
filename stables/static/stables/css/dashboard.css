@@ -59,6 +59,12 @@ select.changed
   background-color: red;
 }
 
+.ui-stbl-db-user
+{
+  width: 156px;
+  display: inline-block;
+}
+
 .timetable select
 {
   margin: 0px;

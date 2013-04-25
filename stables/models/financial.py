@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from user import CustomerInfo, RiderInfo
 import datetime
 from django import forms
@@ -29,12 +30,14 @@ class Ticket(models.Model):
     class Meta:
         app_label = 'stables'
     def __unicode__(self):
-        s = self.type.__unicode__() + ' (' + self.rider.__unicode__() + ')'
+        s = self.type.__unicode__() + ' (' + unicode(self.owner) + ')'
         if self.transaction:
             s = s + "(USED)"
         return s
     type = models.ForeignKey(TicketType)
-    rider = models.ForeignKey(RiderInfo)
+    owner_type = models.ForeignKey(ContentType)
+    owner_id = models.PositiveIntegerField()
+    owner = generic.GenericForeignKey('owner_type', 'owner_id')
     transaction = models.ForeignKey("Transaction", null=True, blank=True)
     expires = models.DateTimeField(default=datetime.datetime.now()+datetime.timedelta(days=356), null=True, blank=True)
 
@@ -43,8 +46,6 @@ class TransactionActivator(models.Model):
         app_label = 'stables'
         abstract = True
 
-from participations import Course, Participation
-import participations
 class ParticipationTransactionActivatorManager(models.Manager):
     def try_create(self, participation, fee, ticket_type=None):
         if self.filter(participation=participation).count() > 0:
@@ -63,6 +64,64 @@ def _use_ticket(ticket_query, transaction):
         ticket = tickets.order_by('expires')[0]
         ticket.transaction = transaction
         ticket.save()
+
+def _count_saldo(transactions):
+    saldo = 0
+    ticket_used = None
+    for t in transactions:
+      if t.ticket_set.count() == 0:
+        saldo = saldo + t.amount
+      elif t.ticket_set.count() > 0:
+        ticket_used=t.ticket_set.all()[0]
+    return (saldo, ticket_used)
+
+def get_saldo(self):
+    return _count_saldo(Transaction.objects.filter(active=True,
+          content_type=ContentType.objects.get_for_model(self),
+          object_id=self.id))
+
+def _get_unused_tickets(self):
+    qrider = Q(owner_type=ContentType.objects.get_for_model(self), owner_id=self.id)
+    qcustomer = Q(owner_type=ContentType.objects.get_for_model(self.customer), owner_id=self.customer.id)
+    return Ticket.objects.filter(qrider | qcustomer, transaction__isnull=True).exclude(expires__lt=datetime.datetime.now())
+
+def _get_customer_unused_tickets(self):
+    qcustomer = Q(owner_type=ContentType.objects.get_for_model(self), owner_id=self.id)
+    qrider = Q(owner_type=ContentType.objects.get_for_model(RiderInfo), owner_id__in=self.riderinfo_set.all())
+    return Ticket.objects.filter(qrider | qcustomer, transaction__isnull=True).exclude(expires__lt=datetime.datetime.now())
+
+import participations
+from participations import Course, Participation
+Participation.get_saldo = get_saldo
+RiderInfo.unused_tickets = property(_get_unused_tickets)
+CustomerInfo.unused_tickets = property(_get_customer_unused_tickets)
+
+def pay_participation(participation, ticket=None):
+    transactions = Transaction.objects.filter(
+        active=True,
+        content_type=ContentType.objects.get_for_model(participation),
+        object_id=participation.id)
+    saldo, ticket_used = _count_saldo(transactions)
+
+    if ticket_used:
+      ticket_used.transaction=None
+      ticket_used.save()
+
+    if ticket:
+      ticket = participation.participant.rider.unused_tickets.filter(type=ticket).order_by('expires')[0]
+      ticket.transaction = transactions.filter(amount__lt=0)[0]
+      ticket.save()
+    
+    saldo = _count_saldo(transactions)[0]
+
+    if saldo < 0:
+        customer = participation.participant.rider.customer
+        Transaction.objects.create(
+          active=True,
+          content_type=ContentType.objects.get_for_model(Participation),
+          object_id=participation.id,
+          amount=-1*saldo,
+          customer=customer)
 
 class ParticipationTransactionActivator(TransactionActivator):
     class Meta:
@@ -154,7 +213,10 @@ class Transaction(models.Model):
     def __unicode__(self):
         #if self.source:
             #name = self.source.__unicode__() 
-        name = self.customer.__unicode__() + ': ' + str(self.amount)
+        name = unicode(self.amount)
+        if self.ticket_set.count():
+          name = '(%s)' % unicode(self.ticket_set.all()[0].type)
+        name = name + ': ' + unicode(self.source)
         return name
     active = models.BooleanField(default=True)
     customer = models.ForeignKey(CustomerInfo)
@@ -171,11 +233,18 @@ class TicketForm(forms.ModelForm):
   class Meta:
     model = Ticket
     exclude = ['transaction']
+    widgets = {
+        'owner_type': forms.HiddenInput(),
+        'owner_id': forms.HiddenInput()
+        }
 
+  to_customer = forms.BooleanField(required=False, label=_('Family ticket'))
   amount = forms.IntegerField(required=True, initial=10)
 
   def save_all(self):
     amnt = self.cleaned_data['amount']
+    if (self.cleaned_data['to_customer']):
+      self.instance.owner = self.instance.owner.customer
     for i in range(0, amnt):
       super(TicketForm, self).save(commit=True)
       self.instance.id = None

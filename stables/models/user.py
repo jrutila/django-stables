@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django import forms
+from django.core.urlresolvers import reverse
 import datetime
 
 class UserManager(models.Manager):
@@ -28,8 +29,8 @@ class UserProfile(models.Model):
         return self.user.first_name + ' ' + self.user.last_name
     objects = UserManager()
     user = models.OneToOneField(User)
-    rider = models.OneToOneField('RiderInfo', null=True, blank=True, related_name='user')
-    customer = models.OneToOneField('CustomerInfo', null=True, blank=True)
+    rider = models.OneToOneField('RiderInfo', null=True, blank=True, related_name='user', on_delete=models.SET_NULL)
+    customer = models.OneToOneField('CustomerInfo', null=True, blank=True, on_delete=models.SET_NULL)
     instructor = models.OneToOneField('InstructorInfo', null=True, blank=True)
 
     phone_number = models.CharField(max_length=30, null=True, blank=True)
@@ -40,6 +41,9 @@ class UserProfile(models.Model):
 
     def get_next_participations(self):
         return self.get_participations().filter(state=0)[:3]
+
+    def get_absolute_url(self):
+        return reverse('stables.views.view_user', args=(self.user.username,))
 
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
@@ -79,10 +83,6 @@ class RiderInfo(models.Model):
             return str(self.id) + ": " + str(self.levels)
     levels = models.ManyToManyField(RiderLevel, related_name='+', blank=True)
     customer = models.ForeignKey(CustomerInfo)
-
-    def _get_unused_tickets(self):
-        return self.ticket_set.filter(transaction__isnull=True).exclude(expires__lt=datetime.datetime.now())
-    unused_tickets = property(_get_unused_tickets)
 
 class InstructorInfo(models.Model):
     class Meta:

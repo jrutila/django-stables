@@ -174,11 +174,11 @@ msgstr ""
 
 #: models/participations.py:500
 msgid "DATE_FORMAT"
-msgstr ""
+msgstr "l d.m.Y"
 
 #: models/participations.py:501
 msgid "TIME_FORMAT"
-msgstr ""
+msgstr "h:i"
 
 #: models/participations.py:504
 #, python-format

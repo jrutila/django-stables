@@ -472,6 +472,33 @@ class ParticipationManager(models.Manager):
     def get_participations(self, occurrence):
         return self.filter(start=occurrence.original_start, end=occurrence.original_end, ).order_by('last_state_change_on')
 
+    def get_next_participation(self, rider, start=None):
+        enrolls = Enroll.objects.filter(participant=rider, state=ATTENDING)
+        next_occ = None
+        next_part = None
+        for e in enrolls:
+          n = e.course.get_next_occurrence()
+          if not next_occ or next_occ.start > n.start:
+            next_occ = n 
+        parts = Participation.objects.filter(participant=rider, start__gte=datetime.datetime.now())
+        for p in parts:
+          n = p.event.next_occurrence()
+          if not next_occ or next_occ.start >= n.start:
+            next_occ = n 
+            next_part = p
+        if not next_occ:
+          return None
+        if next_part:
+          return next_part
+        part = Participation()
+        part.participant = rider
+        part.event = next_occ.event
+        part.start = next_occ.start
+        part.end = next_occ.end
+        return part
+
+
+
     def generate_attending_participations(self, start, end):
         courses = Course.objects.filter(Q(start__lte=end), Q(end__gte=start) | Q(end__isnull=True))
         events = Event.objects.filter((Q(rule__frequency='WEEKLY') & (Q(end_recurring_period__gte=start) | Q(end_recurring_period__isnull=True))) | (Q(rule__isnull=True) & Q(start__gte=start) & Q(end__lte=end)) | (Q(occurrence__start__gte=start) & Q(occurrence__end__lte=end))).select_related('rule').prefetch_related('course_set')
@@ -497,7 +524,7 @@ class Participation(models.Model):
     class Meta:
         app_label = 'stables'
     def __unicode__(self):
-        date_format = u'l, %s' % ugettext("DATE_FORMAT")
+        date_format = u'%s' % ugettext("DATE_FORMAT")
         time_format = u'%s' % ugettext("TIME_FORMAT")
         occ = self.get_occurrence()
         if not occ:

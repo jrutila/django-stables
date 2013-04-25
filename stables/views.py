@@ -2,8 +2,10 @@ from models import HorseForm, Horse, Course, Participation, PARTICIPATION_STATES
 from models import InstructorInfo
 from models import Enroll
 from models import UserProfile
+from models import pay_participation
 from models import Transaction, Ticket, TicketType
 from models import ATTENDING, RESERVED, SKIPPED, CANCELED
+from stables.models import financial
 from schedule.models import Occurrence, Event, Calendar
 from django.shortcuts import render_to_response, redirect, render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, Http404
@@ -24,6 +26,7 @@ import models as enum
 import dateutil.parser
 from django import forms
 import reversion
+from collections import defaultdict
 
 from django.utils.safestring import mark_safe
 
@@ -127,6 +130,26 @@ def list_course(request, week=None):
     return render_response(request, 'stables/courselist.html',
             { 'courses': courses, 'occurrences': occs, 'week_dates': week, 'week': Week.withdate(monday).week, 'week_range': [(today_week,), (today_week+1,), (today_week+2,)] })
 
+class ParticipantLink(forms.Widget):
+  def __init__(self, participation, attrs=None, required=True):
+    self.attrs = attrs or {}
+    self.required = required
+    self.participation = participation
+
+  def render(self, name, value, attrs=None):
+    output = []
+    output.append('<span class="ui-stbl-db-user">')
+    if self.participation.id:
+      output.append('<a href="%s">o</a>' %
+          reverse('stables.views.widget_user', args=[self.participation.id])
+        )
+    output.append('<a href="%s">%s</a>' % (
+          self.participation.participant.get_absolute_url(),
+          self.participation.participant.__unicode__())
+        )
+    output.append('</span>')
+    return mark_safe(u'\n'.join(output))
+        #% (reverse('stables.views.widget_user', args=[self.participation.id]),
 
 class DashboardForm(forms.Form):
   participation_map = dict()
@@ -202,9 +225,18 @@ class DashboardForm(forms.Form):
     note_field = forms.CharField(initial=part.note, widget=forms.Textarea, required=False, show_hidden_initial=True)
     note_key = self.add_field(course, part, 'note', note_field)
 
-    participant_field = forms.CharField(initial=unicode(part.participant), required=False, show_hidden_initial=True)
-    participant_key = self.add_field(course, part, 'participant', participant_field)
+    if not part.participant.id: # Only new participations
+      participant_field = forms.CharField(
+          initial='',
+          show_hidden_initial=True,
+          required=False)
+    else:
+      participant_field = forms.CharField(
+          initial='',
+          required=False,
+          widget=ParticipantLink(participation=part))
 
+    participant_key = self.add_field(course, part, 'participant', participant_field)
     return (horse_key, participant_key, state_key, note_key)
 
   def _post_clean(self):
@@ -321,6 +353,7 @@ class DashboardForm(forms.Form):
           for part in cop[2]:
             output.append('<li>')
             for field in part:
+              if not field: continue
               if 'participant' in field and 'selector-%s' % field in self.fields:
                 output.append(self[field].as_hidden())
                 field = 'selector-%s' % field
@@ -378,51 +411,13 @@ def daily(request, date=None):
 
 @permission_required('stables.add_transaction')
 def pay(request):
-   # TODO: Move this business logic elsewhere
     pid = request.POST.get('participation_id')
-    transactions = Transaction.objects.filter(
-        active=True,
-        content_type=ContentType.objects.get_for_model(Participation),
-        object_id=pid)
-    saldo = 0
-    ticket_used=None
-    for t in transactions:
-      if t.ticket_set.count() == 0:
-        saldo = saldo + t.amount
-      elif t.ticket_set.count() > 0:
-        ticket_used=t.ticket_set.all()[0]
-
     tid = request.POST.get('ticket')
-    participant = Participation.objects.get(id=pid).participant
-    if ticket_used:
-      ticket_used.transaction=None
-      ticket_used.save()
-
-    saldo = 0
-    for t in transactions:
-      if t.ticket_set.count() == 0:
-        saldo = saldo + t.amount
-
+    participation = Participation.objects.get(id=pid)
     if tid:
-      if saldo == 0:
-        transactions.filter(amount__gt=0).delete()
-      ticket = Ticket.objects.filter(type__id=tid, rider=participant.rider, transaction__isnull=True)[0]
-      ticket.transaction = transactions.filter(amount__lt=0)[0]
-      ticket.save()
-
-    saldo = 0
-    for t in transactions:
-      if t.ticket_set.count() == 0:
-        saldo = saldo + t.amount
-
-    if saldo < 0:
-        customer = participant.customer
-        Transaction.objects.create(
-          active=True,
-          content_type=ContentType.objects.get_for_model(Participation),
-          object_id=pid,
-          amount=-1*saldo,
-          customer=customer)
+        pay_participation(participation, ticket=TicketType.objects.get(id=tid))
+    else:
+        pay_participation(participation)
     return redirect(request.POST.get('redirect', request.META['HTTP_REFERER']))
 
 @permission_required('stables.view_transaction')
@@ -442,6 +437,7 @@ def widget(request, date=None):
 
     p_id = 0
     t_id = 0
+    transbypart = defaultdict(list)
     while t_id < len(transactions) and p_id < len(participations):
         part = participations[p_id]
         #if part.participant.user.first_name == "Tuija":
@@ -453,11 +449,9 @@ def widget(request, date=None):
         participations[p_id] = part
         t = transactions[t_id]
         if part.id == t.object_id:
-            if t.ticket_set.count() == 1:
-                part.ticket_used=t.ticket_set.all()[0]
-                part.saldo=0.00
-            if not part.ticket_used:
-                part.saldo = part.saldo+t.amount
+            transbypart[part].append(t)
+            # TODO: Count this only when we have the last saldo
+            part.saldo = financial._count_saldo(transbypart[part])[0]
             part.transactions.append(t)
             t_id = t_id + 1
         else:
@@ -473,7 +467,7 @@ def widget(request, date=None):
 @permission_required('stables.view_transaction')
 def widget_user(request, pid):
     part = Participation.objects.get(pk=pid)
-    unused_tickets = Ticket.objects.filter(rider__user=part.participant, transaction__isnull=True)
+    unused_tickets = part.participant.rider.unused_tickets
     transactions = list(Transaction.objects.filter(active=True, content_type=ContentType.objects.get_for_model(Participation), object_id=part.id).order_by('object_id', 'created_on').prefetch_related('ticket_set'))
 
     setattr(part, 'transactions', [])
@@ -488,10 +482,8 @@ def widget_user(request, pid):
         if t.ticket_set.count() == 1:
             part.ticket_used=t.ticket_set.all()[0]
             part.tickets.discard(part.ticket_used.type)
-            part.saldo=0.00
-        if not part.ticket_used:
-            part.saldo = part.saldo+t.amount
         part.transactions.append(t)
+    part.saldo = part.get_saldo()[0]
 
     return render_response(request, 'stables/widget_user.html', { 'p': part })
 
@@ -611,27 +603,45 @@ def skip(request, course_id):
         participation.save()
     return redirect(request.POST.get('redirect', request.META['HTTP_REFERER']))
 
-def view_account(request):
-    user = request.user.get_profile()
-    return render(request, 'stables/account.html', { 'user': user })
+def view_user(request, username=None):
+    if username:
+        if (request.user.is_staff or username == request.user.username):
+            user = User.objects.filter(username=username)[0]
+        else:
+            raise Http404
+    else:
+        user = request.user
+    user = user.get_profile()
 
-def view_rider(request, username):
-    rider = User.objects.filter(username=username)[0].get_profile()
-    saldo = None
-    if rider.customer and (request.user.has_perm('stables.can_view_saldo') or rider.customer.userprofile.user == request.user):
-        saldo = rider.customer.saldo()
-    return render_response(request, 'stables/rider.html', { 'rider': rider, 'saldo': saldo })
+    setattr(user, 'next', [])
+    if user.rider:
+        user.next.append(Participation.objects.get_next_participation(user))
 
-def view_customer(request, username):
-    user = User.objects.filter(username=username)[0]
-    customer = user.get_profile().customer
-    if not customer:
-        raise Http404
-    if user != request.user and not request.user.has_perm('stables.view_transaction'):
-        raise Http404
-    trans = Transaction.objects.filter(active=True, customer=customer).order_by('-created_on')
-    saldo = customer.saldo()
-    return render_response(request, 'stables/customer.html', { 'customer': customer, 'transactions': trans, 'saldo': saldo })
+    if user.customer:
+        setattr(user, 'transactions', Transaction.objects.filter(
+          customer=user.customer, active=True).order_by('-created_on')[:request.GET.get('tmore', 5)])
+        setattr(user, 'participations', Participation.objects.filter(participant__in=user.customer.riderinfo_set.values_list('user', flat=True), start__lte=datetime.datetime.now()).order_by('-start')[:request.GET.get('pmore', 5)])
+        setattr(user, 'tickets', user.customer.unused_tickets)
+        setattr(user, 'saldo', user.customer.saldo)
+        for rdr in user.customer.riderinfo_set.all():
+          if rdr.user != user:
+            user.next.append(Participation.objects.get_next_participation(rdr.user))
+    elif user.rider:
+        setattr(user, 'participations', Participation.objects.filter(
+          participant=user).order_by('-start')[:request.GET.get('pmore', 5)])
+        setattr(user, 'tickets', user.rider.unused_tickets)
+
+    if hasattr(user, 'tickets'):
+      ticketamount = defaultdict(int)
+      ticketexp = dict()
+      for t in user.tickets:
+        ticketamount[t.type] = ticketamount[t.type] + 1
+        ticketexp[t.type] = t.expires if not t.type in ticketexp or ticketexp[t.type] > t.expires else ticketexp[t.type]
+      user.tickets = dict()
+      for tt in ticketexp.keys():
+        user.tickets[tt] = (ticketamount[tt], ticketexp[tt])
+
+    return render(request, 'stables/user/index.html', { 'user': user })
 
 class ModifyParticipationForm(forms.Form):
   PARTICIPATE_KEY_PREFIX='participate_'
@@ -772,16 +782,28 @@ def modify_enrolls(request, course_id):
 from models import TicketForm
 @permission_required('stables.add_ticket')
 def add_tickets(request, username):
-  tf = TicketForm(initial={'rider': UserProfile.objects.get(user__username=username).rider})
+  user = get_object_or_404(UserProfile, user__username=username)
+  if user.rider:
+    tf = TicketForm(initial={
+      'owner_id': user.rider.id,
+      'owner_type': ContentType.objects.get_for_model(RiderInfo)
+      })
+  else:
+    tf = TicketForm(initial={
+      'owner_id': user.customer.id,
+      'owner_type': ContentType.objects.get_for_model(CustomerInfo),
+      'to_customer': True
+      })
+    tf.fields['to_customer'].widget.attrs['disabled'] = 'disabled'
   if request.method == "POST":
     tf = TicketForm(request.POST)
     if tf.is_valid():
       tf.save_all()
-      return redirect('stables.views.view_rider', username)
-  return render(request, 'stables/addtickets.html', { 'form': tf, 'username': username })
+      return redirect('stables.views.view_user', username)
+  return render(request, 'stables/addtickets.html', { 'form': tf, 'user': user, 'username': username })
 
 
-from models import admin, RiderInfo
+from models import admin, RiderInfo, CustomerInfo
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 

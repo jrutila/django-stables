@@ -6,6 +6,7 @@ from stables.models import Ticket, TicketType, Transaction
 from stables.models import RiderInfo, CustomerInfo
 from stables.models import Course
 from stables.models import Horse
+from stables.models import pay_participation
 from stables.views import DashboardForm
 from schedule.models import Calendar, Event, Rule
 import stables
@@ -63,8 +64,6 @@ class DashboardFormTest(unittest.TestCase):
         Horse.objects.all().delete()
         self.o = self.course.get_occurrences()[1]
         self.data = {}
-        self.data['initial-c1_r1_s%s_e%s_participant' % (self.o.start.isoformat(), self.o.end.isoformat())] = ' ' +self.user.last_name
-        self.data['c1_r1_s%s_e%s_participant' % (self.o.start.isoformat(), self.o.end.isoformat())] = ' ' +self.user.last_name
         self.data['c1_r0_s%s_e%s_state' % (self.o.start.isoformat(), self.o.end.isoformat())] = "0"
         self.data['c1_r0_s%s_e%s_participant' % (self.o.start.isoformat(), self.o.end.isoformat())] = '' 
         self.data['initial-c1_r0_s%s_e%s_participant' % (self.o.start.isoformat(), self.o.end.isoformat())] = '' 
@@ -144,13 +143,14 @@ class DashboardFormTest(unittest.TestCase):
         self.course.enroll(self.user.get_profile())
         self.course.enroll(user2.get_profile())
 
-      state_key = 'c1_r1_s%s_e%s_state' % (self.o.start.isoformat(), self.o.end.isoformat())
-      self.data['c1_r1_s%s_e%s_horse' % (self.o.start.isoformat(), self.o.end.isoformat())] = unicode(1)
-      self.data[state_key] = unicode(ATTENDING)
-      self.data['c1_r2_s%s_e%s_horse' % (self.o.start.isoformat(), self.o.end.isoformat())] = unicode(1)
-      self.data['c1_r2_s%s_e%s_state' % (self.o.start.isoformat(), self.o.end.isoformat())] = unicode(ATTENDING)
-      self.data['c1_r2_s%s_e%s_participant' % (self.o.start.isoformat(), self.o.end.isoformat())] = ' ' +user2.last_name
-      r2_horse_key = 'c1_r2_s%s_e%s_horse' % (self.o.start.isoformat(), self.o.end.isoformat())
+      ttime = (self.o.start.isoformat(), self.o.end.isoformat())
+
+      self.data['c1_r1_s%s_e%s_horse' % ttime] = unicode(1)
+      self.data['c1_r1_s%s_e%s_state' % ttime] = unicode(ATTENDING)
+      self.data['c1_r2_s%s_e%s_horse' % ttime] = unicode(1)
+      self.data['c1_r2_s%s_e%s_state' % ttime] = unicode(ATTENDING)
+      r2_horse_key = 'c1_r2_s%s_e%s_horse' % ttime
+      state_key = 'c1_r1_s%s_e%s_state' % ttime
 
       form = DashboardForm(self.data, year=self.year, week=self.week, courses=Course.objects.all(), horses=Horse.objects.all())
       self.assertTrue(form.is_valid())
@@ -387,11 +387,31 @@ class TicketTestCase(unittest.TestCase):
         type, created = TicketType.objects.get_or_create(name='testtype')
         cls.ticket_type = type
 
+        now = datetime.datetime.now()
+        ss = now+datetime.timedelta(hours=5)
+        ee = now+datetime.timedelta(hours=6)
+        starttime = ss.time()
+        endtime = ee.time()
+        start = ss.date()-datetime.timedelta(days=7)
+        course = setupCourse('course1', start, None, starttime, endtime)
+        course.default_participation_fee=Decimal('45.17')
+        course.ticket_type.add(cls.ticket_type)
+        course.save()
+        cls.course = course
+
+    def setUp(self):
+        Ticket.objects.all().delete()
+        Transaction.objects.all().delete()
+        Participation.objects.all().delete()
+        o = self.course.get_occurrences()[1]
+        with reversion.create_revision():
+          self.participation = self.course.create_participation(self.user.get_profile(), o, ATTENDING, True)
+
     def testUnusedTickets(self):
         rider = self.user.get_profile().rider
-        t1 = Ticket.objects.create(type=self.ticket_type, rider=rider, expires=datetime.datetime.now()+datetime.timedelta(days=10))
-        t2 = Ticket.objects.create(type=self.ticket_type, rider=rider, expires=datetime.datetime.now()+datetime.timedelta(days=5))
-        t3 = Ticket.objects.create(type=self.ticket_type, rider=rider, expires=None)
+        t1 = Ticket.objects.create(type=self.ticket_type, owner=rider, expires=datetime.datetime.now()+datetime.timedelta(days=10))
+        t2 = Ticket.objects.create(type=self.ticket_type, owner=rider, expires=datetime.datetime.now()+datetime.timedelta(days=5))
+        t3 = Ticket.objects.create(type=self.ticket_type, owner=rider, expires=None)
 
         tickets = rider.unused_tickets
         self.assertEqual(tickets.count(), 3)
@@ -403,6 +423,116 @@ class TicketTestCase(unittest.TestCase):
         t1.transaction = trans
         t1.save()
         self.assertEqual(tickets.count(), 1)
+
+    def testAutomaticTicketUsage(self):
+        rider = self.user.get_profile().rider
+        t1 = Ticket.objects.create(type=self.ticket_type, owner=rider, expires=datetime.datetime.now()+datetime.timedelta(days=10))
+
+        tickets = rider.unused_tickets
+        self.assertEqual(tickets.count(), 1)
+        self.assertEqual(tickets[0].id, t1.id)
+        
+        t = ParticipationTransactionActivator.objects.all()[0].try_activate()
+        self.assertEqual(t.amount, Decimal('-45.17'))
+        self.assertTrue(t.active)
+
+        t1 = Ticket.objects.get(pk=t1.pk)
+
+        self.assertEqual(t1.transaction, t)
+        tickets = rider.unused_tickets
+        self.assertEqual(tickets.count(), 0)
+
+    def testParticipationPay(self):
+        t = ParticipationTransactionActivator.objects.all()[0].try_activate()
+
+        pay_participation(self.participation)
+
+        t = Transaction.objects.latest('id')
+
+        self.assertEqual(t.amount, Decimal('45.17'))
+
+    def testParticipationPayWithTicket(self):
+        t = ParticipationTransactionActivator.objects.all()[0].try_activate()
+        
+        t1 = Ticket.objects.create(type=self.ticket_type, owner=self.user.get_profile().rider, expires=datetime.datetime.now()+datetime.timedelta(days=10))
+
+        pay_participation(self.participation, ticket=self.ticket_type)
+
+        self.assertEqual(Transaction.objects.count(), 1)
+
+        t = Transaction.objects.latest('id')
+        t1 = Ticket.objects.get(pk=t1.id)
+
+        self.assertEqual(t.amount, Decimal('-45.17'))
+        self.assertEqual(t1.transaction, t)
+
+    def testParticipationPayWithNextExpiringTicket(self):
+        t = ParticipationTransactionActivator.objects.all()[0].try_activate()
+        
+        t1 = Ticket.objects.create(type=self.ticket_type, owner=self.user.get_profile().rider, expires=datetime.datetime.now()+datetime.timedelta(days=11))
+        t2 = Ticket.objects.create(type=self.ticket_type, owner=self.user.get_profile().rider, expires=datetime.datetime.now()+datetime.timedelta(days=10))
+
+        pay_participation(self.participation, ticket=self.ticket_type)
+
+        self.assertEqual(Transaction.objects.count(), 1)
+
+        t = Transaction.objects.latest('id')
+        t1 = Ticket.objects.get(pk=t1.id)
+        t2 = Ticket.objects.get(pk=t2.id)
+
+        self.assertEqual(t.amount, Decimal('-45.17'))
+        self.assertEqual(t1.transaction, None)
+        self.assertEqual(t2.transaction, t)
+
+    def testParticipationPayWithAnotherTicket(self):
+        type2, created = TicketType.objects.get_or_create(name='testtype2')
+        t1 = Ticket.objects.create(type=self.ticket_type, owner=self.user.get_profile().rider, expires=datetime.datetime.now()+datetime.timedelta(days=10))
+
+        t = ParticipationTransactionActivator.objects.all()[0].try_activate()
+        self.assertEqual(Ticket.objects.get(pk=t1.pk).transaction, t)
+        
+        t2 = Ticket.objects.create(type=type2, owner=self.user.get_profile().rider, expires=datetime.datetime.now()+datetime.timedelta(days=20))
+
+        pay_participation(self.participation, ticket=type2)
+
+        self.assertEqual(Transaction.objects.count(), 1)
+
+        t = Transaction.objects.latest('id')
+        t1 = Ticket.objects.get(pk=t1.id)
+        t2 = Ticket.objects.get(pk=t2.id)
+
+        self.assertEqual(t.amount, Decimal('-45.17'))
+        self.assertEqual(Ticket.objects.get(pk=t1.pk).transaction, None)
+        self.assertEqual(Ticket.objects.get(pk=t2.pk).transaction, t)
+
+    def testParticipationPayWithTicketAfterCash(self):
+        t = ParticipationTransactionActivator.objects.all()[0].try_activate()
+        
+        t1 = Ticket.objects.create(type=self.ticket_type, owner=self.user.get_profile().rider, expires=datetime.datetime.now()+datetime.timedelta(days=10))
+
+        pay_participation(self.participation)
+
+        self.assertEqual(Transaction.objects.count(), 2)
+
+        t = Transaction.objects.latest('id')
+
+        self.assertEqual(t.amount, Decimal('45.17'))
+        self.assertEqual(Ticket.objects.get(pk=t1.pk).transaction, None)
+
+        pay_participation(self.participation, ticket=self.ticket_type)
+
+        self.assertEqual(Transaction.objects.count(), 2)
+
+        t = Transaction.objects.latest('id')
+
+        self.assertEqual(t.amount, Decimal('45.17'))
+        self.assertEqual(Ticket.objects.get(pk=t1.pk).transaction, Transaction.objects.all()[0])
+
+        self.assertEqual(self.participation.get_saldo()[0], Decimal('45.17'))
+
+        # Delete cash manually
+        t.delete()
+        self.assertEqual(self.participation.get_saldo()[0], Decimal('0'))
 
 class ActivatorTestCase(unittest.TestCase):
     @classmethod
@@ -709,6 +839,7 @@ class CourseEnrollTest(unittest.TestCase):
 class CourseParticipationTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        rule, created = Rule.objects.get_or_create(name="Weekly", frequency="WEEKLY")
         user = setupRider('user')
         data = { 'start': datetime.datetime.today()-datetime.timedelta(days=14),
                  'end': datetime.datetime.today()+datetime.timedelta(days=14),
@@ -772,6 +903,36 @@ class CourseParticipationTest(unittest.TestCase):
         for (i, u) in enumerate(users):
             result = self.course.get_possible_states(u, occ)
             self.assertEqual(set(result), set(table[i][2]), "user%d: " % i + str(result) )
+
+    def testNextParticipations(self):
+        pr = self.user.get_profile()
+        target = Participation.objects.get_next_participation(pr, datetime.datetime.now())
+        self.assertEqual(target, None)
+
+    def testNextParticipationEnroll(self):
+        pr = self.user.get_profile()
+        Enroll.objects.create(course=self.course, participant=pr, state=ATTENDING)
+        target = Participation.objects.get_next_participation(pr, datetime.datetime.now())
+        self.assertEqual(target.id, None)
+        self.assertEqual(target.start.time(), datetime.time(13, 00))
+        self.assertEqual(target.end.time(), datetime.time(15, 00))
+        self.assertEqual(target.participant, pr)
+
+    def testNextParticipationParticipationBeforeEnroll(self):
+        pr = self.user.get_profile()
+        Enroll.objects.create(course=self.course, participant=pr, state=ATTENDING)
+        cocc = self.course.get_next_occurrence()
+        crs = setupCourse('crs2', cocc.start, cocc.end, datetime.time(12, 00), datetime.time(12, 30))
+        with reversion.create_revision():
+          crs.attend(pr, crs.get_next_occurrence())
+
+        target = Participation.objects.get_next_participation(pr, datetime.datetime.now())
+
+        self.assertEqual(target.id, None)
+        self.assertEqual(target.start.time(), datetime.time(12, 00))
+        self.assertEqual(target.end.time(), datetime.time(12, 30))
+        self.assertEqual(target.participant, pr)
+        
 
     def testStatesEmpty(self):
         #        enroll    , part     , allowed
