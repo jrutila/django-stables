@@ -418,7 +418,7 @@ def pay(request):
         pay_participation(participation, ticket=TicketType.objects.get(id=tid))
     else:
         pay_participation(participation)
-    return redirect(request.POST.get('redirect', request.META['HTTP_REFERER']))
+    return request_redirect(request)
 
 @permission_required('stables.view_transaction')
 def widget(request, date=None):
@@ -525,6 +525,12 @@ def get_user_or_404(request, username, perm):
         raise Http404
     return request.user.get_profile()
 
+def request_redirect(request):
+    redir = request.POST.get('redirect', request.META['HTTP_REFERER'])
+    if request.POST.get('redirect') == u'':
+      redir = request.META['HTTP_REFERER']
+    return redirect(redir)
+
 def attend_course(request, course_id):
     user = get_user_or_404(request, request.POST.get('username'), request.user.has_perm('stables.change_participation'))
     course = get_object_or_404(Course, pk=course_id)
@@ -534,13 +540,13 @@ def attend_course(request, course_id):
       course.create_participation(user, occurrence, ATTENDING, True)
     else:
       course.attend(user, occurrence)
-    return redirect(request.POST.get('redirect', request.META['HTTP_REFERER']))
+    return request_redirect(request)
 
 def enroll_course(request, course_id):
     user = get_user_or_404(request, request.POST.get('username'), request.user.has_perm('stables.change_participation'))
     course = get_object_or_404(Course, pk=course_id)
     course.enroll(user)
-    return redirect(request.POST.get('redirect', request.META['HTTP_REFERER']))
+    return request_redirect(request)
 
 class AddEventForm(forms.Form):
     start = forms.DateTimeField(widget=forms.SplitDateTimeWidget())
@@ -584,10 +590,7 @@ def cancel(request, course_id):
     else:
         enroll = Enroll.objects.filter(course=course_id, participant=user)[0]
         enroll.cancel()
-    redir = request.POST.get('redirect', request.META['HTTP_REFERER'])
-    if request.POST.get('redirect') == u'':
-      redir = request.META['HTTP_REFERER']
-    return redirect(redir)
+    return request_redirect(request)
 
 def skip(request, course_id):
     # Only user that has right to change permission
@@ -601,7 +604,7 @@ def skip(request, course_id):
         participation = get_object_or_404(Participation, pk=pid)
         participation.state = SKIPPED
         participation.save()
-    return redirect(request.POST.get('redirect', request.META['HTTP_REFERER']))
+    return request_redirect(request)
 
 def view_user(request, username=None):
     if username:
