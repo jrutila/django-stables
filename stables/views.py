@@ -191,7 +191,7 @@ class DashboardForm(forms.Form):
           for i in range(0,7):
             self.timetable[o.start.hour][i] = []
         ll = []
-        for part in parts:
+        for part in [pp for pp in sorted(parts, key=lambda p: p.state) if pp.state == ATTENDING]:
           ll.append(self.add_or_update_part(c, part))
         neu = Participation()
         neu.participant = UserProfile()
@@ -201,6 +201,8 @@ class DashboardForm(forms.Form):
         neu.start = o.original_start
         neu.end = o.original_end
         ll.append(self.add_or_update_part(c, neu))
+        for part in [pp for pp in sorted(parts, key=lambda p: p.state) if pp.state != ATTENDING]:
+          ll.append(self.add_or_update_part(c, part))
         field = MyModelChoiceField(queryset=InstructorInfo.objects.all(), required=False, initial=ii[c.id][o.start][0].instructor.instructor.id if c.id in ii and o.start in ii[c.id] else None, show_hidden_initial=True)
         key = 'c%s_s%s_e%s_instructor' % (c.id, o.start.isoformat(), o.end.isoformat())
         self.fields[key] = field
@@ -219,7 +221,7 @@ class DashboardForm(forms.Form):
     horse_field = MyModelChoiceField(queryset=self.horses, initial=part.horse, required=False, show_hidden_initial=True)
     horse_key = self.add_field(course, part, 'horse', horse_field)
 
-    state_field = forms.ChoiceField(initial=ATTENDING, choices=PARTICIPATION_STATES, required=False)
+    state_field = forms.ChoiceField(initial=part.state, choices=PARTICIPATION_STATES, required=False)
     state_key = self.add_field(course, part, 'state', state_field)
 
     note_field = forms.CharField(initial=part.note, widget=forms.Textarea, required=False, show_hidden_initial=True)
@@ -350,10 +352,16 @@ class DashboardForm(forms.Form):
           output.append('</span>')
           output.append(unicode(self['c%s_s%s_e%s_instructor' % (cop[0].id, cop[1].start.isoformat(), cop[1].end.isoformat())]))
           output.append('<ul>')
+          hiding = False
           for part in cop[2]:
-            output.append('<li>')
+            output.append('<li')
+            if hiding:
+              output.append(' class="hiddable"')
+            output.append('>')
             for field in part:
               if not field: continue
+              if 'r0' in field:
+                hiding = True
               if 'participant' in field and 'selector-%s' % field in self.fields:
                 output.append(self[field].as_hidden())
                 field = 'selector-%s' % field

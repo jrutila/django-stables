@@ -517,7 +517,7 @@ class ParticipationManager(models.Manager):
                 p.end = occ.end
                 p.note = ""
                 parts.append(p)
-              ret[occ] = (event.course_set.all()[0], [ p for p in parts if p.state == ATTENDING ])
+              ret[occ] = (event.course_set.all()[0], [ p for p in parts ])
         return ret
 
 class Participation(models.Model):

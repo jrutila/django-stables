@@ -21,6 +21,13 @@ $(document).ready(function() {
   $("select[name$='instructor']").change(function() {
     $(this).addClass('changed');
   });
+
+  /* Hide unattending */
+  $('#show_hidden').change(function() {
+    $('li.hiddable').toggle()
+  })
+  if (!$('#show_hidden').is(':checked'))
+    $('li.hiddable').hide()
 });
 
 function set_has_text(textarea)

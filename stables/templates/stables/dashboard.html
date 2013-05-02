@@ -27,12 +27,13 @@
 </div>
 
 <form method='POST'>
-{% csrf_token %}
-<input type='submit' value='{% trans "Save Changes" %}'/>
-{{ form.non_field_errors }}
-<table class='timetable'>
-{{ form.as_table }}
-</table>
+  <div><input type="checkbox" id="show_hidden"/><label for="show_hidden">{% trans "Show unattending" %}</label></div>
+  {% csrf_token %}
+  <input type='submit' value='{% trans "Save Changes" %}'/>
+  {{ form.non_field_errors }}
+  <table class='timetable'>
+  {{ form.as_table }}
+  </table>
 </form>
 
 
