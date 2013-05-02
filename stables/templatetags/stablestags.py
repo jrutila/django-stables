@@ -67,6 +67,8 @@ def participate_button(context, user, course=None, occurrence=None, redirect=Non
         redirect = reverse(redirect)
       except NoReverseMatch:
         redirect = redirect
+    else:
+      redirect = context['request'].META.get('HTTP_REFERER', reverse('stables.views.dashboard'))
 
     if not course and not occurrence:
       # We have a participation on user
