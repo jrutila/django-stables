@@ -24,7 +24,7 @@
   {% endfor %}
   </ul>
 </div>
- <div>
+<div>
   <div>
   {% if perms.stables.add_transaction %}
     {% if p.saldo or p.ticket_used %}
@@ -38,5 +38,8 @@
   </div>
   {{ p.participant.rider.ticket.count }}
   {% participate_button p %}
- </div>
+</div>
+<div>
+  <a href="{% url stables.views.report_accident %}?participation_id={{ p.id }}">{% trans "Report accident" %}</a>
+</div>
 {% endblock body %}

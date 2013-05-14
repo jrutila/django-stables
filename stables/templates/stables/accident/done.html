@@ -1,0 +1,7 @@
+{% extends "site_base.html" %}
+{% load i18n sekizai_tags %}
+{% block body %}
+{% trans "New accident report created!" %}
+{{ accident }}
+<a href="{{ return }}">-&gt;</a>
+{% endblock body %}

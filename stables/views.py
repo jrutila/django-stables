@@ -5,6 +5,7 @@ from models import UserProfile
 from models import pay_participation
 from models import Transaction, Ticket, TicketType
 from models import ATTENDING, RESERVED, SKIPPED, CANCELED
+from models import Accident, AccidentForm
 from stables.models import financial
 from schedule.models import Occurrence, Event, Calendar
 from django.shortcuts import render_to_response, redirect, render, get_object_or_404
@@ -147,6 +148,8 @@ class ParticipantLink(forms.Widget):
           self.participation.participant.get_absolute_url(),
           self.participation.participant.__unicode__())
         )
+    if hasattr(self.participation, 'accident'):
+        output.append("X")
     output.append('</span>')
     return mark_safe(u'\n'.join(output))
         #% (reverse('stables.views.widget_user', args=[self.participation.id]),
@@ -185,6 +188,7 @@ class DashboardForm(forms.Form):
               ii[c.id][o.start] = ins
 
     participations = Participation.objects.generate_attending_participations(self.monday, self.sunday)
+    accidents = Accident.objects.filter(at__gte=self.monday, at__lte=self.sunday)
     for (o, (c, parts)) in participations.items():
         if not self.timetable.has_key(o.start.hour):
           self.timetable[o.start.hour] = {}
@@ -193,6 +197,8 @@ class DashboardForm(forms.Form):
         ll = []
         for part in [pp for pp in sorted(parts, key=lambda p: p.state) if pp.state == ATTENDING]:
           ll.append(self.add_or_update_part(c, part))
+          for acc in [acc for acc in accidents if acc.at >= part.start and acc.at <= part.end and acc.rider == part.participant.rider]:
+            part.accident = acc
         neu = Participation()
         neu.participant = UserProfile()
         neu.participant.id = 0
@@ -427,6 +433,40 @@ def pay(request):
     else:
         pay_participation(participation)
     return request_redirect(request)
+
+@permission_required('stables.add_accident')
+def report_accident(request):
+    acc = Accident()
+    pid = request.GET.get('participation_id')
+    if 'participation_id' in request.GET:
+      p = Participation.objects.get(id=pid)
+      acc.at = p.start
+      acc.rider = p.participant.rider
+      if p.horse:
+        acc.horse = p.horse
+      ins = list(InstructorParticipation.objects.filter(start=p.start, end=p.end, event=p.event)[:1])
+      if ins:
+        acc.instructor = ins[0].instructor.instructor
+    if request.method == 'POST':
+      form = AccidentForm(request.POST)
+    else:
+      form = AccidentForm(instance=acc)
+    if form.is_valid():
+      accident = form.save()
+      redir = "%s"
+      if pid:
+        redir = redir+("?participation_id=%s" % pid)
+      redir = redir % reverse('stables.views.report_accident_done', kwargs={'id': accident.id})
+      return redirect(redir)
+    return render_response(request, 'stables/accident/index.html', { 'form': form })
+
+def report_accident_done(request, id):
+    pid = request.GET.get('participation_id')
+    redir = '/'
+    if pid:
+      redir = reverse('stables.views.widget_user', kwargs={'pid': pid})
+    accident = Accident.objects.get(pk=id)
+    return render_response(request, 'stables/accident/done.html', { 'accident': accident, 'return': redir })
 
 @permission_required('stables.view_transaction')
 def widget(request, date=None):

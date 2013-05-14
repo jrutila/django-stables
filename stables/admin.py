@@ -2,6 +2,7 @@ from stables.models import Horse, UserProfile, RiderInfo, CustomerInfo, RiderLev
 from stables.models import CustomerForm, CourseForm
 from stables.models import Course, Participation, Enroll, InstructorParticipation
 from stables.models import Transaction, Ticket, ParticipationTransactionActivator, CourseTransactionActivator, CourseParticipationActivator, TicketType
+from stables.models import Accident, AccidentType
 from stables.models import RiderLevel
 from schedule.models import Event
 from django import forms
@@ -171,8 +172,13 @@ class TicketAdmin(admin.ModelAdmin):
 class EnrollAdmin(reversion.VersionAdmin):
   search_fields = ['participant__user__first_name']
 
+class AccidentAdmin(reversion.VersionAdmin):
+  list_display = ('__unicode__', 'at', 'horse')
+
 #admin.site.register(Horse, HorseAdmin)
 admin.site.register(Horse)
+admin.site.register(Accident, AccidentAdmin)
+admin.site.register(AccidentType)
 admin.site.register(UserProfile, UserProfileAdmin)
 admin.site.register(RiderInfo)
 admin.site.register(CustomerInfo, CustomerInfoAdmin)
