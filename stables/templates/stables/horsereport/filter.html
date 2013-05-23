@@ -1,0 +1,18 @@
+{% load i18n stablestags %}
+<h3>Select date</h3>
+<ul>
+  {% for choice in choices %}
+      <li{% if choice.selected %} class="selected"{% endif %}>
+      <a href="{{ choice.query_string|iriencode }}">{{ choice.display }}</a>
+      </li>
+  {% endfor %}
+</ul>
+
+<form method='GET'>
+  {% if choices.0.query_string|qstring_get:"horse__id__in" %}
+  <input type='hidden' name='horse__id__in' value='{{ choices.0.query_string|qstring_get:"horse__id__in" }}' />
+  {% endif %}
+  <input type='date' name='start__gte' value='{{ choices.0.query_string|qstring_get:"start__gte" }}'/>
+  <input type='date' name='start__lt' value='{{ choices.0.query_string|qstring_get:"start__lt" }}'/>
+<input type='submit' value='{% trans "Filter" %}'>
+</form>

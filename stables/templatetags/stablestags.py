@@ -162,3 +162,11 @@ def week_range(monday, before=3, after=4):
 @register.filter
 def getitem ( item, string ):
   return item.get(string,'')
+
+from django.http import QueryDict
+@register.filter
+def qstring_get(qstring, key):
+    qdict = QueryDict(qstring)
+    if key not in qdict:
+        return None
+    return qdict[key]
