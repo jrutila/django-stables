@@ -48,6 +48,12 @@ div.note textarea
   z-index: 999;
 }
 
+textarea[name$='notes']
+{
+  display: block;
+  height: 30px;
+}
+
 select[name$='state']
 {
   width: 35px;

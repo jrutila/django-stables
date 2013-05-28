@@ -631,3 +631,26 @@ class InstructorParticipation(models.Model):
     objects = InstructorParticipationManager()
 #class RiderEvent(models.Model):
     #allowed_levels = models.CharField(max_length=20, choices=RIDER_LEVELS)
+
+class EventMetaDataManager(models.Manager):
+    def get_metadatas(self, start, end):
+        events = Event.objects.filter((Q(rule__frequency='WEEKLY') & (Q(end_recurring_period__gte=start) | Q(end_recurring_period__isnull=True))) | (Q(rule__isnull=True) & Q(start__gte=start) & Q(end__lte=end)) | (Q(occurrence__start__gte=start) & Q(occurrence__end__lte=end))).select_related('rule').prefetch_related('course_set')
+        ret = {}
+        for event in events:
+            if event.course_set.count() == 0:
+              continue
+            for occ in event.get_occurrences(start, end):
+                ret[occ] = (event.course_set.all()[0], list(EventMetaData.objects.filter(event=event, start=occ.original_start, end=occ.original_end)))
+
+        return ret
+
+class EventMetaData(models.Model):
+    class Meta:
+        app_label = 'stables'
+    objects = EventMetaDataManager()
+
+    event = models.ForeignKey(Event)
+    start = models.DateTimeField()
+    end = models.DateTimeField()
+
+    notes = models.TextField()

@@ -1,4 +1,4 @@
-from models import HorseForm, Horse, Course, Participation, PARTICIPATION_STATES, InstructorParticipation
+from models import HorseForm, Horse, Course, Participation, PARTICIPATION_STATES, InstructorParticipation, EventMetaData
 from models import InstructorInfo
 from models import Enroll
 from models import UserProfile
@@ -187,6 +187,16 @@ class DashboardForm(forms.Form):
           if not o.start in ii[c.id]:
               ii[c.id][o.start] = ins
 
+    # Get all metadata
+    metas = EventMetaData.objects.get_metadatas(self.monday, self.sunday)
+    ee = dict()
+    for (o, (c, met)) in metas.items():
+        if met:
+          if not c.id in ee:
+              ee[c.id] = {}
+          if not o.start in ee[c.id]:
+              ee[c.id][o.start] = met
+
     participations = Participation.objects.generate_attending_participations(self.monday, self.sunday)
     accidents = Accident.objects.filter(at__gte=self.monday, at__lte=self.sunday)
     for (o, (c, parts)) in participations.items():
@@ -215,6 +225,14 @@ class DashboardForm(forms.Form):
         self.course_occ_map[key] = (c, o)
         cop = (c, o, ll, ii[c.id][o.start] if c.id in ii and o.start in ii[c.id] else [])
         self.timetable[o.start.hour][o.start.weekday()].append(cop)
+
+        # Notes
+        field = forms.CharField(required=False, widget=forms.Textarea, initial=ee[c.id][o.start][0].notes if c.id in ee and o.start in ee[c.id] else None, show_hidden_initial=True)
+        key = 'c%s_s%s_e%s_notes' % (c.id, o.start.isoformat(), o.end.isoformat())
+        self.fields[key] = field
+        self.course_occ_map[key] = (c, o)
+        #cop = (c, o, ll, ii[c.id][o.start] if c.id in ii and o.start in ii[c.id] else [])
+        #self.timetable[o.start.hour][o.start.weekday()].append(cop)
 
 
   def add_or_update_part(self, course, part):
@@ -268,6 +286,12 @@ class DashboardForm(forms.Form):
         else:
           instrprt = InstructorParticipation.objects.filter(event=o.event, start=o.start, end=o.end)
           self.deleted_participations.append(instrprt)
+        continue
+      if  'notes' in k:
+        (c,o) = self.course_occ_map[key]
+        eventmeta, created = EventMetaData.objects.get_or_create(event=o.event, start=o.start, end=o.end)
+        eventmeta.notes = self.data[k]
+        self.changed_participations.append(eventmeta)
         continue
       p = self.participation_map[k]
       if 'horse' in k and (not p.horse or (self.data[key] == "" and p.horse != None) or p.horse.id != int(self.data[key])):
@@ -357,6 +381,7 @@ class DashboardForm(forms.Form):
           output.append('</a>')
           output.append('</span>')
           output.append(unicode(self['c%s_s%s_e%s_instructor' % (cop[0].id, cop[1].start.isoformat(), cop[1].end.isoformat())]))
+          output.append(unicode(self['c%s_s%s_e%s_notes' % (cop[0].id, cop[1].start.isoformat(), cop[1].end.isoformat())]))
           output.append('<ul>')
           hiding = False
           for part in cop[2]:
