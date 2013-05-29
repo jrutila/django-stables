@@ -11,7 +11,7 @@
 {% trans "E-mail" %}: {{ user.user.email }}
 </p>
 
-{% if user.next %}
+{% if user.next and user.next.count > 0 and user.next.0 %}
 <h3>
   {% trans "Next event" %}
 </h3>
