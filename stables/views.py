@@ -124,7 +124,7 @@ def list_course(request, week=None):
         full = _("Space")
         if c.is_full(o):
           full = _("Full")
-        ins = InstructorParticipation.objects.filter(event=o.event, start=o.original_start, end=o.original_end)
+        ins = InstructorParticipation.objects.filter(event=o.event, start=o.start, end=o.end)
         occs[o.start.hour][o.start.weekday()].append((c, full, ins[0] if ins else None, o, request.user.get_profile() if request.user.is_authenticated() else None))
     week = _get_week(monday)
     today_week = Week.thisweek().week
@@ -178,6 +178,7 @@ class DashboardForm(forms.Form):
     self.sunday = self.monday+datetime.timedelta(days=6, hours=23, minutes=59)
     super(DashboardForm, self).__init__(*args, **kwargs)
 
+    # Get all instructors
     instructors = InstructorParticipation.objects.get_participations(self.monday, self.sunday)
     ii = dict()
     for (o, (c, ins)) in instructors.items():
@@ -214,12 +215,15 @@ class DashboardForm(forms.Form):
         neu.participant.id = 0
         neu.participant.user = User()
         neu.event = o.event
-        neu.start = o.original_start
-        neu.end = o.original_end
+        neu.start = o.start
+        neu.end = o.end
         ll.append(self.add_or_update_part(c, neu))
         for part in [pp for pp in sorted(parts, key=lambda p: p.state) if pp.state != ATTENDING]:
           ll.append(self.add_or_update_part(c, part))
+
+        # Instructor participaton
         field = MyModelChoiceField(queryset=InstructorInfo.objects.all(), required=False, initial=ii[c.id][o.start][0].instructor.instructor.id if c.id in ii and o.start in ii[c.id] else None, show_hidden_initial=True)
+
         key = 'c%s_s%s_e%s_instructor' % (c.id, o.start.isoformat(), o.end.isoformat())
         self.fields[key] = field
         self.course_occ_map[key] = (c, o)
@@ -280,8 +284,8 @@ class DashboardForm(forms.Form):
           instrprt = InstructorParticipation()
           instrprt.instructor = usrprf
           instrprt.event = o.event
-          instrprt.start = o.original_start
-          instrprt.end = o.original_end
+          instrprt.start = o.start
+          instrprt.end = o.end
           self.changed_participations.append(instrprt)
         else:
           instrprt = InstructorParticipation.objects.filter(event=o.event, start=o.start, end=o.end)
@@ -579,12 +583,12 @@ def view_course(request, course_id):
 
     for o in occurrences:
       pp = dict(estates) 
-      for p in parts.filter(start=o.original_start):
+      for p in parts.filter(start=o.start):
         pp[p.participant] = p
       pp = sorted(pp.values(), key=lambda x: x.last_state_change_on )
       atnd = filter(lambda x: x.state == ATTENDING, pp)
       resv = filter(lambda x: x.state == RESERVED, pp)
-      instructors = InstructorParticipation.objects.filter(event__in=course.events.all(), start=o.original_start)
+      instructors = InstructorParticipation.objects.filter(event__in=course.events.all(), start=o.start)
       occs.append({'occurrence': o, 'attending_amount': len(atnd), 'start': o.start, 'end': o.end, 'parts': atnd+resv, 'instructors': instructors })
 
 
@@ -810,7 +814,14 @@ def modify_participation_time(request, course_id, occurrence_start):
     if request.method == 'POST':
       form = ParticipationTimeForm(request.POST)
       if form.is_valid():
-        occurrence.move(form.cleaned_data['new_start'], form.cleaned_data['new_end'])
+        orig_start=occurrence.start
+        orig_end=occurrence.end
+        new_start=form.cleaned_data['new_start']
+        new_end=form.cleaned_data['new_end']
+        occurrence.move(new_start, new_end)
+        Participation.objects.move(course, (orig_start, new_start), (orig_end, new_end))
+        EventMetaData.objects.move(course, (orig_start, new_start), (orig_end, new_end))
+        InstructorParticipation.objects.move(course, (orig_start, new_start), (orig_end, new_end))
         return redirect(course)
     else:
       form = ParticipationTimeForm()

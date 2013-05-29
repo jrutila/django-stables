@@ -249,8 +249,8 @@ class Course(models.Model):
             parti = Participation()
             parti.participant = rider
             parti.event = occurrence.event
-            parti.start = occurrence.original_start
-            parti.end = occurrence.original_end
+            parti.start = occurrence.start
+            parti.end = occurrence.end
             parti.note = ""
 
         if state in pstates or force:
@@ -281,8 +281,8 @@ class Course(models.Model):
             parti = Participation()
             parti.participant = rider
             parti.event = occurrence.event
-            parti.start = occurrence.original_start
-            parti.end = occurrence.original_end
+            parti.start = occurrence.start
+            parti.end = occurrence.end
             parti.note = ""
         return parti
 
@@ -450,7 +450,7 @@ class CourseParticipationActivator(models.Model):
             return None
         p = None
         occ = self.enroll.course.get_next_occurrence()
-        if occ and occ.start-datetime.timedelta(hours=self.activate_before_hours) < datetime.datetime.now() and not Participation.objects.filter(participant=self.enroll.participant, start=occ.original_start):
+        if occ and occ.start-datetime.timedelta(hours=self.activate_before_hours) < datetime.datetime.now() and not Participation.objects.filter(participant=self.enroll.participant, start=occ.start):
           p = self.enroll.course.create_participation(self.enroll.participant, occ, self.enroll.state, force=True)
           reversion.set_comment('Automatically created by activator')
         return p
@@ -462,15 +462,20 @@ def handle_Enroll_save(sender, **kwargs):
         # TODO: get the 24 from somewhere else
         CourseParticipationActivator.objects.create(enroll=enroll, activate_before_hours=24)
 
+def part_move(self, course, start, end):
+    # Let's get the original occurrence
+    occ = course.get_occurrence(start[0])
+    self.filter(event=occ.event, start=start[0], end=end[0]).update(start=start[1], end=end[1])
+
 class ParticipationManager(models.Manager):
     def get_participation(self, rider, occurrence):
-        parts = self.filter(participant=rider, start=occurrence.original_start, end=occurrence.original_end)
+        parts = self.filter(participant=rider, start=occurrence.start, end=occurrence.end)
         if not parts:
             return None
         return parts[0]
 
     def get_participations(self, occurrence):
-        return self.filter(start=occurrence.original_start, end=occurrence.original_end, ).order_by('last_state_change_on')
+        return self.filter(start=occurrence.start, end=occurrence.end, ).order_by('last_state_change_on')
 
     def get_next_participation(self, rider, start=None):
         enrolls = Enroll.objects.filter(participant=rider, state=ATTENDING)
@@ -497,17 +502,16 @@ class ParticipationManager(models.Manager):
         part.end = next_occ.end
         return part
 
-
+    move = part_move
 
     def generate_attending_participations(self, start, end):
-        courses = Course.objects.filter(Q(start__lte=end), Q(end__gte=start) | Q(end__isnull=True))
         events = Event.objects.filter((Q(rule__frequency='WEEKLY') & (Q(end_recurring_period__gte=start) | Q(end_recurring_period__isnull=True))) | (Q(rule__isnull=True) & Q(start__gte=start) & Q(end__lte=end)) | (Q(occurrence__start__gte=start) & Q(occurrence__end__lte=end))).select_related('rule').prefetch_related('course_set')
         ret = {}
         for event in events:
             if event.course_set.count() == 0:
               continue
             for occ in event.get_occurrences(start, end):
-              parts = list(Participation.objects.filter(event=event, start=occ.original_start, end=occ.original_end).select_related('participant__user', 'horse'))
+              parts = list(Participation.objects.filter(event=event, start=occ.start, end=occ.end).select_related('participant__user', 'horse'))
               enrolls = list(Enroll.objects.filter(Q(course__in=event.course_set.all()) & Q(state=ATTENDING) & ~Q(participant__in=[ p.participant.id for p in parts ])).select_related('participant__user').prefetch_related('course'))
               for e in enrolls:
                 p = Participation()
@@ -544,7 +548,7 @@ class Participation(models.Model):
         }
     state = models.IntegerField(choices=PARTICIPATION_STATES,default=0)
     participant = models.ForeignKey(UserProfile)
-    note = models.TextField()
+    note = models.TextField(blank=True)
     event = models.ForeignKey(Event)
     start = models.DateTimeField()
     end = models.DateTimeField()
@@ -602,22 +606,23 @@ class Participation(models.Model):
         if occ:
             return occ
         try:
-          return Occurrence.objects.get(event = self.event, original_start = self.start)
-        except DoesNotExist:
+          return Occurrence.objects.get(event = self.event, start = self.start)
+        except ObjectDoesNotExist:
           return None
 
 class InstructorParticipationManager(models.Manager):
     def get_participations(self, start, end):
-        courses = Course.objects.filter(Q(start__lte=end), Q(end__gte=start) | Q(end__isnull=True))
         events = Event.objects.filter((Q(rule__frequency='WEEKLY') & (Q(end_recurring_period__gte=start) | Q(end_recurring_period__isnull=True))) | (Q(rule__isnull=True) & Q(start__gte=start) & Q(end__lte=end)) | (Q(occurrence__start__gte=start) & Q(occurrence__end__lte=end))).select_related('rule').prefetch_related('course_set')
         ret = {}
         for event in events:
             if event.course_set.count() == 0:
               continue
             for occ in event.get_occurrences(start, end):
-                ret[occ] = (event.course_set.all()[0], list(InstructorParticipation.objects.filter(event=event, start=occ.original_start, end=occ.original_end)))
+                ret[occ] = (event.course_set.all()[0], list(InstructorParticipation.objects.filter(event=event, start=occ.start, end=occ.end)))
 
         return ret
+
+    move = part_move
 
 class InstructorParticipation(models.Model):
     class Meta:
@@ -640,9 +645,11 @@ class EventMetaDataManager(models.Manager):
             if event.course_set.count() == 0:
               continue
             for occ in event.get_occurrences(start, end):
-                ret[occ] = (event.course_set.all()[0], list(EventMetaData.objects.filter(event=event, start=occ.original_start, end=occ.original_end)))
+                ret[occ] = (event.course_set.all()[0], list(EventMetaData.objects.filter(event=event, start=occ.start, end=occ.end)))
 
         return ret
+
+    move = part_move
 
 class EventMetaData(models.Model):
     class Meta:
