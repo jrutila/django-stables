@@ -105,6 +105,8 @@ from django.utils.translation import get_language
 from django.db.models import Max
 def list_course(request, week=None):
     if (request.user.has_perm('stables.change_participation')):
+      if request.is_mobile:
+        return redirect('stables.views.widget')
       return redirect('stables.views.dashboard')
     if week == None:
         week = datetime.date.today().isocalendar()[1]
@@ -534,7 +536,7 @@ def widget(request, date=None):
         else:
             p_id = p_id + 1
 
-    for p in sorted(participations, key=lambda part: part.event.start.hour):
+    for p in sorted(participations, key=lambda part: (part.event.start.hour, part.state)):
       if not p.event in dir_events:
         dir_events[p.event] = []
         events.append((p.event, dir_events[p.event]))
