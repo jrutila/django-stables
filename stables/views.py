@@ -143,8 +143,15 @@ class ParticipantLink(forms.Widget):
     output = []
     output.append('<span class="ui-stbl-db-user">')
     if self.participation.id:
-      output.append('<a href="%s">o</a>' %
+      link_text = 'o'
+      link_title = ''
+      if self.participation.saldo < 0:
+        link_text = '<span style="color: yellow;">&#8364;</span>'
+        link_title = self.participation.saldo
+      output.append('<a href="%s" title="%s">%s</a>' % (
           reverse('stables.views.widget_user', args=[self.participation.id])
+          ,link_title, link_text
+          )
         )
     output.append('<a href="%s">%s</a>' % (
           self.participation.participant.get_absolute_url(),
@@ -202,6 +209,10 @@ class DashboardForm(forms.Form):
 
     participations = Participation.objects.generate_attending_participations(self.monday, self.sunday)
     accidents = Accident.objects.filter(at__gte=self.monday, at__lte=self.sunday)
+
+    parts = [ p for (occ, (cou, par)) in participations.items() for p in par ]
+    transactions = Transaction.objects.get_transactions(parts)
+
     for (o, (c, parts)) in participations.items():
         if not self.timetable.has_key(o.start.hour):
           self.timetable[o.start.hour] = {}
@@ -222,6 +233,9 @@ class DashboardForm(forms.Form):
         ll.append(self.add_or_update_part(c, neu))
         for part in [pp for pp in sorted(parts, key=lambda p: p.state) if pp.state != ATTENDING]:
           ll.append(self.add_or_update_part(c, part))
+
+        for part in [ pp for pp in parts if pp.id]:
+          part.saldo = financial._count_saldo([tt for tt in transactions if tt.object_id == part.id])[0]
 
         # Instructor participaton
         field = MyModelChoiceField(queryset=InstructorInfo.objects.all(), required=False, initial=ii[c.id][o.start][0].instructor.instructor.id if c.id in ii and o.start in ii[c.id] else None, show_hidden_initial=True)

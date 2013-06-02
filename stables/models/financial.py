@@ -202,6 +202,8 @@ class TransactionQuerySet(models.query.QuerySet):
 class TransactionManager(models.Manager):
   def get_query_set(self):
     return TransactionQuerySet(self.model, using=self._db)
+  def get_transactions(self, participations):
+    return self.filter(active=True, content_type=ContentType.objects.get_for_model(Participation), object_id__in=[p.id for p in participations]).order_by('object_id', 'created_on').prefetch_related('ticket_set')
 
 class Transaction(models.Model):
     objects = TransactionManager()
