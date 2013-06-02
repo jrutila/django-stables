@@ -14,7 +14,7 @@ from django.template import RequestContext
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.db.models import Q, Count
-from django.core.exceptions import MultipleObjectsReturned
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.contrib.contenttypes.models import ContentType
 import operator
 import datetime
@@ -331,7 +331,16 @@ class DashboardForm(forms.Form):
             p.participant = UserProfile.objects.get(reduce(operator.and_, f))
           except MultipleObjectsReturned:
             self._handle_name_error(key, UserProfile.objects.filter(reduce(operator.and_, f)))
+          except ObjectDoesNotExist:
+            self.errors['__all__'] = self.error_class([_('You must choose a rider')])
+            self.errors[key] = self.error_class([_('No such rider found')])
         self.participation_changed(p)
+    for p in self.changed_participations:
+      if not p.participant.id:
+        self.errors['__all__'] = self.error_class([_('You must choose a rider')])
+        key = self.get_key(p.event.course_set.all()[0], p, 'participant')
+        if not key in self.errors:
+          self.errors[key] = self.error_class([_('This field is required')])
 
   def _handle_name_error(self, key, queryset):
     key = 'selector-%s' % key
