@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models import Q
+from django.db import IntegrityError, transaction
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from schedule.models import Calendar, Event, Rule, Occurrence
@@ -527,6 +528,7 @@ class ParticipationManager(models.Manager):
 class Participation(models.Model):
     class Meta:
         app_label = 'stables'
+        unique_together = ('participant', 'event', 'start', 'end')
     def __unicode__(self):
         date_format = u'%s' % ugettext("DATE_FORMAT")
         time_format = u'%s' % ugettext("TIME_FORMAT")
@@ -563,7 +565,20 @@ class Participation(models.Model):
             old = Participation.objects.get(pk=self.id)
             if old.state != self.state:
                 self.last_state_change_on = datetime.datetime.now()
-        return models.Model.save(self)
+        sid = transaction.savepoint()
+        try:
+          ret = models.Model.save(self)
+          transaction.savepoint_commit(sid)
+          return ret
+        except IntegrityError:
+          transaction.savepoint_rollback(sid)
+          actual = Participation.objects.get(participant=self.participant, event=self.event, start=self.start, end=self.end)
+          actual.horse = self.horse
+          actual.note = self.note
+          if actual.state != self.state:
+            actual.last_state_change_on = datetime.datetime.now()
+          actual.state = self.state
+          return actual.save()
 
     def cancel(self):
         self.state = 3
