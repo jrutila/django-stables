@@ -349,7 +349,7 @@ class DashboardForm(forms.Form):
             self.errors['__all__'] = self.error_class([_('You must choose a rider')])
             self.errors[key] = self.error_class([_('No such rider found')])
         self.participation_changed(p)
-    for p in self.changed_participations:
+    for p in [ pp for pp in self.changed_participations if isinstance(pp, Participation) ]:
       if not p.participant.id:
         self.errors['__all__'] = self.error_class([_('You must choose a rider')])
         key = self.get_key(p.event.course_set.all()[0], p, 'participant')
