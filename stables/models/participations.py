@@ -484,13 +484,15 @@ class ParticipationManager(models.Manager):
         next_part = None
         for e in enrolls:
           n = e.course.get_next_occurrence()
+          if not n:
+            continue
           if not next_occ or next_occ.start > n.start:
             next_occ = n 
         parts = Participation.objects.filter(participant=rider, start__gte=datetime.datetime.now())
         for p in parts:
           n = p.event.next_occurrence()
           if not n:
-              continue
+            continue
           if not next_occ or next_occ.start >= n.start:
             next_occ = n 
             next_part = p
