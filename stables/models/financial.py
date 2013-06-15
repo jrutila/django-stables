@@ -39,7 +39,7 @@ class Ticket(models.Model):
     owner_id = models.PositiveIntegerField()
     owner = generic.GenericForeignKey('owner_type', 'owner_id')
     transaction = models.ForeignKey("Transaction", null=True, blank=True)
-    expires = models.DateTimeField(default=datetime.datetime.now()+datetime.timedelta(days=356), null=True, blank=True)
+    expires = models.DateTimeField(default=datetime.datetime(datetime.datetime.now().year, datetime.datetime.now().month, datetime.datetime.now().day, 23, 59, 59), null=True, blank=True)
 
 class TransactionActivator(models.Model):
     class Meta:
