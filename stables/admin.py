@@ -155,6 +155,16 @@ class TransactionAdmin(reversion.VersionAdmin):
   search_fields = ['customer__userprofile__user__first_name', 'customer__userprofile__user__last_name',]
   ordering = ['-created_on']
 
+class ParticipationTransactionActivatorAdminForm(forms.ModelForm):
+  class Meta:
+    model = ParticipationTransactionActivator
+    widgets = {
+        'participation': forms.TextInput()
+        }
+
+class ParticipationTransactionActivatorAdmin(admin.ModelAdmin):
+  form = ParticipationTransactionActivatorAdminForm
+
 class TicketAdminForm(forms.ModelForm):
   class Meta:
     model = Ticket
@@ -190,6 +200,6 @@ admin.site.register(Ticket, TicketAdmin)
 admin.site.register(TicketType)
 admin.site.register(Transaction, TransactionAdmin)
 admin.site.register(Course, CourseAdmin)
-admin.site.register(ParticipationTransactionActivator)
+admin.site.register(ParticipationTransactionActivator, ParticipationTransactionActivatorAdmin)
 admin.site.register(CourseTransactionActivator)
 admin.site.register(CourseParticipationActivator)
