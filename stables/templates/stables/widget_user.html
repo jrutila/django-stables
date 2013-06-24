@@ -22,6 +22,9 @@
   <li>{{ t.ticket_set.all.0.type }} {{ t.created_on }}</li>
   {% endif %}
   {% endfor %}
+  {% if perms.stables.add_transaction %}
+  <a href="{% url stables.views.modify_transactions p.id %}">{% trans "Modify transactions" %}</a>
+  {% endif %}
   </ul>
 </div>
 <div>

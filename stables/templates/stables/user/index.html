@@ -31,7 +31,10 @@
   </h3>
   <ul>
     {% for p in user.participations %}
-    <li>{{ p }}</li>
+    <li>
+    {{ p }}
+    <a href="{% url stables.views.widget_user p.id %}">Edit</a>
+    </li>
     {% endfor %}
     <li><a href="{{ request.path }}?pmore={{ user.participations|length|add:10 }}">{% trans "More..." %}</a></li>
   </ul>

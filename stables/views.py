@@ -590,6 +590,118 @@ def widget_user(request, pid):
 
     return render_response(request, 'stables/widget_user.html', { 'p': part })
 
+class TransactionsForm(forms.Form):
+    transactions = []
+    deleted_transactions = []
+
+    def __init__(self, *args, **kwargs):
+      transactions = kwargs.pop('transactions')
+      unused_tickets = kwargs.pop('unused_tickets')
+      self.participation = kwargs.pop('participation')
+      super(TransactionsForm, self).__init__(*args, **kwargs)
+
+      self._init_data(transactions, unused_tickets)
+
+    def _post_clean(self):
+      used_tickets = {}
+      for (k, value) in self.cleaned_data.items():
+        tvar, tid = k.split('_')
+        tid = int(tid)
+        if tvar == 'delete':
+          if value:
+            self.deleted_transactions.append(self.transactions[tid])
+          continue
+        if tvar == 'ticket':
+          if value != '' and int(value) not in self.tickets:
+            self._errors[k] = self.error_class([_('Invalid ticket id, choose from the list')])
+          if value != '':
+            used_tickets[int(value)] = self.transactions[tid]
+          continue
+        if tvar == 'created':
+          tvar = 'created_on'
+        setattr(self.transactions[tid], tvar, value)
+      for (tid, t) in self.tickets.items():
+        if tid in used_tickets:
+          t.transaction = used_tickets[tid]
+        else:
+          t.transaction = None
+
+    def save(self, *args, **kwargs):
+      for (tid, t) in self.transactions.items():
+        if t in self.deleted_transactions:
+          t.delete()
+        elif t.amount:
+          if tid == 0:
+            t.customer = self.participation.participant.rider.customer
+            t.source = self.participation
+          t.save()
+      for (tid, t) in self.tickets.items():
+        t.save()
+
+    def _init_data(self, transactions, unused_tickets):
+      self.transactions = dict(((lambda a: a.id)(v), v) for v in transactions)
+      self.tickets = dict(((lambda a: a.id)(v), v) for v in unused_tickets)
+      self.transactions[0] = Transaction()
+      for (tid, t) in self.transactions.items():
+        self.fields['delete_%s' % tid] = forms.BooleanField(required=False)
+        self.fields['amount_%s' % tid] = forms.CharField(initial=t.amount, required=tid != 0)
+        self.fields['created_%s' % tid] = forms.DateTimeField(initial=t.created_on)
+        initial_ticket = None
+        if tid != 0 and len(t.ticket_set.all()) > 0:
+          initial_ticket = t.ticket_set.all()[0]
+          self.tickets[initial_ticket.id] = initial_ticket
+          initial_ticket = initial_ticket.id
+        self.fields['ticket_%s' % tid] = forms.CharField(initial=initial_ticket, required=False)
+
+    def as_table(self):
+      output = []
+      output.append('<thead>')
+      output.append('<tr>')
+      output.append('<th>Id</th>')
+      output.append('<th>Amount</th>')
+      output.append('<th>Ticket</th>')
+      output.append('<th>Time</th>')
+      output.append('<th>Delete</th>')
+      output.append('</thead>')
+      output.append('<tbody>')
+      for (id, t) in sorted(self.transactions.items(), key=lambda a: a[0], reverse=True):
+        output.append('<tr>')
+        output.append('<td>%s</td>' % (t.id if t.id != None else ugettext("New")))
+        self._print_td('amount_%s' % id, output)
+        self._print_td('ticket_%s' % id, output)
+        self._print_td('created_%s' % id, output)
+        self._print_td('delete_%s' % id, output)
+        output.append('</tr>')
+      output.append('</tbody>')
+      return mark_safe(u'\n'.join(output))
+
+    def _print_td(self, field, output):
+      output.append('<td>')
+      if self._errors and field in self._errors:
+        output.append(unicode(self._errors[field]))
+      output.append('%s' % unicode(self[field]))
+      output.append('</td>')
+
+@permission_required('stables.add_transaction')
+def modify_transactions(request, pid):
+    part = Participation.objects.get(pk=pid)
+    unused_tickets = part.participant.rider.unused_tickets
+    transactions = list(Transaction.objects.filter(active=True, content_type=ContentType.objects.get_for_model(Participation), object_id=part.id).order_by('object_id', 'created_on').prefetch_related('ticket_set'))
+
+    setattr(part, 'transactions', [])
+    setattr(part, 'saldo', 0)
+    setattr(part, 'ticket_used', None)
+    setattr(part, 'tickets', set())
+
+    if request.method == 'POST':
+      form = TransactionsForm(request.POST, transactions=transactions, unused_tickets=unused_tickets,  participation=part)
+      if form.is_valid():
+        form.save()
+        return redirect('%s?%s' % (request.path, request.GET.urlencode()))
+    else:
+      form = TransactionsForm(transactions=transactions, unused_tickets=unused_tickets,  participation=part)
+
+    return render_response(request, 'stables/modify_transactions.html', { 'form': form, 'tickets': form.tickets.values(), 'pid': pid })
 
 def view_course(request, course_id):
     course = Course.objects.get(pk=course_id)
