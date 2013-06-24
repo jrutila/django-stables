@@ -53,7 +53,7 @@ def add_horse(request):
     return render_response(request, 'stables/addhorse.html', { 'form': form })
 
 def view_horse(request, horse_id):
-    horse = Horse.objects.get(pk=horse_id, public=True)
+    horse = get_object_or_404(Horse, pk=horse_id, public=True)
     return render_response(request, 'stables/horse.html', { 'horse': horse })
 
 def list_horse(request):
