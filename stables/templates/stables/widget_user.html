@@ -2,7 +2,7 @@
 {% load i18n sekizai_tags cms_tags %}
 {% load stablestags %}
 {% block body %}
-<h1 class="rider">{{ p.participant }} {{ p.state|state }}</h1>
+<h1 class="rider"><a href="{{ p.participant.get_absolute_url }}">{{ p.participant }}</a> {{ p.state|state }}</h1>
 <h2>{{ p.event.title }}</h2>
 <div>{{ p.start }} - {{ p.end }}</div>
 <span class="horse">{{ p.horse.nickname }}</span>
