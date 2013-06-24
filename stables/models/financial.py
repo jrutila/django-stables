@@ -56,6 +56,7 @@ class ParticipationTransactionActivatorManager(models.Manager):
         # TODO: 2400 to something right
         act = self.create(participation=participation, fee=fee, activate_before_hours=2400)
         act.ticket_type = ticket_type
+        act.try_activate()
         return act
 
 def _use_ticket(ticket_query, transaction):
