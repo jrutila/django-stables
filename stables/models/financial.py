@@ -53,8 +53,8 @@ class ParticipationTransactionActivatorManager(models.Manager):
         part_type = ContentType.objects.get_for_model(participation)
         if Transaction.objects.filter(content_type__pk=part_type.id, object_id=participation.id).count() > 0:
             return
-        # TODO: 2400 to something right
-        act = self.create(participation=participation, fee=fee, activate_before_hours=2400)
+        # TODO: 24 to something right
+        act = self.create(participation=participation, fee=fee, activate_before_hours=24)
         act.ticket_type = ticket_type
         act.try_activate()
         return act
