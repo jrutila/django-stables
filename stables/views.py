@@ -552,7 +552,6 @@ def widget(request, date=None):
     while t_id < len(transactions) and p_id < len(participations):
         part = participations[p_id]
         #if part.participant.user.first_name == "Tuija":
-          #import pdb; pdb.set_trace()
         if not hasattr(part, 'saldo'):
             setattr(part, 'transactions', [])
             setattr(part, 'saldo', 0)
@@ -635,8 +634,12 @@ class TransactionsForm(forms.Form):
           t.transaction = None
 
     def save(self, *args, **kwargs):
+      for (tid, t) in self.tickets.items():
+        if t.transaction in self.deleted_transactions:
+          t.transaction = None
       for (tid, t) in self.transactions.items():
         if t in self.deleted_transactions:
+          self.deleted_transactions.remove(t)
           t.delete()
         elif t.amount:
           if tid == 0:
@@ -644,6 +647,9 @@ class TransactionsForm(forms.Form):
             t.source = self.participation
           t.save()
       for (tid, t) in self.tickets.items():
+        if t.transaction:
+          # Update the transaction from db
+          t.transaction = Transaction.objects.get(pk=t.transaction.id)
         t.save()
 
     def _init_data(self, transactions, unused_tickets):
