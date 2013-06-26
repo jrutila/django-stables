@@ -144,11 +144,18 @@ class ParticipantLink(forms.Widget):
     output = []
     output.append('<span class="ui-stbl-db-user">')
     if self.participation.id:
-      link_text = 'o'
+      link_text = 'ok'
       link_title = ''
+      if self.participation.used_ticket:
+        link_title = self.participation.used_ticket.type
+      else:
+        link_title = ugettext('Cash')
       if self.participation.saldo < 0:
         link_text = '<span style="color: yellow;">&#8364;</span>'
         link_title = self.participation.saldo
+      if len(self.participation.transactions) == 0:
+        link_text = '<span style="color: cyan;">f</span>'
+        link_title = ugettext('No transactions')
       output.append('<a href="%s" title="%s">%s</a>' % (
           reverse('stables.views.widget_user', args=[self.participation.id])
           ,link_title, link_text
@@ -236,7 +243,8 @@ class DashboardForm(forms.Form):
           ll.append(self.add_or_update_part(c, part))
 
         for part in [ pp for pp in parts if pp.id]:
-          part.saldo = financial._count_saldo([tt for tt in transactions if tt.object_id == part.id])[0]
+          part.transactions = [tt for tt in transactions if tt.object_id == part.id]
+          part.saldo, part.used_ticket = financial._count_saldo(part.transactions)
 
         # Instructor participaton
         field = MyModelChoiceField(queryset=InstructorInfo.objects.all(), required=False, initial=ii[c.id][o.start][0].instructor.instructor.id if c.id in ii and o.start in ii[c.id] else None, show_hidden_initial=True)
