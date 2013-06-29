@@ -31,6 +31,8 @@ class Ticket(models.Model):
         app_label = 'stables'
     def __unicode__(self):
         s = self.type.__unicode__() + ' (' + unicode(self.owner) + ')'
+        if isinstance(self.owner, CustomerInfo):
+            s = s + " F "
         if self.transaction:
             s = s + "(USED)"
         return s

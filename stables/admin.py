@@ -11,6 +11,7 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.utils.translation import ugettext_lazy as _
+from django.db.models import Q
 import reversion
 
 #class HorseAdmin(reversion.VersionAdmin):
@@ -178,6 +179,24 @@ class TicketAdminForm(forms.ModelForm):
 
 class TicketAdmin(admin.ModelAdmin):
   form = TicketAdminForm
+  actions = ['make_familyticket']
+
+  def queryset(self, request):
+    qs = super(TicketAdmin, self).queryset(request)
+    q = request.GET.get('q')
+    if q:
+      users = UserProfile.objects.filter(Q(user__first_name__icontains=q) | Q(user__last_name__icontains=q))
+      custid = [ u.customer.id for u in users ]
+      rideid = [ u.rider.id for u in users ]
+      qs = qs.filter(Q(owner_id__in=custid) | Q(owner_id__in=rideid))
+    return qs
+
+  def make_familyticket(self, request, queryset):
+    for ticket in queryset:
+      owner = ticket.owner
+      if isinstance(owner, RiderInfo):
+        ticket.owner = owner.customer
+        ticket.save()
 
 class EnrollAdmin(reversion.VersionAdmin):
   search_fields = ['participant__user__first_name']
