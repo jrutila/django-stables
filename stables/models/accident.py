@@ -86,7 +86,6 @@ class Accident(models.Model):
         app_label = "stables"
         permissions = (
             ('view_accidents', "Can see detailed accident reports"),
-            ('add_accident', "Can add a new accident report"),
         )
 
     def __unicode__(self):
