@@ -23,7 +23,7 @@
   {% endif %}
   {% endfor %}
   {% if perms.stables.add_transaction %}
-  <a href="{% url stables.views.modify_transactions p.id %}">{% trans "Modify transactions" %}</a>
+  <a href="{% url "stables.views.modify_transactions" p.id %}">{% trans "Modify transactions" %}</a>
   {% endif %}
   </ul>
 </div>
@@ -43,6 +43,6 @@
   {% participate_button p %}
 </div>
 <div>
-  <a href="{% url stables.views.report_accident %}?participation_id={{ p.id }}">{% trans "Report accident" %}</a>
+  <a href="{% url "stables.views.report_accident" %}?participation_id={{ p.id }}">{% trans "Report accident" %}</a>
 </div>
 {% endblock body %}

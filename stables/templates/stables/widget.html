@@ -16,7 +16,7 @@
   {% for p in ps %}
     <li>
     <!--<span class="id">{{ p.id }}</span>-->
-    <a class="rider" href="{% url stables.views.widget_user pid=p.id %}">
+    <a class="rider" href="{% url "stables.views.widget_user" pid=p.id %}">
       {{ p.participant }} {{ p.state|state }} {{ p.saldo }}
     </a>
     </li>

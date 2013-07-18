@@ -12,7 +12,7 @@
 {% for i,y in week_range %}
 <li{% ifequal i week %} class='selected'{% endifequal %}>
 {% ifnotequal i week %}
-<a href="{% url stables.views.list_course week=i %}{% if y %}?year={{ y }}{% endif %}">
+<a href="{% url "stables.views.list_course" week=i %}{% if y %}?year={{ y }}{% endif %}">
 {% endifnotequal %}
 {{ i }}
 {% ifnotequal i week %}

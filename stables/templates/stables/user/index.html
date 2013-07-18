@@ -35,7 +35,7 @@
     {% for p in user.participations %}
     <li>
     {{ p }}
-    <a href="{% url stables.views.widget_user p.id %}">Edit</a>
+    <a href="{% url "stables.views.widget_user" p.id %}">Edit</a>
     </li>
     {% endfor %}
     <li><a href="{{ request.path }}?pmore={{ user.participations|length|add:10 }}">{% trans "More..." %}</a></li>
@@ -45,7 +45,7 @@
 <h3>{% trans "Saldo" %}</h3>
 {{ user.saldo }}
 {% if perms.stables.add_ticket %}
-<a href="{% url stables.views.add_tickets user.user.username %}">{% trans "Add tickets" %}</a>
+<a href="{% url "stables.views.add_tickets" user.user.username %}">{% trans "Add tickets" %}</a>
 {% endif %}
 <ul>
 {% for t, l in user.tickets.iteritems %}

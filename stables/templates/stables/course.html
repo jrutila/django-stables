@@ -4,13 +4,13 @@
 {% block body %}
 <h1>{{ course.name }}</h1>
 {% if perms.stables.change_course %}
-<a href="{% url admin:stables_course_change course.id %}">{% trans "Modify course" %}</a><br/>
+<a href="{% url "admin:stables_course_change" course.id %}">{% trans "Modify course" %}</a><br/>
 {% endif %}
 {% if course.end %}
 {% blocktrans with course.start as start and course.end as end %}From {{ start }} to {{ end }}{% endblocktrans %}
 {% endif %}
 {% if perms.stables.change_participation %}
-<a href="{% url stables.views.modify_enrolls course_id=course.id %}">{% trans "Modify enrolls" %}</a>
+<a href="{% url "stables.views.modify_enrolls" course_id=course.id %}">{% trans "Modify enrolls" %}</a>
 {% endif %}
 <p>
 {% blocktrans with course.get_attending_amount as attending and course.max_participants as space %}
@@ -33,13 +33,13 @@ Enrolled: {{ attending }}/{{ space }}
 
 
         {% if perms.stables.change_participation %}
-        <a href="{% url stables.views.modify_participations course_id=course.id occurrence_start=c.start.isoformat %}">{% trans "Modify participations" %}</a>
+        <a href="{% url "stables.views.modify_participations" course_id=course.id occurrence_start=c.start.isoformat %}">{% trans "Modify participations" %}</a>
         {% endif %}
         {% if perms.stables.change_participation_horse %}
-        <a href="{% url stables.views.modify_participation_horses course_id=course.id occurrence_start=c.start.isoformat %}">{% trans "Set horses" %}</a>
+        <a href="{% url "stables.views.modify_participation_horses" course_id=course.id occurrence_start=c.start.isoformat %}">{% trans "Set horses" %}</a>
         {% endif %}
         {% if perms.stables.change_participation_time %}
-        <a href="{% url stables.views.modify_participation_time course_id=course.id occurrence_start=c.start.isoformat %}">{% trans "Change time" %}</a>
+        <a href="{% url "stables.views.modify_participation_time" course_id=course.id occurrence_start=c.start.isoformat %}">{% trans "Change time" %}</a>
         {% endif %}
         <ul>
         {% for instr in c.instructors %}
@@ -69,6 +69,6 @@ Enrolled: {{ attending }}/{{ space }}
     {% endfor %}
 </ul>
 {% if perms.stables.change_course %}
-<a href="{% url stables.views.add_event course.id %}">{% trans "Add one-time event" %}</a><br/>
+<a href="{% url "stables.views.add_event" course.id %}">{% trans "Add one-time event" %}</a><br/>
 {% endif %}
 {% endblock body %}
