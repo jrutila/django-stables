@@ -22,6 +22,7 @@ setup(
       'south',
       'PIL',
       'django-reversion',
+      'django-sekizai',
     ],
     dependency_links = [
       'http://github.com/jrutila/django-schedule/tarball/master#egg=django-schedule',
