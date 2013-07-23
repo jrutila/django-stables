@@ -23,6 +23,7 @@ setup(
       'PIL',
       'django-reversion',
       'django-sekizai',
+      'django-crispy-forms',
     ],
     dependency_links = [
       'http://github.com/jrutila/django-schedule/tarball/master#egg=django-schedule',

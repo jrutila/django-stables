@@ -1,10 +1,10 @@
-{% extends "site_base.html" %}
+{% extends "base.html" %}
 {% load i18n %}
 {% load stablestags %}
 {% block body %}
 <h1>{{ course.name }}</h1>
 {% if perms.stables.change_course %}
-<a href="{% url "admin:stables_course_change" course.id %}">{% trans "Modify course" %}</a><br/>
+<a href="{% url "change_course" course.id %}">{% trans "Modify course" %}</a><br/>
 {% endif %}
 {% if course.end %}
 {% blocktrans with course.start as start and course.end as end %}From {{ start }} to {{ end }}{% endblocktrans %}

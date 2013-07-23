@@ -1,6 +1,7 @@
 
 # Model tests
-from models.tests import *
+#from models.tests import *
+from forms.tests import *
 
 #from django.test import TestCase
 ##class ViewTest(TestCase):

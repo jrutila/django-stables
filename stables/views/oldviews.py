@@ -1,11 +1,11 @@
-from models import HorseForm, Horse, Course, Participation, PARTICIPATION_STATES, InstructorParticipation, EventMetaData
-from models import InstructorInfo
-from models import Enroll
-from models import UserProfile
-from models import pay_participation
-from models import Transaction, Ticket, TicketType
-from models import ATTENDING, RESERVED, SKIPPED, CANCELED
-from models import Accident, AccidentForm
+from stables.models import HorseForm, Horse, Course, Participation, PARTICIPATION_STATES, InstructorParticipation, EventMetaData
+from stables.models import InstructorInfo
+from stables.models import Enroll
+from stables.models import UserProfile
+from stables.models import pay_participation
+from stables.models import Transaction, Ticket, TicketType
+from stables.models import ATTENDING, RESERVED, SKIPPED, CANCELED
+from stables.models import Accident, AccidentForm
 from stables.models import financial
 from schedule.models import Occurrence, Event, Calendar
 from django.shortcuts import render_to_response, redirect, render, get_object_or_404
@@ -24,7 +24,7 @@ from django.contrib.auth.decorators import permission_required
 from django.utils.decorators import method_decorator
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.http import require_POST
-import models as enum
+import stables.models as enum
 import dateutil.parser
 from django import forms
 import reversion
@@ -1084,7 +1084,7 @@ def modify_enrolls(request, course_id):
       view_enrolls.append({'participant': e.participant, 'state': PARTICIPATION_STATES[e.state][1]})
     return render(request, 'stables/enrolls.html', { 'course': course, 'enrolls': view_enrolls, 'users': set(users) - set(en_users) })
 
-from models import TicketForm
+from stables.models import TicketForm
 @permission_required('stables.add_ticket')
 def add_tickets(request, username):
   user = get_object_or_404(UserProfile, user__username=username)
@@ -1108,7 +1108,7 @@ def add_tickets(request, username):
   return render(request, 'stables/addtickets.html', { 'form': tf, 'user': user, 'username': username })
 
 
-from models import admin, RiderInfo, CustomerInfo
+from stables.models import admin, RiderInfo, CustomerInfo
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 

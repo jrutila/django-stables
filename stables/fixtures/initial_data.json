@@ -1,0 +1,10 @@
+[
+    {
+      "model": "schedule.rule",
+      "pk": 1,
+      "fields": {
+        "name": "Weekly",
+        "frequency": "WEEKLY"
+      }
+    }
+]
