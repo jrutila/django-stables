@@ -356,7 +356,7 @@ class DashboardForm(forms.Form):
             self._handle_name_error(key, UserProfile.objects.filter(reduce(operator.and_, f)))
           except ObjectDoesNotExist:
             self.errors['__all__'] = self.error_class([_('You must choose a rider')])
-            self.errors[key] = self.error_class([mark_safe(_('No such rider found. %sAdd one%s') % (('<a href="%s?orig=%s" target="_blank">' % (reverse('AddUserView'), self.data[key])), '</a>'))])
+            self.errors[key] = self.error_class([mark_safe(_('No such rider found. %sAdd one%s') % (('<a href="%s?orig=%s" target="_blank">' % (reverse('add_user'), self.data[key])), '</a>'))])
         self.participation_changed(p)
     for p in [ pp for pp in self.changed_participations if isinstance(pp, Participation) ]:
       if not p.participant.id:
@@ -851,72 +851,6 @@ def view_user(request, username=None):
         user.tickets[tt] = (ticketamount[tt], ticketexp[tt])
 
     return render(request, 'stables/user/index.html', { 'user': user })
-
-from stables.models import RiderLevel
-class UserProfileAddForm(forms.Form):
-  first_name = forms.CharField(max_length=500, required=True)
-  last_name = forms.CharField(max_length=500, required=True)
-  phone_number = forms.CharField(max_length=500, required=False)
-  email = forms.EmailField(required=False)
-  levels = forms.ModelMultipleChoiceField(queryset=RiderLevel.objects.all(), required=False)
-
-  def save(self, force_insert=False, force_update=False, commit=True):
-    import random
-    import string
-    username = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(6))
-    password = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(18))
-    user = User.objects.create_user(username, self.cleaned_data['email'], password)
-    user.first_name = self.cleaned_data['first_name']
-    user.last_name = self.cleaned_data['last_name']
-    user.save()
-
-    #instance = super(UserProfileAdminAddForm, self).save(commit=False)
-    instance = user.get_profile()
-
-    if not instance.customer:
-      c = CustomerInfo.objects.create()
-      instance.customer = c
-    if 'address' in self.cleaned_data and self.cleaned_data['address']:
-      instance.customer.address = self.cleaned_data['address']
-
-    if not instance.rider:
-      r = RiderInfo.objects.create(customer=c)
-      instance.rider = r
-      instance.rider.customer = instance.customer
-    if self.cleaned_data['levels']:
-      instance.rider.levels = self.cleaned_data['levels']
-    instance.phone_number = self.cleaned_data['phone_number']
-
-    instance.save()
-    instance.customer.save()
-    instance.rider.customer = instance.customer
-    instance.rider.save()
-    return instance
-
-  def save_m2m(self, *args, **kwargs):
-      pass
-
-from django.views.generic.edit import FormView
-class AddUserView(FormView):
-    template_name = 'stables/user/add_user.html'
-    form_class = UserProfileAddForm
-
-    def form_valid(self, form):
-        form.save(commit = True)
-        return HttpResponse('<script type="text/javascript">window.close()</script>Close this window.')
-
-    def get_context_data(self, **kwargs):
-        if self.request.GET.get('orig'):
-            orig = self.request.GET.get('orig').split()
-            form = kwargs['form']
-            ff = ['first_name', 'last_name']
-            for i in range(0, len(orig)):
-                form.fields[ff[i]].initial = orig[i]
-        return super(AddUserView, self).get_context_data(**kwargs)
-
-    @method_decorator(permission_required('auth.add_user'))
-    def dispatch(self, *args, **kwargs):
-        return super(AddUserView, self).dispatch(*args, **kwargs)
 
 class ModifyParticipationForm(forms.Form):
   PARTICIPATE_KEY_PREFIX='participate_'
