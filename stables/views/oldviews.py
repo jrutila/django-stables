@@ -777,29 +777,6 @@ def enroll_course(request, course_id):
     course.enroll(user)
     return request_redirect(request)
 
-class AddEventForm(forms.Form):
-    start = forms.DateTimeField(widget=forms.SplitDateTimeWidget())
-    end = forms.DateTimeField(widget=forms.SplitDateTimeWidget())
-
-@permission_required('stables.change_course')
-def add_event(request, course_id):
-    course = Course.objects.get(pk=course_id)
-    if request.method == "POST":
-      form = AddEventForm(request.POST, course)
-      if form.is_valid():
-        event = Event()
-        event.start = form.cleaned_data['start']
-        event.end = form.cleaned_data['end']
-        event.title = course.name
-        event.creator = request.user
-        event.calendar = Calendar.objects.get(pk=1)
-        event.save()
-        course.events.add(event)
-        course.save()
-        return redirect(course)
-    else:
-      form = AddEventForm()
-    return render(request, 'stables/add_event.html', { 'course': course, 'form':form })
 
 def cancel(request, course_id):
     # Only user that has right to change permission

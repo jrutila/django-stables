@@ -12,6 +12,10 @@ from crispy_forms.layout import Submit
 from crispy_forms.layout import HTML
 from crispy_forms.layout import Layout, Fieldset, ButtonHolder
 
+class CourseFormHelper(FormHelper):
+    form_class = 'blueForms'
+    form_method = 'post'
+
 class CourseForm(forms.ModelForm):
     class Meta:
         model = Course
@@ -23,10 +27,7 @@ class CourseForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
       super(CourseForm, self).__init__(*args, **kwargs)
-      self.helper = FormHelper()
-      self.helper.form_id = 'id-exampleForm'
-      self.helper.form_class = 'blueForms'
-      self.helper.form_method = 'post'
+      self.helper = CourseFormHelper()
       self.helper.layout = Layout(
             Fieldset(
               _('Basic information'), 
@@ -117,3 +118,54 @@ class CourseForm(forms.ModelForm):
         if course.events.filter(rule__isnull=False).count() > 0:
           return course.events.filter(rule__isnull=False).order_by('-start')[0]
         return None
+
+class AddEventForm(forms.Form):
+    date = forms.DateField()
+    start = forms.TimeField()
+    end = forms.TimeField()
+
+    def __init__(self, *args, **kwargs):
+        self.helper = CourseFormHelper()
+        self.helper.layout = Layout(
+          Fieldset(
+            _('New event information'), 
+            'date','start', 'end'
+          ),
+          ButtonHolder(
+            Submit('submit', 'Submit')
+          )
+        )
+        super(AddEventForm, self).__init__(*args, **kwargs)
+
+    def save_event(self):
+        event = Event()
+        event.start = datetime.datetime.combine(self.cleaned_data['date'], self.cleaned_data['start'])
+        event.end = datetime.datetime.combine(self.cleaned_data['date'], self.cleaned_data['end'])
+        event.title = self.course.name
+        event.creator = self.request.user
+        event.calendar = Calendar.objects.get(pk=1)
+        event.save()
+        self.course.events.add(event)
+        self.course.save()
+
+"""
+@permission_required('stables.change_course')
+def add_event(request, course_id):
+    course = Course.objects.get(pk=course_id)
+    if request.method == "POST":
+      form = AddEventForm(request.POST, course)
+      if form.is_valid():
+        event = Event()
+        event.start = form.cleaned_data['start']
+        event.end = form.cleaned_data['end']
+        event.title = course.name
+        event.creator = request.user
+        event.calendar = Calendar.objects.get(pk=1)
+        event.save()
+        course.events.add(event)
+        course.save()
+        return redirect(course)
+    else:
+      form = AddEventForm()
+    return render(request, 'stables/add_event.html', { 'course': course, 'form':form })
+"""
