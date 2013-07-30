@@ -226,6 +226,10 @@ class DashboardForm(forms.Form):
           self.timetable[o.start.hour] = {}
           for i in range(0,7):
             self.timetable[o.start.hour][i] = []
+        if o.cancelled:
+            cop = (c, o, [], [])
+            self.timetable[o.start.hour][o.start.weekday()].append(cop)
+            continue
         ll = []
         for part in [pp for pp in sorted(parts, key=lambda p: p.state) if pp.state == ATTENDING]:
           ll.append(self.add_or_update_part(c, part))
@@ -413,11 +417,17 @@ class DashboardForm(forms.Form):
       for day, cops in weekdays.items():
         output.append('<td>')
         for cop in cops:
-          output.append('<span>')
+          stylespan = '<span'
+          if cop[1].cancelled:
+              stylespan = stylespan + ' class="cancelled"'
+          stylespan = stylespan + '>'
+          output.append(stylespan)
           output.append('<a href="%s">' % cop[0].get_absolute_url())
           output.append(cop[0].name)
           output.append('</a>')
           output.append('</span>')
+          if cop[1].cancelled:
+              continue
           output.append(unicode(self['c%s_s%s_e%s_instructor' % (cop[0].id, cop[1].start.isoformat(), cop[1].end.isoformat())]))
           output.append(unicode(self['c%s_s%s_e%s_notes' % (cop[0].id, cop[1].start.isoformat(), cop[1].end.isoformat())]))
           output.append('<ul>')
@@ -930,33 +940,6 @@ class HorseParticipationForm(forms.Form):
       self.fields['rider_id_'+str(p.participant.id)] = MyModelChoiceField(queryset=horses, label=str(p.participant), initial=p.horse, required=False)
 
 from django.contrib.admin import widgets
-class ParticipationTimeForm(forms.Form):
-    new_start = forms.DateTimeField(initial=datetime.datetime.now())
-    new_end = forms.DateTimeField(initial=datetime.datetime.now())
-
-@permission_required('stables.change_participation_time')
-def modify_participation_time(request, course_id, occurrence_start):
-    if not occurrence_start:
-        raise Http404
-    course = get_object_or_404(Course, pk=course_id)
-    occurrence = course.get_occurrence(start=dateutil.parser.parse(occurrence_start))
-    if request.method == 'POST':
-      form = ParticipationTimeForm(request.POST)
-      if form.is_valid():
-        orig_start=occurrence.start
-        orig_end=occurrence.end
-        new_start=form.cleaned_data['new_start']
-        new_end=form.cleaned_data['new_end']
-        occurrence.move(new_start, new_end)
-        Participation.objects.move(course, (orig_start, new_start), (orig_end, new_end))
-        EventMetaData.objects.move(course, (orig_start, new_start), (orig_end, new_end))
-        InstructorParticipation.objects.move(course, (orig_start, new_start), (orig_end, new_end))
-        return redirect(course)
-    else:
-      form = ParticipationTimeForm()
-      form.initial['new_start'] = occurrence.start
-      form.initial['new_end'] = occurrence.end
-    return render(request, 'stables/participation_time.html', { 'course': course, 'occurrence': occurrence, 'form': form })
 
 @permission_required('stables.change_participation_horse')
 def modify_participation_horses(request, course_id, occurrence_start):

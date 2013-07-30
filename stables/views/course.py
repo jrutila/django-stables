@@ -5,7 +5,9 @@ from django.views.generic import DetailView
 from stables.models import Course
 from stables.forms import CourseForm
 from stables.forms import AddEventForm
+from stables.forms import ChangeEventForm
 from datetime import *
+import dateutil.parser
 
 class ViewCourse(DetailView):
     model = Course
@@ -37,17 +39,34 @@ class CourseUpdate(UpdateView):
       return form
 
 class CourseAddEvent(FormView):
-    template_name = 'stables/course/add_event.html'
+    template_name = 'stables/course/event.html'
     form_class = AddEventForm
 
-    def post(self, request, *args, **kwargs):
-        self.request = request
+    def dispatch(self, request, *args, **kwargs):
         self.course = Course.objects.get(**kwargs)
         self.success_url = self.course.get_absolute_url()
-        return super(CourseAddEvent, self).post(request, *args, **kwargs)
+        return super(CourseAddEvent, self).dispatch(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super(FormView, self).get_form_kwargs()
+        kwargs['user'] = self.request.user
+        kwargs['course'] = self.course
+        return kwargs
 
     def form_valid(self, form):
-        form.request = self.request
-        form.course = self.course
         form.save_event()
         return super(CourseAddEvent, self).form_valid(form)
+
+class CourseUpdateEvent(CourseAddEvent):
+    form_class = ChangeEventForm
+
+    def dispatch(self, request, *args, **kwargs):
+        start = dateutil.parser.parse(kwargs.pop('start'))
+        self.course = Course.objects.get(**kwargs)
+        self.event = self.course.get_occurrence(start)
+        return super(CourseUpdateEvent, self).dispatch(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super(CourseUpdateEvent, self).get_form_kwargs()
+        kwargs['event'] = self.event
+        return kwargs

@@ -21,3 +21,8 @@ table.timetable thead th:first-of-type
   margin-left: 10px;
   margin-right: 10px;
 }
+
+.cancelled
+{
+    text-decoration: line-through;
+}

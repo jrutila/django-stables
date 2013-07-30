@@ -128,13 +128,15 @@ class AddEventForm(forms.Form):
         self.helper = CourseFormHelper()
         self.helper.layout = Layout(
           Fieldset(
-            _('New event information'), 
+            _('Event information'), 
             'date','start', 'end'
           ),
           ButtonHolder(
             Submit('submit', 'Submit')
           )
         )
+        self.user = kwargs.pop('user')
+        self.course = kwargs.pop('course')
         super(AddEventForm, self).__init__(*args, **kwargs)
 
     def save_event(self):
@@ -142,30 +144,35 @@ class AddEventForm(forms.Form):
         event.start = datetime.datetime.combine(self.cleaned_data['date'], self.cleaned_data['start'])
         event.end = datetime.datetime.combine(self.cleaned_data['date'], self.cleaned_data['end'])
         event.title = self.course.name
-        event.creator = self.request.user
+        event.creator = self.user
         event.calendar = Calendar.objects.get(pk=1)
         event.save()
         self.course.events.add(event)
         self.course.save()
 
-"""
-@permission_required('stables.change_course')
-def add_event(request, course_id):
-    course = Course.objects.get(pk=course_id)
-    if request.method == "POST":
-      form = AddEventForm(request.POST, course)
-      if form.is_valid():
-        event = Event()
-        event.start = form.cleaned_data['start']
-        event.end = form.cleaned_data['end']
-        event.title = course.name
-        event.creator = request.user
-        event.calendar = Calendar.objects.get(pk=1)
-        event.save()
-        course.events.add(event)
-        course.save()
-        return redirect(course)
-    else:
-      form = AddEventForm()
-    return render(request, 'stables/add_event.html', { 'course': course, 'form':form })
-"""
+class ChangeEventForm(AddEventForm):
+    cancel = forms.BooleanField(required=False)
+
+    def __init__(self, *args, **kwargs):
+        self.event=kwargs.pop('event')
+        super(ChangeEventForm, self).__init__(*args, **kwargs)
+        btn = self.helper.layout.fields.pop()
+        self.helper.layout.fields.append(Fieldset(
+            _('Cancel event'),
+            'cancel'
+            )
+        )
+        self.helper.layout.fields.append(btn)
+        self.initial['date'] = self.event.start.date()
+        self.initial['start'] = self.event.start.time()
+        self.initial['end'] = self.event.end.time()
+        self.initial['cancel'] = self.event.cancelled
+
+    def save_event(self):
+        if self.cleaned_data['cancel'] and not self.event.cancelled:
+            self.event.cancel()
+        elif not self.cleaned_data['cancel'] and self.event.cancelled:
+            self.event.uncancel()
+        start = datetime.datetime.combine(self.cleaned_data['date'], self.cleaned_data['start'])
+        end = datetime.datetime.combine(self.cleaned_data['date'], self.cleaned_data['end'])
+        self.event.move(start, end)

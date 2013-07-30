@@ -14,6 +14,7 @@ from django.template.defaultfilters import date, time
 from django.core.exceptions import ObjectDoesNotExist
 import reversion
 from django.db.models.signals import post_save
+from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from horses import Horse
 
@@ -299,7 +300,7 @@ class Course(models.Model):
 
     @models.permalink
     def get_absolute_url(self):
-        return ('stables.views.view_course', (), { 'course_id': self.id })
+        return ('view_course', (), { 'pk': self.id })
 
 ATTENDING = 0
 SKIPPED = 2
@@ -392,6 +393,10 @@ def part_move(self, course, start, end):
     occ = course.get_occurrence(start[0])
     self.filter(event=occ.event, start=start[0], end=end[0]).update(start=start[1], end=end[1])
 
+def part_cancel(self, course, start, end):
+    occ = course.get_occurrence(start)
+    self.filter(event=occ.event, start=start, end=end).update(state=CANCELED)
+
 class ParticipationManager(models.Manager):
     def get_participation(self, rider, occurrence):
         parts = self.filter(participant=rider, start=occurrence.start, end=occurrence.end)
@@ -432,6 +437,7 @@ class ParticipationManager(models.Manager):
         return part
 
     move = part_move
+    cancel = part_cancel
 
     def generate_attending_participations(self, start, end):
         events = Event.objects.filter((Q(rule__frequency='WEEKLY') & (Q(end_recurring_period__gte=start) | Q(end_recurring_period__isnull=True))) | (Q(rule__isnull=True) & Q(start__gte=start) & Q(end__lte=end)) | (Q(occurrence__start__gte=start) & Q(occurrence__end__lte=end))).select_related('rule').prefetch_related('course_set')
@@ -553,6 +559,24 @@ class Participation(models.Model):
         except ObjectDoesNotExist:
           return None
 
+@receiver(pre_save, sender=Occurrence)
+def move_participations(sender, **kwargs):
+    occ = kwargs['instance']
+    course = occ.event.course_set.all()[0]
+    if occ.cancelled:
+        Participation.objects.cancel(course, occ.start, occ.end)
+    if occ.pk:
+        orig = Occurrence.objects.get(pk=occ.pk)
+        orig_start = orig.start
+        orig_end = orig.end
+    else:
+        orig_start = occ.original_start
+        orig_end = occ.original_end
+    Participation.objects.move(course, (orig_start, occ.start), (orig_end, occ.end))
+    EventMetaData.objects.move(course, (orig_start, occ.start), (orig_end, occ.end))
+    InstructorParticipation.objects.move(course, (orig_start, occ.start), (orig_end, occ.end))
+
+
 class InstructorParticipationManager(models.Manager):
     def get_participations(self, start, end):
         events = Event.objects.filter((Q(rule__frequency='WEEKLY') & (Q(end_recurring_period__gte=start) | Q(end_recurring_period__isnull=True))) | (Q(rule__isnull=True) & Q(start__gte=start) & Q(end__lte=end)) | (Q(occurrence__start__gte=start) & Q(occurrence__end__lte=end))).select_related('rule').prefetch_related('course_set')
@@ -566,6 +590,7 @@ class InstructorParticipationManager(models.Manager):
         return ret
 
     move = part_move
+    cancel = part_cancel
 
 class InstructorParticipation(models.Model):
     class Meta:
