@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% load i18n sekizai_tags %}
+{% block body %}
+<ul>
+{% for horse in object_list %}
+<li><a href="{% url 'change_horse' pk=horse.id %}">{{ horse.name }}</a></li>
+{% endfor %}
+<li><a href="{% url 'add_horse' %}">{% trans "Add horse" %}</a></li>
+</ul>
+{% endblock body %}

@@ -16,7 +16,7 @@ import reversion
 from django.db.models.signals import post_save
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
-from horses import Horse
+from horse import Horse
 
 import logging
 
