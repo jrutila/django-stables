@@ -1,10 +1,10 @@
 import reporting
 from stables.models import Participation, InstructorParticipation
-from django.db.models import Count, Min, Max
+from django.db.models import Count
 from django.utils.translation import ugettext_lazy as _
 
 from django.contrib.admin import RelatedFieldListFilter, DateFieldListFilter
-from django.contrib.admin.util import (get_model_from_relation, prepare_lookup_value)
+from django.contrib.admin.util import get_model_from_relation
 from django.db import models
 
 class MultipleRelatedFieldListFilter(RelatedFieldListFilter):

@@ -21,13 +21,14 @@ setup(
       'simple_translation',
       'south',
       'PIL',
-      'django-reversion',
       'django-sekizai',
       'django-crispy-forms',
+      'django-reporting',
     ],
     dependency_links = [
       'http://github.com/jrutila/django-schedule/tarball/master#egg=django-schedule',
       'http://github.com/jrutila/django-filer/tarball/master#egg=django-filer',
+      'git://github.com/DXist/django-reporting.git@master#egg=django-reporting',
     ]
 
 )

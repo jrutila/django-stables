@@ -1,5 +1,8 @@
 from django.conf.urls import *
 
+import reporting
+reporting.autodiscover()
+
 urlpatterns = patterns('',
     url(r'^', include('stables.urls.old')),
     url(r'^c/', include('stables.urls.course')),
@@ -7,4 +10,5 @@ urlpatterns = patterns('',
     url(r'^p/', include('stables.urls.participation')),
     url(r'^h/', include('stables.urls.horse')),
     url(r'^f/', include('stables.urls.financial')),
+    url(r'^r/', include('reporting.urls')),
 )
