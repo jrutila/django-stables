@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n sekizai_tags stablestags %}
-{% block body %}
+{% block content %}
 {% addtoblock "js" %}
 <script type='text/javascript' src="{{ STATIC_URL }}stables/js/dashboard.js"></script>
 {% endaddtoblock %}
@@ -38,4 +38,4 @@
 
 
 
-{% endblock body %}
+{% endblock content %}

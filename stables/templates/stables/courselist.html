@@ -1,6 +1,6 @@
 {% extends "site_base.html" %}
 {% load i18n sekizai_tags cms_tags stablestags %}
-{% block body %}
+{% block content %}
 {% show_placeholder "content" request.current_page.parent_id %}
 {% addtoblock "css" %}
 <link href="{{ STATIC_URL }}stables/css/course.css" rel="stylesheet" type="text/css" />
@@ -60,4 +60,4 @@
     {% endfor %}
   </tbody>
 </table>
-{% endblock body %}
+{% endblock content %}

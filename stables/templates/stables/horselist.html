@@ -1,6 +1,6 @@
 {% extends "site_base.html" %}
 {% load thumbnail i18n sekizai_tags %}
-{% block body %}
+{% block content %}
 {% addtoblock 'css' %}
 <link href="{{ STATIC_URL }}stables/css/horse.css" rel="stylesheet" type="text/css" />
 {% endaddtoblock %}
@@ -26,4 +26,4 @@
 </li>
 {% endfor %}
 </ul>
-{% endblock body %}
+{% endblock content %}

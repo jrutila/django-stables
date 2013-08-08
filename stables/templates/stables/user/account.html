@@ -1,5 +1,5 @@
 {% load i18n %}
-{% block body %}
+{% block content %}
 <p>
 <a href="{% url "django.contrib.auth.views.logout" %}" data-role='button'>{% trans "Logout" %}</a>
 </p>
@@ -10,4 +10,4 @@
 {% trans "or" %}
 <a href="{% url "django.contrib.auth.views.password_change" %}">{% trans "Change password" %}</a>
 {% endif %}
-{% endblock body %}
+{% endblock content %}

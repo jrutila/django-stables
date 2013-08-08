@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load i18n sekizai_tags %}
 {% load stablestags %}
-{% block body %}
+{% block content %}
 
 {% addtoblock "css" %}
 <link href="{{ STATIC_URL }}stables/css/course.css" rel="stylesheet" type="text/css" />
@@ -59,4 +59,4 @@ Enrolled: {{ attending }}/{{ space }}
 {% if perms.stables.change_course %}
 <a href="{% url "add_event" object.id %}">{% trans "Add one-time event" %}</a><br/>
 {% endif %}
-{% endblock body %}
+{% endblock content %}

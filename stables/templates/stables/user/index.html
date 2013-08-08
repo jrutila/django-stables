@@ -1,6 +1,6 @@
 {% extends "site_base.html" %}
 {% load i18n stablestags %}
-{% block body %}
+{% block content %}
 <h1><a href="{{ user.get_absolute_url }}">{{ user }}</a></h1>
 
 {% ifequal user.user request.user %}

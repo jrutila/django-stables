@@ -1,6 +1,6 @@
 {% extends "site_base.html" %}
 {% load thumbnail i18n sekizai_tags stablestags %}
-{% block body %}
+{% block content %}
 <a href="{% url "stables.views.report" %}">{% trans "Back" %}</a>
 <h1>{% blocktrans with report_interval.0 as start and report_interval|last as end %}From {{ start }} to {{ end }}{% endblocktrans %}</h1>
 <h2>{% trans "Total" %}</h2>
@@ -23,4 +23,4 @@
 {% endfor %}
 </ul>
 {% endfor %}
-{% endblock body %}
+{% endblock content %}

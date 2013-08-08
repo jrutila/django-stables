@@ -1,7 +1,7 @@
 {% extends "site_base.html" %}
 {% load i18n %}
 {% load stablestags %}
-{% block body %}
+{% block content %}
 <h1><a href="{{ course.get_absolute_url }}">{{ course }}</a></h1>
 <ul>
 {% if occurrence %}
@@ -13,4 +13,4 @@
 </form>
 {% endif %}
 </ul>
-{% endblock body %}
+{% endblock content %}

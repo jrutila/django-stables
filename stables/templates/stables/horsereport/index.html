@@ -1,6 +1,6 @@
 {% extends "site_base.html" %}
 {% load i18n sekizai_tags %}
-{% block body %}
+{% block content %}
 {% addtoblock 'js' %}
 <script type="text/javascript">
   $(document).ready(function() {
@@ -14,4 +14,4 @@
 {{ form.as_p }}
 <input type="submit"/>
 </form>
-{% endblock body %}
+{% endblock content %}

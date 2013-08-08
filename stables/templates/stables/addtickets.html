@@ -1,9 +1,9 @@
 {% extends "site_base.html" %}
-{% block body %}
+{% block content %}
 <h1><a href="{{ user.get_absolute_url }}">{{ user }}</a></h1>
 <form action="{% url "stables.views.add_tickets" username %}" method="POST">
 {% csrf_token %}
 {{ form.as_p }}
 <input type="submit" />
 </form>
-{% endblock body %}
+{% endblock content %}
