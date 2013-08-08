@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load i18n sekizai_tags %}
+{% load stablestags %}
+{% block body %}
+<h1 class="rider"><a href="{{ object.participant.get_absolute_url }}">{{ object.participant }}</a> {{ object.state|state }}</h1>
+<h2><a href="{{ object.course.get_absolute_url }}">{{ object.event.title }}</a></h2>
+<div>{{ object.start }} - {{ object.end }}</div>
+<span class="horse">{{ object.horse.name }}</span>
+<div class="saldo">
+  Saldo:
+  <span>{{ object.saldo }}
+  {% if object.ticket_used %}
+  ({{ object.ticket_used.type }})
+  {% endif %}</span>
+  <ul class='saldo_info'>
+  {% for t in object.transactions %}
+  <li>
+  {{ t.amount }}
+  {{ t.created_on }}
+  </li>
+  {% if t.ticket_set.count > 0 %}
+  <li>{{ t.ticket_set.all.0.type }} {{ t.created_on }}</li>
+  {% endif %}
+  {% endfor %}
+  {% if perms.stables.add_transaction %}
+  <a href="{% url "modify_transactions" pid=object.id %}">{% trans "Modify transactions" %}</a>
+  {% endif %}
+  </ul>
+</div>
+<div>
+  <div>
+  {% if perms.stables.add_transaction %}
+    {% if object.saldo or object.ticket_used %}
+    <div>{% pay_button object %}</div>
+    {% endif %}
+
+  {% for ttype in object.tickets %}
+    <div>{% pay_button object ttype %}</div>
+  {% endfor %}
+  {% endif %}
+  </div>
+  {{ object.participant.rider.ticket.count }}
+</div>
+<div>
+  <a href="{% url "stables.views.report_accident" %}?participation_id={{ object.id }}">{% trans "Report accident" %}</a>
+</div>
+{% endblock body %}

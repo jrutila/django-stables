@@ -138,17 +138,21 @@ class ParticipationTransactionActivator(TransactionActivator):
     ticket_type = models.ManyToManyField(TicketType, null=True, blank=True)
 
     def try_activate(self):
-        t = None
         if self.participation.start-datetime.timedelta(hours=self.activate_before_hours) < datetime.datetime.now():
-            if self.participation.state == participations.ATTENDING:
-                t = Transaction()
-                t.amount = self.fee*-1
-                t.customer = self.participation.participant.rider.customer
-                t.source = self.participation
-                t.save()
-                tickets = self.participation.participant.rider.unused_tickets.filter(type__in=self.ticket_type.all())
-                _use_ticket(tickets, t)
-            self.delete()
+            return self.activate()
+        return None
+
+    def activate(self):
+        t = None
+        if self.participation.state == participations.ATTENDING:
+            t = Transaction()
+            t.amount = self.fee*-1
+            t.customer = self.participation.participant.rider.customer
+            t.source = self.participation
+            t.save()
+            tickets = self.participation.participant.rider.unused_tickets.filter(type__in=self.ticket_type.all())
+            _use_ticket(tickets, t)
+        self.delete()
         return t
 
 @receiver(post_save, sender=Participation)

@@ -49,7 +49,7 @@ def date_picker(context):
 @register.inclusion_tag('stables/pay_button.html', takes_context=True)
 def pay_button(context, participation, ticket_type=None):
     button = { 'button_text': _('Cash') }
-    button['redirect'] = context['request'].META.get('HTTP_REFERER', reverse('stables.views.dashboard'))
+    button['redirect'] = context['request'].META.get('HTTP_REFERER', reverse('dashboard'))
     button['participation_id'] = participation.id
     button['action'] = reverse('stables.views.pay')
     if ticket_type:
@@ -68,7 +68,7 @@ def participate_button(context, user, course=None, occurrence=None, redirect=Non
       except NoReverseMatch:
         redirect = redirect
     else:
-      redirect = context['request'].META.get('HTTP_REFERER', reverse('stables.views.dashboard'))
+      redirect = context['request'].META.get('HTTP_REFERER', reverse('dashboard'))
 
     if not course and not occurrence:
       # We have a participation on user

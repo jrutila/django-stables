@@ -47,7 +47,7 @@ class ParticipantLink(forms.Widget):
         link_text = '<span style="color: cyan;">f</span>'
         link_title = ugettext('No transactions')
       output.append('<a href="%s" title="%s">%s</a>' % (
-          reverse('stables.views.widget_user', args=[self.participation.id])
+          reverse('view_participation', args=[self.participation.id])
           ,link_title, link_text
           )
         )
@@ -59,7 +59,6 @@ class ParticipantLink(forms.Widget):
         output.append("X")
     output.append('</span>')
     return mark_safe(u'\n'.join(output))
-        #% (reverse('stables.views.widget_user', args=[self.participation.id]),
 
 class MyModelChoiceIterator(forms.models.ModelChoiceIterator):
     """note that only line with # *** in it is actually changed"""

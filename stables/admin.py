@@ -164,6 +164,11 @@ class ParticipationTransactionActivatorAdminForm(forms.ModelForm):
 
 class ParticipationTransactionActivatorAdmin(admin.ModelAdmin):
   form = ParticipationTransactionActivatorAdminForm
+  actions = ['force_activate']
+
+  def  force_activate(self, request, queryset):
+      for pac in queryset:
+          pac.activate()
 
 class TicketAdminForm(forms.ModelForm):
   class Meta:

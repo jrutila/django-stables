@@ -1,8 +1,8 @@
-{% extends "site_base.html" %}
-{% load i18n sekizai_tags cms_tags %}
+{% extends "base.html" %}
+{% load i18n sekizai_tags %}
 {% load stablestags %}
 {% block body %}
-<a href="{% url "stables.views.widget_user" pid %}">{% trans "Back" %}</a>
+<a href="{% url "view_participation" pk=form.participation.id %}">{% trans "Back" %}</a>
 <form method="POST">
 <input type='submit'/>
 {{ form.non_field_errors }}

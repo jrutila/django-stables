@@ -1,12 +1,16 @@
 from django.views.generic import FormView
+from django.views.generic import DetailView
 from datetime import date, datetime
 from isoweek import Week
 from django.db.models import Max
 from django.core.urlresolvers import reverse
+from django.contrib.contenttypes.models import ContentType
 
 from stables.forms import DashboardForm
 from stables.models import Course
 from stables.models import Horse
+from stables.models import Participation
+from stables.models import Transaction
 
 class Dashboard(FormView):
     template_name = 'stables/dashboard.html'
@@ -37,3 +41,30 @@ class Dashboard(FormView):
         for p in form.deleted_participations:
           p.delete()
         return super(Dashboard, self).form_valid(form)
+
+class ParticipationView(DetailView): # widget_user(request, pid):
+    model = Participation
+    template_name = 'stables/participation/participation.html'
+
+    def get_object(self, queryset=None):
+        part = Participation.objects.get(pk=self.kwargs.get(self.pk_url_kwarg, None))
+        unused_tickets = part.participant.rider.unused_tickets
+        transactions = list(Transaction.objects.filter(active=True, content_type=ContentType.objects.get_for_model(Participation), object_id=part.id).order_by('object_id', 'created_on').prefetch_related('ticket_set'))
+
+        setattr(part, 'transactions', [])
+        setattr(part, 'saldo', 0)
+        setattr(part, 'ticket_used', None)
+        setattr(part, 'tickets', set())
+        setattr(part, 'course', part.event.course_set.all()[0])
+
+        for ut in unused_tickets:
+          part.tickets.add(ut.type)
+
+        for t in transactions:
+            if t.ticket_set.count() == 1:
+                part.ticket_used=t.ticket_set.all()[0]
+                part.tickets.discard(part.ticket_used.type)
+            part.transactions.append(t)
+        part.saldo = part.get_saldo()[0]
+
+        return part
