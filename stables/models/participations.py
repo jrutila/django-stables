@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.db import IntegrityError, transaction
 from django.contrib.auth.models import User
@@ -482,6 +483,8 @@ class Participation(models.Model):
             'name': self.participant,
             'state': PARTICIPATION_STATES[self.state][1],
         }
+    def get_absolute_url(self):
+        return reverse('view_participation', kwargs={'pk': self.id })
     state = models.IntegerField(choices=PARTICIPATION_STATES,default=0)
     participant = models.ForeignKey(UserProfile)
     note = models.TextField(blank=True)

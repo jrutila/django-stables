@@ -4,3 +4,4 @@ from stables.views.user import *
 from stables.views.participation import *
 from stables.views.horse import *
 from stables.views.financial import *
+from stables.views.accident import *

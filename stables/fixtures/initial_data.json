@@ -6,5 +6,19 @@
         "name": "Weekly",
         "frequency": "WEEKLY"
       }
+    },
+    {
+      "model": "stables.accidenttype",
+      "pk": 1,
+      "fields" : {
+          "name": "{ 'en': 'Small', 'fi': 'Pieni' }"
+      }
+    },
+    {
+      "model": "stables.accidenttype",
+      "pk": 2,
+      "fields" : {
+          "name": "{ 'en': 'Big', 'fi': 'Iso' }"
+      }
     }
 ]

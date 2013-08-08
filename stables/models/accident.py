@@ -97,7 +97,3 @@ class Accident(models.Model):
     horse = models.ForeignKey(Horse)
     instructor = models.ForeignKey(InstructorInfo, null=True, blank=True)
     description = models.TextField()
-
-class AccidentForm(forms.ModelForm):
-    class Meta:
-        model = Accident

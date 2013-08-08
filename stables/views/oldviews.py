@@ -5,7 +5,7 @@ from stables.models import UserProfile
 from stables.models import pay_participation
 from stables.models import Transaction, Ticket, TicketType
 from stables.models import ATTENDING, RESERVED, SKIPPED, CANCELED
-from stables.models import Accident, AccidentForm
+from stables.models import Accident
 from stables.models import financial
 from schedule.models import Occurrence, Event, Calendar
 from django.shortcuts import render_to_response, redirect, render, get_object_or_404
@@ -166,40 +166,6 @@ def pay(request):
     else:
         pay_participation(participation)
     return request_redirect(request)
-
-@permission_required('stables.add_accident')
-def report_accident(request):
-    acc = Accident()
-    pid = request.GET.get('participation_id')
-    if 'participation_id' in request.GET:
-      p = Participation.objects.get(id=pid)
-      acc.at = p.start
-      acc.rider = p.participant.rider
-      if p.horse:
-        acc.horse = p.horse
-      ins = list(InstructorParticipation.objects.filter(start=p.start, end=p.end, event=p.event)[:1])
-      if ins:
-        acc.instructor = ins[0].instructor.instructor
-    if request.method == 'POST':
-      form = AccidentForm(request.POST)
-    else:
-      form = AccidentForm(instance=acc)
-    if form.is_valid():
-      accident = form.save()
-      redir = "%s"
-      if pid:
-        redir = redir+("?participation_id=%s" % pid)
-      redir = redir % reverse('stables.views.report_accident_done', kwargs={'id': accident.id})
-      return redirect(redir)
-    return render_response(request, 'stables/accident/index.html', { 'form': form })
-
-def report_accident_done(request, id):
-    pid = request.GET.get('participation_id')
-    redir = '/'
-    if pid:
-      redir = reverse('stables.views.widget_user', kwargs={'pid': pid})
-    accident = Accident.objects.get(pk=id)
-    return render_response(request, 'stables/accident/done.html', { 'accident': accident, 'return': redir })
 
 @permission_required('stables.view_transaction')
 def widget(request, date=None):

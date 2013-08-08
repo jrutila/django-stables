@@ -42,6 +42,6 @@
   {{ object.participant.rider.ticket.count }}
 </div>
 <div>
-  <a href="{% url "stables.views.report_accident" %}?participation_id={{ object.id }}">{% trans "Report accident" %}</a>
+  <a href="{% url "add_accident" %}?participation_id={{ object.id }}">{% trans "Report accident" %}</a>
 </div>
 {% endblock content %}
