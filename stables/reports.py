@@ -1,5 +1,6 @@
 import reporting
 from stables.models import Participation, InstructorParticipation
+from stables.models import Accident
 from django.db.models import Count
 from django.utils.translation import ugettext_lazy as _
 
@@ -160,3 +161,16 @@ class InstructorReport(reporting.Report):
       ]
 
 reporting.register('instructor', InstructorReport)
+
+class AccidentReport(reporting.Report):
+  """Instructor participation report"""
+  model = Accident
+  verbose_name = _("Accident report")
+
+  list_display = [ 'at', 'type', 'horse', 'rider' ]
+
+  list_filter = [
+      ('at', HorseReportDateFieldListFilter),
+      ]
+
+reporting.register('accident', AccidentReport)

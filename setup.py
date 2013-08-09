@@ -28,7 +28,7 @@ setup(
     dependency_links = [
       'http://github.com/jrutila/django-schedule/tarball/master#egg=django-schedule',
       'http://github.com/jrutila/django-filer/tarball/master#egg=django-filer',
-      'git://github.com/DXist/django-reporting.git@master#egg=django-reporting',
+      'http://github.com/jrutila/django-reporting/tarball/master#egg=django-reporting',
     ]
 
 )
