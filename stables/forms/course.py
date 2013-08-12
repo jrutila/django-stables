@@ -102,12 +102,6 @@ class CourseForm(forms.ModelForm):
                 last_event.end_recurring_period = datetime.datetime.combine(self.cleaned_data['end'], self.cleaned_data['endtime'])
                 last_event.save()
 
-        # Update all names
-        if self.cleaned_data['name']:
-          for e in instance.events.all():
-            e.title = self.cleaned_data['name']
-            e.save()
-
         return instance
 
     def save_m2m(self, *args, **kwargs):

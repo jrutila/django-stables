@@ -350,7 +350,7 @@ class DashboardForm(forms.Form):
           stylespan = stylespan + '>'
           output.append(stylespan)
           output.append('<a href="%s">' % cop[0].get_absolute_url())
-          output.append(cop[0].name)
+          output.append(cop[1].event.title)
           output.append('</a>')
           output.append('</span>')
           if cop[1].cancelled:

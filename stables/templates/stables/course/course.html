@@ -22,7 +22,7 @@ Enrolled: {{ attending }}/{{ space }}
 <ul>
     {% for c in occurrences %}
     <li class="vevent {% if c.cancelled %}cancelled{% endif %}">
-        {% blocktrans with c.start.date|date:"l" as weekday and c.start.date|date as day and c.start.time as start and c.end.time as end and object.name as summary and c.start.isoformat as dtstart and c.end.isoformat as dtend %}
+        {% blocktrans with c.start.date|date:"l" as weekday and c.start.date|date as day and c.start.time as start and c.end.time as end and c.event.title as summary and c.start.isoformat as dtstart and c.end.isoformat as dtend %}
         <span class="summary">{{ summary }}</span> on <abbr class="dtstart" title="{{ dtstart }}">{{ weekday }}, {{ day }} from {{ start }}</abbr> to <abbr class="dtend" title="{{ dtend }}">{{ end }}</abbr>
         {% endblocktrans %}
 
