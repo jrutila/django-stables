@@ -237,23 +237,3 @@ class Transaction(models.Model):
     def delete(self):
         self.ticket_set.clear()
         super(Transaction, self).delete()
-
-class TicketForm(forms.ModelForm):
-  class Meta:
-    model = Ticket
-    exclude = ['transaction']
-    widgets = {
-        'owner_type': forms.HiddenInput(),
-        'owner_id': forms.HiddenInput()
-        }
-
-  to_customer = forms.BooleanField(required=False, label=_('Family ticket'))
-  amount = forms.IntegerField(required=True, initial=10)
-
-  def save_all(self):
-    amnt = self.cleaned_data['amount']
-    if (self.cleaned_data['to_customer']):
-      self.instance.owner = self.instance.owner.customer
-    for i in range(0, amnt):
-      super(TicketForm, self).save(commit=True)
-      self.instance.id = None

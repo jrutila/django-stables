@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load i18n stablestags %}
+{% block content %}
+<a href="{% url "add_user" %}">{% trans "Add user" %}</a>
+<ul>
+    {% for user in object_list %}
+    <li>
+    <a href="{{ user.get_absolute_url }}">{{ user }}</a>
+    {% ifnotequal user.rider.customer user.customer %}
+    ({{ user.rider.customer }})
+    {% endifnotequal %}
+    </li>
+    {% endfor %}
+</ul>
+{% endblock content %}

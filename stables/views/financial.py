@@ -1,10 +1,15 @@
 from django.views.generic import FormView
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
+from django.shortcuts import get_object_or_404
 
 from stables.forms import TransactionsForm
+from stables.forms import TicketForm
 from stables.models import Participation
 from stables.models import Transaction
+from stables.models import UserProfile
+from stables.models import RiderInfo
+from stables.models import CustomerInfo
 
 class EditTransactionsView(FormView):
     form_class = TransactionsForm
@@ -24,4 +29,32 @@ class EditTransactionsView(FormView):
 
     def form_valid(self, form):
         form.save()
+        return super(FormView, self).form_valid(form)
+
+
+class AddTicketsView(FormView):
+    form_class = TicketForm
+    template_name = 'stables/financial/addtickets.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.success_url = reverse('view_user', kwargs=kwargs)
+        return super(AddTicketsView, self).dispatch(request, *args, **kwargs)
+
+    def get_initial(self):
+        user = get_object_or_404(UserProfile, user__username=self.kwargs['username'])
+
+        if user.rider:
+            return {
+            'owner_id': user.rider.id,
+            'owner_type': ContentType.objects.get_for_model(RiderInfo)
+            }
+        return {
+            'owner_id': user.customer.id,
+            'owner_type': ContentType.objects.get_for_model(CustomerInfo),
+            'to_customer': True
+            }
+
+
+    def form_valid(self, form):
+        form.save_all()
         return super(FormView, self).form_valid(form)

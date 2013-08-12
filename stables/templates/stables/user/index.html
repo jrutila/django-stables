@@ -1,54 +1,54 @@
-{% extends "site_base.html" %}
+{% extends "base.html" %}
 {% load i18n stablestags %}
 {% block content %}
-<h1><a href="{{ user.get_absolute_url }}">{{ user }}</a></h1>
+<h1><a href="{{ object.get_absolute_url }}">{{ object }}</a></h1>
 
-{% ifequal user.user request.user %}
-{% include "stables/user/account.html" %}
+{% ifequal object.user request.user %}
+{% include "stables/object/account.html" %}
 {% endifequal %}
 
 <p>
-{% trans "E-mail" %}: {{ user.user.email }}
+{% trans "E-mail" %}: {{ object.object.email }}
 </p>
 
-{% if user.next and user.next.count > 0 %}
+{% if object.next and object.next.count > 0 %}
 <h3>
   {% trans "Next event" %}
 </h3>
   <ul>
-  {% for p in user.next %}
+  {% for p in object.next %}
     <li>
     {{ p }}
     {% if p %}
-    {% participate_button p redirect=user.get_absolute_url %}
+    {% participate_button p redirect=object.get_absolute_url %}
     {% endif %}
     </li>
   {% endfor %}
 </ul>
 {% endif %}
 
-{% if user.participations %}
+{% if object.participations %}
   <h3>
     {% trans "Last participations" %}
   </h3>
   <ul>
-    {% for p in user.participations %}
+    {% for p in object.participations %}
     <li>
     {{ p }}
-    <a href="{% url "stables.views.widget_user" p.id %}">Edit</a>
+    <a href="{% url "view_participation" p.id %}">Edit</a>
     </li>
     {% endfor %}
-    <li><a href="{{ request.path }}?pmore={{ user.participations|length|add:10 }}">{% trans "More..." %}</a></li>
+    <li><a href="{{ request.path }}?pmore={{ object.participations|length|add:10 }}">{% trans "More..." %}</a></li>
   </ul>
 {% endif %}
 
 <h3>{% trans "Saldo" %}</h3>
-{{ user.saldo }}
+{{ object.saldo }}
 {% if perms.stables.add_ticket %}
-<a href="{% url "stables.views.add_tickets" user.user.username %}">{% trans "Add tickets" %}</a>
+<a href="{% url "add_tickets" username=object.user.username %}">{% trans "Add tickets" %}</a>
 {% endif %}
 <ul>
-{% for t, l in user.tickets.iteritems %}
+{% for t, l in object.tickets.iteritems %}
 <li>
 {% blocktrans with name=t amount=l.0 expire_date=l.1 %}
 {{ name }}: {{ amount }} pcs (first expires: {{ expire_date }})
@@ -57,17 +57,17 @@
 {% endfor %}
 </ul>
 
-{% if user.transactions %}
+{% if object.transactions %}
 <h3>
   {% trans "Last transactions" %}
 </h3>
 <ul>
-  {% for t in user.transactions %}
+  {% for t in object.transactions %}
   <li>
   {{ t }}
   </li>
   {% endfor %}
-    <li><a href="{{ request.path }}?tmore={{ user.transactions|length|add:10 }}">{% trans "More..." %}</a></li>
+    <li><a href="{{ request.path }}?tmore={{ object.transactions|length|add:10 }}">{% trans "More..." %}</a></li>
 </ul>
 {% endif %}
 

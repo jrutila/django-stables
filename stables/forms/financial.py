@@ -3,7 +3,18 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import ugettext
 from django.utils.safestring import mark_safe
 
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Submit
+from crispy_forms.layout import HTML
+from crispy_forms.layout import Layout, Fieldset, ButtonHolder
+
 from stables.models import Transaction
+from stables.models import Ticket
+
+class FinancialFormHelper(FormHelper):
+    form_class = 'blueForms'
+    form_method = 'post'
+
 
 class TransactionsForm(forms.Form):
     transactions = []
@@ -103,3 +114,33 @@ class TransactionsForm(forms.Form):
         output.append(unicode(self._errors[field]))
       output.append('%s' % unicode(self[field]))
       output.append('</td>')
+
+class TicketForm(forms.ModelForm):
+    class Meta:
+      model = Ticket
+      exclude = ['transaction']
+      widgets = {
+          'owner_type': forms.HiddenInput(),
+          'owner_id': forms.HiddenInput()
+          }
+
+    to_customer = forms.BooleanField(required=False, label=_('Family ticket'))
+    amount = forms.IntegerField(required=True, initial=10)
+
+    def __init__(self, *args, **kwargs):
+      super(TicketForm, self).__init__(*args, **kwargs)
+      self.helper = FinancialFormHelper()
+      self.helper.layout = Layout(
+            'type', 'expires', 'to_customer', 'amount', 'owner_type', 'owner_id',
+            ButtonHolder(
+              Submit('submit', 'Submit')
+              )
+          )
+
+    def save_all(self):
+      amnt = self.cleaned_data['amount']
+      if (self.cleaned_data['to_customer']):
+        self.instance.owner = self.instance.owner.customer
+      for i in range(0, amnt):
+        super(TicketForm, self).save(commit=True)
+        self.instance.id = None
