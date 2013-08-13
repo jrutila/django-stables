@@ -131,17 +131,8 @@ class UserProfileAdminAddForm(forms.ModelForm):
       pass
 
 class UserProfileAdmin(admin.ModelAdmin):
-  form = UserProfileAdminForm
   actions = ['update_riderlevels']
   search_fields = ['user__first_name', 'user__last_name', 'user__username']
-
-  def get_form(self, request, obj=None, **kwargs):
-      self.exclude = ['rider', 'customer', 'user']
-      if obj is None:
-          self.form = UserProfileAdminAddForm
-      else:
-          self.form = UserProfileAdminForm
-      return super(UserProfileAdmin, self).get_form(request, obj, **kwargs)
 
   def update_riderlevels(self, request, queryset):
     selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)

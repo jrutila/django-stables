@@ -3,6 +3,15 @@
 {% block content %}
 <h1><a href="{{ object.get_absolute_url }}">{{ object }}</a></h1>
 
+{% if object.instructor %}
+<p>
+{% trans "Instructor" %}
+</p>
+{% endif %}
+
+<a href="{% url "edit_user" username=object.user.username %}">{% trans "Edit" %}</a>
+
+
 {% ifequal object.user request.user %}
 {% include "stables/object/account.html" %}
 {% endifequal %}

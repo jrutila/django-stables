@@ -1,4 +1,5 @@
 from django.views.generic.edit import FormView
+from django.views.generic.edit import UpdateView
 from django.views.generic import ListView
 from django.views.generic import DetailView
 from django.http import HttpResponse
@@ -7,9 +8,17 @@ from datetime import datetime
 from collections import defaultdict
 
 from stables.forms import UserProfileAddForm
+from stables.forms import UserProfileForm
 from stables.models import UserProfile
 from stables.models import Participation
 from stables.models import Transaction
+
+class EditUser(UpdateView):
+    template_name = 'stables/user/add_user.html'
+    form_class = UserProfileForm
+
+    def get_object(self, **kwargs):
+        return UserProfile.objects.filter(user__username=self.kwargs['username'])[0]
 
 class AddUser(FormView):
     template_name = 'stables/user/add_user.html'
