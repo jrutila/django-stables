@@ -56,7 +56,7 @@ class ParticipantLink(forms.Widget):
           self.participation.participant.__unicode__())
         )
     if hasattr(self.participation, 'accident'):
-        output.append("X")
+        output.append("<span title='"+self.participation.accident.description+"'>X</span>")
     output.append('</span>')
     return mark_safe(u'\n'.join(output))
 
