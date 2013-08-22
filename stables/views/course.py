@@ -2,12 +2,18 @@ from django.views.generic.edit import CreateView
 from django.views.generic.edit import UpdateView
 from django.views.generic import FormView
 from django.views.generic import DetailView
+from django.views.generic import ListView
+
 from stables.models import Course
 from stables.forms import CourseForm
 from stables.forms import AddEventForm
 from stables.forms import ChangeEventForm
 from datetime import *
 import dateutil.parser
+
+class ListCourse(ListView):
+    model = Course
+    template_name = 'stables/course/list.html'
 
 class ViewCourse(DetailView):
     model = Course

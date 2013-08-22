@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load i18n stablestags %}
+{% block content %}
+<a href="{% url "add_course" %}">{% trans "Add course" %}</a>
+<ul>
+    {% for course in object_list %}
+    <li>
+    <a href="{{ course.get_absolute_url }}">{{ course }}</a>
+    {% if course.get_next_occurrence %}
+    {{ course.get_next_occurrence.start.weekday }}
+    {{ course.get_next_occurrence.start.time }} -
+    {{ course.get_next_occurrence.end.time }}
+    {% endif %}
+    <a href="{% url 'change_course' pk=course.id %}">{% trans "Edit" %}</a>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock content %}
