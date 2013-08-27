@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 setup(
     name = "django-stables",
-    version = "0.0.1",
+    version = "dev",
     packages=find_packages(),
     include_package_data=True,
     author = "Juho Rutila",
@@ -25,6 +25,7 @@ setup(
       'django-crispy-forms',
       'django-reporting',
     ],
+    zip_ok=False,
     dependency_links = [
       'http://github.com/jrutila/django-schedule/tarball/master#egg=django-schedule',
       'http://github.com/jrutila/django-filer/tarball/master#egg=django-filer',
