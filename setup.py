@@ -23,14 +23,14 @@ setup(
       'PIL',
       'django-sekizai',
       'django-crispy-forms',
-      'django-reporting',
+      'django-reporting==dev',
     ],
     zip_ok=False,
     zip_safe=False,
     dependency_links = [
       'http://github.com/jrutila/django-schedule/tarball/master#egg=django-schedule',
       'http://github.com/jrutila/django-filer/tarball/master#egg=django-filer',
-      'http://github.com/jrutila/django-reporting/tarball/master#egg=django-reporting',
+      'http://github.com/jrutila/django-reporting/tarball/master#egg=django-reporting-dev',
     ]
 
 )
