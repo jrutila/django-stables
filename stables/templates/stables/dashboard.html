@@ -10,6 +10,8 @@
 {% endaddtoblock %}
 
 <div>
+
+<div>
 {% trans "Select week" %}
 <ul id='week_navigation'>
 {% for i,y in form.monday|week_range %}
@@ -36,6 +38,6 @@
   </table>
 </form>
 
-
+</div>
 
 {% endblock content %}

@@ -1,7 +1,7 @@
-{% extends "base.html" %}
+{% extends "dialog.html" %}
 {% load i18n sekizai_tags %}
 {% load stablestags %}
-{% block body %}
+{% block content %}
 <a href="{% url "view_participation" pk=form.participation.id %}">{% trans "Back" %}</a>
 <form method="POST">
 <input type='submit'/>
@@ -17,4 +17,4 @@
 <li><b>{{ t.id }}</b> {{ t }} {{ t.expires }}</li>
 {% endfor %}
 </ul>
-{% endblock body %}
+{% endblock content %}

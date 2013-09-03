@@ -1,5 +1,4 @@
 from django.views.generic.edit import CreateView
-from django.core.urlresolvers import reverse
 
 from stables.models import Accident
 from stables.models import Participation
@@ -9,7 +8,7 @@ from stables.forms import AccidentForm
 class CreateAccident(CreateView):
     model = Accident
     form_class = AccidentForm
-    template_name = 'stables/course/course_form.html'
+    template_name = 'stables/generic_form.html'
 
     def dispatch(self, request, *args, **kwargs):
         self.participation = Participation.objects.get(pk=request.GET.get('participation_id'))

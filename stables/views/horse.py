@@ -17,9 +17,9 @@ class HorseList(ListView):
 class HorseCreate(CreateView):
     model = Horse
     form_class = HorseForm
-    template_name = 'stables/course/course_form.html'
+    template_name = 'stables/generic_form.html'
 
 class HorseUpdate(UpdateView):
     model = Horse
     form_class = HorseForm
-    template_name = 'stables/course/course_form.html'
+    template_name = 'stables/generic_form.html'

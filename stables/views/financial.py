@@ -34,7 +34,7 @@ class EditTransactionsView(FormView):
 
 class AddTicketsView(FormView):
     form_class = TicketForm
-    template_name = 'stables/financial/addtickets.html'
+    template_name = 'stables/generic_form.html'
 
     def dispatch(self, request, *args, **kwargs):
         self.success_url = reverse('view_user', kwargs=kwargs)

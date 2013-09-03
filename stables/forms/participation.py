@@ -339,8 +339,11 @@ class DashboardForm(forms.Form):
     output.append('</thead>')
     # TBODY
     output.append('<tbody>')
+    i = 0
+    evenodd = ['even', 'odd' ]
     for start_hour, weekdays in self.timetable.items():
-      output.append('<tr><th>%s</th>' % start_hour)
+      output.append('<tr class="%s"><td>%s</td>' % (evenodd[i%2], start_hour))
+      i = i + 1
       for day, cops in weekdays.items():
         output.append('<td>')
         for cop in cops:

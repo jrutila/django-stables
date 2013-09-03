@@ -27,7 +27,7 @@ class ViewCourse(DetailView):
 class CourseCreate(CreateView):
     model = Course
     form_class = CourseForm
-    template_name = 'stables/course/course_form.html'
+    template_name = 'stables/generic_form.html'
 
     def get_form(self, form_class):
       form = super(CourseCreate, self).get_form(form_class)
@@ -37,7 +37,7 @@ class CourseCreate(CreateView):
 class CourseUpdate(UpdateView):
     model = Course
     form_class = CourseForm
-    template_name = 'stables/course/course_form.html'
+    template_name = 'stables/generic_form.html'
 
     def get_form(self, form_class):
       form = super(CourseUpdate, self).get_form(form_class)
@@ -45,7 +45,7 @@ class CourseUpdate(UpdateView):
       return form
 
 class CourseAddEvent(FormView):
-    template_name = 'stables/course/event.html'
+    template_name = 'stables/generic_form.html'
     form_class = AddEventForm
 
     def dispatch(self, request, *args, **kwargs):

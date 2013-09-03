@@ -56,7 +56,7 @@ textarea[name$='notes']
 
 select[name$='state']
 {
-  width: 35px;
+  width: 44px;
   height: 24px;
 }
 
@@ -86,6 +86,10 @@ white-space: nowrap;
   vertical-align: top;
 }
 
+.timetable td
+{
+  padding: 5px;
+}
 .errorlist
 {
   color: red;
