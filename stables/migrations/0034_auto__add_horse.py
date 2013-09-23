@@ -12,7 +12,6 @@ class Migration(SchemaMigration):
         db.create_table('stables_horse', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=500)),
-            ('birthday', self.gf('django.db.models.fields.DateField')()),
         ))
         db.send_create_signal('stables', ['Horse'])
 
