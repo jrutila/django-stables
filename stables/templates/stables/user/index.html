@@ -9,7 +9,7 @@
 </p>
 {% endif %}
 
-<a href="{% url "edit_user" username=object.user.username %}">{% trans "Edit" %}</a>
+<a class="btn btn-default lightbox-type" href="{% url "edit_user" username=object.user.username %}?lightbox[width]=300&lightbox[height]=400">{% trans "Edit" %}</a>
 
 
 {% ifequal object.user request.user %}

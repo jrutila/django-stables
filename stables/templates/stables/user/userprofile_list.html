@@ -1,13 +1,15 @@
 {% extends "base.html" %}
 {% load i18n stablestags %}
 {% block content %}
-<a href="{% url "add_user" %}">{% trans "Add user" %}</a>
-<ul>
+<a class="btn btn-default lightbox-type" href="{% url "add_user" %}?lightbox[width]=300&lightbox[height]=400">{% trans "Add user" %}</a>
+<ul class="list-group">
     {% for user in object_list %}
-    <li>
+    <li class="list-group-item">
     <a href="{{ user.get_absolute_url }}">{{ user }}</a>
     {% ifnotequal user.rider.customer user.customer %}
+    <div>
     ({{ user.rider.customer }})
+    </div>
     {% endifnotequal %}
     </li>
     {% endfor %}

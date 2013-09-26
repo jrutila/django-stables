@@ -14,7 +14,7 @@ from stables.models import Participation
 from stables.models import Transaction
 
 class EditUser(UpdateView):
-    template_name = 'stables/user/add_user.html'
+    template_name = 'stables/user/edit_user.html'
     form_class = UserProfileForm
 
     def get_object(self, **kwargs):

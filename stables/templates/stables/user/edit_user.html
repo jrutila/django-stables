@@ -1,9 +1,9 @@
 {% extends "dialog.html" %}
 {% load i18n %}
 {% block content %}
-<form method="POST" action="{% url 'add_user' %}">
+<form method="POST" action="{% url 'edit_user' object.user.username %}">
   {% csrf_token %}
   {{ form.as_p }}
-  <input type="submit" value="{% trans 'Add' %}" />
+  <input type="submit" value="{% trans 'Save' %}" />
 </form>
 {% endblock content %}
