@@ -176,7 +176,7 @@ def handle_Participation_save(sender, **kwargs):
               _use_ticket(tickets, t)
         else:
           ParticipationTransactionActivator.objects.try_create(parti, course.default_participation_fee, course.ticket_type.all())
-    elif parti.state == participations.CANCELED:
+    elif parti.state == participations.CANCELED or parti.state == participations.RESERVED:
         ParticipationTransactionActivator.objects.filter(participation=parti).delete()
         trans.deactivate()
         for ticket in Ticket.objects.filter(transaction__in=trans):
