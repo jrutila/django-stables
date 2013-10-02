@@ -2,7 +2,7 @@
 {% load i18n stablestags %}
 {% block content %}
 <a class="btn btn-default lightbox-type" href="{% url "add_user" %}?lightbox[width]=300&lightbox[height]=400">{% trans "Add user" %}</a>
-<ul class="list-group">
+<ul class="list-group list-grid">
     {% for user in object_list %}
     <li class="list-group-item">
     <a href="{{ user.get_absolute_url }}">{{ user }}</a>

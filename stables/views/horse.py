@@ -2,6 +2,7 @@ from django.views.generic.edit import CreateView
 from django.views.generic.edit import UpdateView
 from django.views.generic import DetailView
 from django.views.generic import ListView
+from django.core.urlresolvers import reverse
 
 from stables.models import Horse
 from stables.forms import HorseForm
@@ -18,8 +19,12 @@ class HorseCreate(CreateView):
     model = Horse
     form_class = HorseForm
     template_name = 'stables/generic_form.html'
+    def get_success_url(*args):
+        return reverse('list_horse')
 
 class HorseUpdate(UpdateView):
     model = Horse
     form_class = HorseForm
     template_name = 'stables/generic_form.html'
+    def get_success_url(*args):
+        return reverse('list_horse')
