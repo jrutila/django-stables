@@ -5,7 +5,7 @@ from schedule.models import Event
 from schedule.models import Calendar
 from schedule.models import Rule
 import datetime
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
@@ -21,9 +21,9 @@ class CourseForm(forms.ModelForm):
         model = Course
         exclude = ('created_on', 'creator', 'course_fee', 'events')
 
-    starttime = forms.TimeField(required=False)
-    endtime = forms.TimeField(required=False)
-    take_into_account = forms.DateTimeField(required=False, initial=datetime.datetime.now())
+    starttime = forms.TimeField(label=_('Start time'), required=False)
+    endtime = forms.TimeField(label=_('End time'), required=False)
+    take_into_account = forms.DateTimeField(label=_('Take changes into acccount on'), required=False, initial=datetime.datetime.now())
 
     def __init__(self, *args, **kwargs):
       super(CourseForm, self).__init__(*args, **kwargs)

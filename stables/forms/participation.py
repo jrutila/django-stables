@@ -5,7 +5,7 @@ from django.core.urlresolvers import reverse
 from django.utils.safestring import mark_safe
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.db.models import Q
-from django.utils.translation import get_language
+from django.utils.translation import get_language, to_locale
 
 from babel.dates import format_date
 import operator
@@ -334,7 +334,7 @@ class DashboardForm(forms.Form):
     output.append('<th></th>')
     _s = self.monday
     while (_s <= self.monday+timedelta(days=6)):
-      output.append('<th>%s</th>' % format_date(_s, 'EE dd.MM', locale=get_language()))
+      output.append('<th>%s</th>' % format_date(_s, 'EE dd.MM', locale=to_locale(get_language())))
       _s = _s + timedelta(days=1)
     output.append('</thead>')
     # TBODY

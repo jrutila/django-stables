@@ -50,17 +50,17 @@ class Course(models.Model):
         )
     def __unicode__(self):
         return self.name
-    name = models.CharField(max_length=500)
-    start = models.DateField()
-    end = models.DateField(blank=True, null=True)
+    name = models.CharField(_('name'), max_length=500)
+    start = models.DateField(_('start'))
+    end = models.DateField(_('end'), blank=True, null=True)
     events = models.ManyToManyField(Event, blank=True, null=True)
     creator = models.ForeignKey(User, null=True)
     created_on = models.DateTimeField(default = datetime.datetime.now)
-    max_participants = models.IntegerField(default=7)
-    default_participation_fee = CurrencyField(default=0)
+    max_participants = models.IntegerField(_('maximum participants'), default=7)
+    default_participation_fee = CurrencyField(_('default participation fee'), default=0)
     course_fee = CurrencyField(default=0)
-    ticket_type = models.ManyToManyField(TicketType, blank=True)
-    allowed_levels = models.ManyToManyField(RiderLevel, blank=True)
+    ticket_type = models.ManyToManyField(TicketType, verbose_name=_('Default ticket type'), blank=True)
+    allowed_levels = models.ManyToManyField(RiderLevel, verbose_name=_('Allowed rider levels'), blank=True)
 
     def get_occurrences(self, delta=None, start=None):
         if not start:
