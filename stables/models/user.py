@@ -80,7 +80,7 @@ class RiderInfo(models.Model):
         try:
             return self.user.__unicode__() + ": " + ','.join(str(n) for n in self.levels.all())
         except:
-            return str(self.id) + ": " + str(self.levels)
+            return self.user.__unicode__()
     levels = models.ManyToManyField(RiderLevel, related_name='+', blank=True)
     customer = models.ForeignKey(CustomerInfo)
 
