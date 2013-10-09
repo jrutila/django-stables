@@ -64,6 +64,7 @@ class CustomerInfo(models.Model):
         except:
             return self.address
     address = models.CharField(max_length=500)
+    ticket_warning_limit = 1
 
     def saldo(self):
         from stables.models import Transaction
@@ -83,6 +84,7 @@ class RiderInfo(models.Model):
             return self.user.__unicode__()
     levels = models.ManyToManyField(RiderLevel, related_name='+', blank=True)
     customer = models.ForeignKey(CustomerInfo)
+    ticket_warning_limit = 1
 
 class InstructorInfo(models.Model):
     class Meta:

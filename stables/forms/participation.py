@@ -51,6 +51,10 @@ class ParticipantLink(forms.Widget):
           ,link_title, link_text
           )
         )
+    cust = self.participation.participant.rider.customer
+    if cust.unused_tickets.count() <= cust.ticket_warning_limit:
+      output.append('<span style="color: red;" title="%s">!</span>'
+          % ugettext('%s has only %d ticket(s) left.' % (cust, cust.unused_tickets.count())))
     output.append('<a href="%s">%s</a>' % (
           self.participation.participant.get_absolute_url(),
           self.participation.participant.__unicode__())
