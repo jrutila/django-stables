@@ -19,13 +19,18 @@ class EditTransactionsView(FormView):
         kwargs = super(FormView, self).get_form_kwargs()
         pid = self.kwargs['pid']
         part = Participation.objects.get(pk=pid)
-        unused_tickets = part.participant.rider.unused_tickets
+        self.unused_tickets = list(part.participant.rider.unused_tickets)
         transactions = list(Transaction.objects.filter(active=True, content_type=ContentType.objects.get_for_model(Participation), object_id=part.id).order_by('object_id', 'created_on').prefetch_related('ticket_set'))
         kwargs['transactions'] = transactions
-        kwargs['unused_tickets'] = unused_tickets
+        kwargs['unused_tickets'] = self.unused_tickets
         kwargs['participation'] = part
         self.success_url = reverse('view_participation', kwargs={ 'pk': part.id })
         return kwargs
+
+    def get_context_data(self, **kwargs):
+        ctx = super(EditTransactionsView, self).get_context_data(**kwargs)
+        ctx['tickets'] = self.get_form(self.form_class).tickets.values()
+        return ctx
 
     def form_valid(self, form):
         form.save()
