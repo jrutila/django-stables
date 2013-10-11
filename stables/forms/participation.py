@@ -5,7 +5,9 @@ from django.core.urlresolvers import reverse
 from django.utils.safestring import mark_safe
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.db.models import Q
+from django.db import connection
 from django.utils.translation import get_language, to_locale
+from django.contrib.contenttypes.models import ContentType
 
 from babel.dates import format_date
 import operator
@@ -25,14 +27,21 @@ from stables.models import financial
 
 
 class ParticipantLink(forms.Widget):
-  def __init__(self, participation, attrs=None, required=True):
+  def __init__(self, participation, attrs=None, required=True, warning=None):
     self.attrs = attrs or {}
     self.required = required
     self.participation = participation
+    self.warning = warning
 
   def render(self, name, value, attrs=None):
     output = []
-    output.append('<span class="ui-stbl-db-user">')
+    output.append('<span class="alert')
+    if self.warning:
+        output.append(' alert-warning')
+    elif self.participation.saldo < 0 or (
+            len(self.participation.transactions) == 0 and self.participation.state == ATTENDING):
+        output.append(' alert-info')
+    output.append(' ui-stbl-db-user">')
     if self.participation.id:
       link_text = 'ok'
       link_title = ''
@@ -41,20 +50,19 @@ class ParticipantLink(forms.Widget):
       else:
         link_title = ugettext('Cash')
       if self.participation.saldo < 0:
-        link_text = '<span style="color: yellow;">&#8364;</span>'
+        link_text = '<span><strong>&#8364;</strong></span>'
         link_title = self.participation.saldo
       if len(self.participation.transactions) == 0:
-        link_text = '<span style="color: cyan;">f</span>'
+        link_text = '<span><strong>fix</strong></span>'
         link_title = ugettext('No transactions')
       output.append('<a href="%s" title="%s">%s</a>' % (
           reverse('view_participation', args=[self.participation.id])
           ,link_title, link_text
           )
         )
-    cust = self.participation.participant.rider.customer
-    if cust.unused_tickets.count() <= cust.ticket_warning_limit:
-      output.append('<span style="color: red;" title="%s">!</span>'
-          % ugettext('%s has only %d ticket(s) left.' % (cust, cust.unused_tickets.count())))
+    if self.warning:
+      output.append('<span title="%s"><strong>!</strong></span>' % self.warning)
+
     output.append('<a href="%s">%s</a>' % (
           self.participation.participant.get_absolute_url(),
           self.participation.participant.__unicode__())
@@ -124,6 +132,7 @@ class DashboardForm(forms.Form):
     self.already_changed = set()
     self.monday = datetime(*(Week(self.year, self.week).monday().timetuple()[:6]))
     self.sunday = self.monday+timedelta(days=6, hours=23, minutes=59)
+    self.warnings = {}
     super(DashboardForm, self).__init__(*args, **kwargs)
 
     # Get all instructors
@@ -198,6 +207,16 @@ class DashboardForm(forms.Form):
         #cop = (c, o, ll, ii[c.id][o.start] if c.id in ii and o.start in ii[c.id] else [])
         #self.timetable[o.start.hour][o.start.weekday()].append(cop)
 
+        # get warnings
+        crs = connection.cursor()
+        schema = connection.get_schema()
+        query = 'select owner_type_id, owner_id, (select count(*) from %(schema)s.%(table)s t2 where transaction_id is null and t2.owner_type_id = t1.owner_type_id and t2.owner_id = t1.owner_id and expires >= now()), (select max(expires) from %(schema)s.%(table)s t3 where t3.owner_id = t1.owner_id and t3.owner_type_id = t1.owner_type_id) as expire from %(schema)s.%(table)s t1 group by owner_type_id, owner_id' % { 'schema' : schema, 'table': 'stables_ticket' }
+        crs.execute(query)
+        for row in crs.fetchall():
+            ct=ContentType.objects.get(pk=row[0])
+            owner=ct.get_object_for_this_type(pk=row[1])
+            if row[2] <= owner.ticket_warning_limit:
+                self.warnings[owner] = '%s has only %d tickets left' % (owner, row[2])
 
   def add_or_update_part(self, course, part):
     if self.participation_map.has_key(self.part_hash(part)):
@@ -221,10 +240,15 @@ class DashboardForm(forms.Form):
           show_hidden_initial=True,
           required=False)
     else:
+      warning=None
+      if part.participant.rider in self.warnings.keys():
+          warning=self.warnings[part.participant.rider]
+      if part.participant.rider.customer in self.warnings.keys():
+          warning=self.warnings[part.participant.rider.customer]
       participant_field = forms.CharField(
           initial='',
           required=False,
-          widget=ParticipantLink(participation=part))
+          widget=ParticipantLink(participation=part, warning=warning))
 
     participant_key = self.add_field(course, part, 'participant', participant_field)
     return (horse_key, participant_key, state_key, note_key)
@@ -364,7 +388,7 @@ class DashboardForm(forms.Form):
               continue
           output.append(unicode(self['c%s_s%s_e%s_instructor' % (cop[0].id, cop[1].start.isoformat(), cop[1].end.isoformat())]))
           output.append(unicode(self['c%s_s%s_e%s_notes' % (cop[0].id, cop[1].start.isoformat(), cop[1].end.isoformat())]))
-          output.append('<ul>')
+          output.append('<ul class="rider-list">')
           hiding = False
           for part in cop[2]:
             output.append('<li')

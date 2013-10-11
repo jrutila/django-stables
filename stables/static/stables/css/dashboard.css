@@ -56,8 +56,18 @@ textarea[name$='notes']
 
 select[name$='state']
 {
-  width: 44px;
+  width: 35px;
   height: 24px;
+}
+
+select[name$='horse']
+{
+  width: 100px;
+}
+
+input[name$='participant']
+{
+  width: 100px;
 }
 
 select.changed
@@ -67,8 +77,16 @@ select.changed
 
 .ui-stbl-db-user
 {
-  width: 156px;
+  width: 120px;
   display: inline-block;
+  padding: 0px;
+  margin: 0px;
+}
+
+.timetable ul.rider-list
+{
+  padding-left: 0px;
+  list-style: none;
 }
 
 .timetable select
@@ -94,4 +112,13 @@ white-space: nowrap;
 {
   color: red;
   font-weight: bold;
+}
+
+.dashboard-container {
+    display: table;
+}
+
+.dashboard-container .widget {
+    margin-left: 10px;
+    margin-right: 10px;
 }
