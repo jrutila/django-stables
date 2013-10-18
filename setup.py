@@ -50,10 +50,13 @@ setup(
       'django-sekizai',
       'django-crispy-forms',
       'django-reporting==dev',
+      'django-tastypie',
+      'backbone-tastypie',
     ],
     zip_safe=False,
     dependency_links = [
       'http://github.com/jrutila/django-schedule/tarball/master#egg=django-schedule',
       'http://github.com/jrutila/django-reporting/tarball/master#egg=django-reporting-dev',
+      'http://github.com/PaulUithol/backbone-tastypie/tarball/master#egg=backbone-tastypie-dev',
     ]
 )
