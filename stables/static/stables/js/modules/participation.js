@@ -1,5 +1,5 @@
 var Participation = Backbone.Model.extend({
-    urlRoot: '/s/backbone/v1/participations/',
+    urlRoot: apiUrl+'/participations/',
 })
 
 var ParticipationView = Backbone.View.extend({
@@ -68,7 +68,7 @@ var Event = Backbone.Model.extend({
 
 var EventCollection = Backbone.Collection.extend({
     model: Event,
-    url: '/s/backbone/v1/events/',
+    url: apiUrl+'/events/',
     parse: function(data) {
         return _.map(data, function(d) { return Event.prototype.parse(d); })
     },

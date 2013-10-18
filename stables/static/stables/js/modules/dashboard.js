@@ -1,6 +1,6 @@
 var Day = Backbone.Model.extend({
     url: function() {
-        return '/s/backbone/v1/events/?at='+this.get('date')
+        return apiUrl+'events/?at='+this.get('date')
     },
     parse: function(data) {
         data['events'] = new EventCollection(EventCollection.prototype.parse(data.objects))
