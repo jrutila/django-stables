@@ -52,6 +52,7 @@ setup(
       'django-reporting==dev',
       'django-tastypie',
       'backbone-tastypie',
+      'mimeparse',
     ],
     zip_safe=False,
     dependency_links = [
