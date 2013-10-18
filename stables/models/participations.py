@@ -460,6 +460,33 @@ class ParticipationManager(models.Manager):
               ret[occ] = (event.course_set.all()[0], [ p for p in parts ])
         return ret
 
+    def generate_participations(self, start, end):
+        weekday = (start.isoweekday()+1) % 8
+        events = Event.objects.exclude(end_recurring_period__lt=start).filter((Q(start__week_day=weekday) & Q(rule__frequency='WEEKLY')) | (Q(rule__frequency__isnull=True) & Q(start__gte=start) & Q(end__lte=end))).prefetch_related('course_set')
+        courses = Course.objects.filter(events__in=events)
+        enrolls = list(Enroll.objects.filter(course__in=courses).exclude(state=CANCELED))
+        parts = list(Participation.objects.filter(event__in=events, start__gte=start, end__lte=end).prefetch_related('event').select_related())
+        #.values('id', 'participant_id', 'state', 'event_id', 'start', 'end')
+        ret = {}
+        for event in events:
+            if event.course_set.count() == 0:
+              continue
+            crs = event.course_set.all()[0]
+            for occ in event.get_occurrences(start, end):
+              occ_parts = [ p for p in parts if p.start == occ.start and p.end == occ.end and p.event == event ]
+              part_ids = [ p.participant.id for p in occ_parts ]
+
+              for e in [ e for e in enrolls if e.course == crs and e.participant.id not in part_ids ]:
+                p = Participation()
+                p.participant = e.participant
+                p.event = occ.event
+                p.start = occ.start
+                p.end = occ.end
+                p.note = ""
+                occ_parts.append(p)
+              ret[occ] = (event.course_set.all()[0], [ p for p in occ_parts ])
+        return ret
+
 class Participation(models.Model):
     class Meta:
         app_label = 'stables'

@@ -40,7 +40,7 @@ class Ticket(models.Model):
     owner_type = models.ForeignKey(ContentType)
     owner_id = models.PositiveIntegerField()
     owner = generic.GenericForeignKey('owner_type', 'owner_id')
-    transaction = models.ForeignKey("Transaction", null=True, blank=True)
+    transaction = models.ForeignKey("Transaction", null=True, blank=True, related_name="ticket_set")
     expires = models.DateTimeField(default=datetime.datetime(datetime.datetime.now().year, datetime.datetime.now().month, datetime.datetime.now().day, 23, 59, 59), null=True, blank=True)
 
 class TransactionActivator(models.Model):
@@ -69,8 +69,10 @@ def _use_ticket(ticket_query, transaction):
         ticket.save()
 
 def _count_saldo(transactions):
-    saldo = 0
+    saldo = None
     ticket_used = None
+    if transactions:
+        saldo = 0
     for t in transactions:
       if t.ticket_set.count() == 0:
         saldo = saldo + t.amount
@@ -81,7 +83,7 @@ def _count_saldo(transactions):
 def get_saldo(self):
     return _count_saldo(Transaction.objects.filter(active=True,
           content_type=ContentType.objects.get_for_model(self),
-          object_id=self.id))
+          object_id=self.id).prefetch_related('ticket_set'))
 
 def _get_unused_tickets(self):
     qrider = Q(owner_type=ContentType.objects.get_for_model(self), owner_id=self.id)
@@ -209,8 +211,17 @@ class TransactionQuerySet(models.query.QuerySet):
 class TransactionManager(models.Manager):
   def get_query_set(self):
     return TransactionQuerySet(self.model, using=self._db)
+
   def get_transactions(self, participations):
     return self.filter(active=True, content_type=ContentType.objects.get_for_model(Participation), object_id__in=[p.id for p in participations]).order_by('object_id', 'created_on').prefetch_related('ticket_set')
+
+  def get_saldos(self, participations):
+      ret = {}
+      trans = list(self.get_transactions(participations))
+      ids = [p.id for p in participations]
+      for (pid, tt) in [(x, [y for y in trans if y.object_id==x]) for x in ids]:
+          ret[pid] = _count_saldo(tt)
+      return ret
 
 class Transaction(models.Model):
     objects = TransactionManager()

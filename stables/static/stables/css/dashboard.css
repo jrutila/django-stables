@@ -77,7 +77,6 @@ select.changed
 
 .ui-stbl-db-user
 {
-  width: 120px;
   display: inline-block;
   padding: 0px;
   margin: 0px;
@@ -97,6 +96,11 @@ select.changed
 .timetable td, .timetable ul li
 {
 white-space: nowrap;
+}
+
+.timetable thead th
+{
+    width: 300px;
 }
 
 .timetable th, .timetable td

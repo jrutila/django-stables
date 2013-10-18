@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load i18n sekizai_tags stablestags %}
+{% block content %}
+{% addtoblock "js" %}
+<script type='text/javascript' src="{{ STATIC_URL }}stables/js/dashboard.js"></script>
+<script type='text/javascript' src="{{ STATIC_URL }}js/jquery.cookie.js"></script>
+<script type='text/javascript' src="{{ STATIC_URL }}js/underscore-min.js"></script>
+<script type='text/javascript' src="{{ STATIC_URL }}js/backbone-min.js"></script>
+<script type='text/javascript' src="{{ STATIC_URL }}js/backbone-tastypie.js"></script>
+<script type='text/javascript' src="{{ STATIC_URL }}stables/js/modules/participation.js"></script>
+<script type='text/javascript' src="{{ STATIC_URL }}stables/js/modules/dashboard.js"></script>
+<script type='text/javascript'>
+    Backbone.Tastypie.csrfToken = $.cookie( 'csrftoken' )
+    /*
+    var day = new Day({ date: '2013-10-15' })
+    var dayv = new DayView({ model: day })
+    $('.widget-content').append(dayv.$el)
+    day.fetch()
+    var week = new Week({ dates: ['2013-10-02', '2013-10-03', '2013-10-07'] })
+    */
+    var week = new Week({ dates: ['2013-10-19'] })
+    var weekv = new WeekView({ model: week })
+    $('.widget-content').append(weekv.$el)
+    week.fetch()
+
+</script>
+{% endaddtoblock %}
+{% addtoblock "css" %}
+<link href="{{ STATIC_URL }}stables/css/dashboard.css" rel="stylesheet" type="text/css" />
+<link href="{{ STATIC_URL }}stables/css/course.css" rel="stylesheet" type="text/css" />
+{% endaddtoblock %}
+
+<script type="text/html" id="ParticipationView">
+    <select name="horse">
+        <option value="0">{% trans "--" %}</option>
+        {% for h in horses %}
+        <option value="{{ h.pk }}">{{ h.name }}</option>
+        {% endfor %}
+    </select>
+    <span class="ui-stbl-db-user alert alert-<%= alert_level %>">
+    <% if (finance_url != null) { %>
+        <a href="<%= finance_url %>" title="<%= finance_hint %>"><%= finance %></a>
+    <% } %>
+    <a href="<%= rider_url %>"><%= rider_name %></a>
+    </span>
+    <select name="state">
+        {% for s in states %}
+        <option value="{{ s.0 }}">{{ s.1 }}</option>
+        {% endfor %}
+    </select>
+</script>
+
+<script type="text/html" id="EventView">
+    <span title='from <%= start %> to <%= end %>'><%= title %></span>
+    <ul class="rider-list">
+    </ul>
+</script>
+
+<script type="text/html" id="WeekView">
+    <table class="timetable">
+      <thead>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+</script>
+
+<div class="wide widget">
+
+  <div class="widget-content">
+
+
+  </div>
+</div>
+
+
+{% endblock content %}

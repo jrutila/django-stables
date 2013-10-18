@@ -1,5 +1,13 @@
 from django.conf.urls import *
 
+from tastypie.api import Api
+from stables.backbone import UserResource, ParticipationResource, EventResource
+
+v1_api = Api(api_name="v1")
+v1_api.register(UserResource())
+v1_api.register(ParticipationResource())
+v1_api.register(EventResource())
+
 import reporting
 reporting.autodiscover()
 
@@ -12,4 +20,5 @@ urlpatterns = patterns('',
     url(r'^f/', include('stables.urls.financial')),
     url(r'^a/', include('stables.urls.accident')),
     url(r'^r/', include('reporting.urls')),
+    url(r'^backbone/', include(v1_api.urls)),
 )

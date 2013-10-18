@@ -1,5 +1,6 @@
 from django.views.generic import FormView
 from django.views.generic import DetailView
+from django.views.generic import TemplateView
 from datetime import date, datetime
 from isoweek import Week
 from django.db.models import Max
@@ -11,6 +12,16 @@ from stables.models import Course
 from stables.models import Horse
 from stables.models import Participation
 from stables.models import Transaction
+from stables.models import PARTICIPATION_STATES
+
+class Newboard(TemplateView):
+    template_name = 'stables/newboard.html'
+
+    def get_context_data(self, **kwargs):
+        ctx = super(Newboard, self).get_context_data(**kwargs)
+        ctx['states'] = PARTICIPATION_STATES
+        ctx['horses'] = Horse.objects.all()
+        return ctx
 
 class Dashboard(FormView):
     template_name = 'stables/dashboard.html'
