@@ -1,5 +1,5 @@
 var Participation = Backbone.Model.extend({
-    urlRoot: apiUrl+'/participations/',
+    urlRoot: apiUrl+'participations/',
 })
 
 var ParticipationView = Backbone.View.extend({
