@@ -11,17 +11,38 @@
 <script type='text/javascript' src="{{ STATIC_URL }}stables/js/modules/dashboard.js"></script>
 <script type='text/javascript'>
     Backbone.Tastypie.csrfToken = $.cookie( 'csrftoken' )
-    /*
-    var day = new Day({ date: '2013-10-15' })
-    var dayv = new DayView({ model: day })
-    $('.widget-content').append(dayv.$el)
-    day.fetch()
-    var week = new Week({ dates: ['2013-10-02', '2013-10-03', '2013-10-07'] })
-    */
-    var week = new Week({ dates: ['2013-10-19'] })
-    var weekv = new WeekView({ model: week })
-    $('.widget-content').append(weekv.$el)
-    week.fetch()
+
+    var week = new Week({ dates: [ new Date().toISOString().split("T")[0] ] })
+    var weekView = new WeekView({ model: week })
+    $('.widget-content').append(weekView.$el)
+
+    var WeekRouter = Backbone.Router.extend({
+        routes: {
+            '': 'default',
+        },
+        initialize: function() {
+            var router = this,
+            routes = [
+            [ /^(\d{4}-\d{2}-\d{2})$/, 'getDate', this.date],
+            ]
+            _.each(routes, function(route) {
+                router.route.apply(router, route)
+            })
+        },
+        default: function() { week.fetch(); },
+        date: function(d) {
+            console.log("daty")
+            _.each(_.keys(week.get("dates")), function(dd) {
+                if (dd != d)
+                    delete week.get("dates")[dd]
+            })
+            week.get("dates")[d] = undefined
+            week.fetch()
+        },
+    })
+    var dashboard_router = new WeekRouter()
+
+    Backbone.history.start()
 
 </script>
 {% endaddtoblock %}
