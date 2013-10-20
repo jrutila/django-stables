@@ -70,9 +70,9 @@ input[name$='participant']
   width: 100px;
 }
 
-select.changed
+.changed
 {
-  background-color: red;
+  background-color: lightGreen;
 }
 
 .ui-stbl-db-user

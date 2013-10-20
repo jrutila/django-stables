@@ -58,7 +58,11 @@
         <option value="{{ h.pk }}">{{ h.name }}</option>
         {% endfor %}
     </select>
-    <span class="ui-stbl-db-user alert alert-<%= alert_level %>">
+    <span class="ui-stbl-db-user alert alert-<%= alert_level %>"
+    <% if (state != 0 ) { %>
+        style="text-decoration: line-through;"
+    <% } %>
+    >
     <% if (finance_url != null) { %>
         <a href="<%= finance_url %>" title="<%= finance_hint %>"><%= finance %></a>
     <% } %>

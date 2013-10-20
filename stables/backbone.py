@@ -10,10 +10,16 @@ from tastypie import fields
 from tastypie.bundle import Bundle
 import datetime
 from django.utils.translation import ugettext_lazy as _
+from django.db.models import Q
+import operator
 
 class UserResource(ModelResource):
     class Meta:
-        queryset  = UserProfile.objects.all()
+        queryset  = UserProfile.objects.all().prefetch_related('user')
+    name = fields.CharField()
+
+    def dehydrate_name(self, bundle):
+        return bundle.obj.user.first_name + " " + bundle.obj.user.last_name
 
 class ViewParticipation:
     def __init__(self, part=None, saldo=None):
@@ -57,14 +63,15 @@ class ViewEvent:
             self.start = occ.start
             self.end = occ.end
             self.title = occ.event.title
+            self.event_id = occ.event.id
         if parts:
             self.participations = ApiList([ ViewParticipation(p, p.get_saldo()) for p in parts])
 
 class ParticipationResource(Resource):
     id = fields.IntegerField(attribute='id', null=True)
     rider_name = fields.CharField(attribute='rider_name')
-    rider_id = fields.IntegerField(attribute='rider_id')
-    rider_url = fields.CharField(attribute='rider_url')
+    rider_id = fields.IntegerField(attribute='rider_id', null=True)
+    rider_url = fields.CharField(attribute='rider_url', null=True)
     state = fields.IntegerField(attribute='state')
     horse = fields.IntegerField(attribute='horse_id', null=True)
     finance = fields.CharField(attribute='finance', null=True)
@@ -108,8 +115,14 @@ class ParticipationResource(Resource):
     def obj_create(self, bundle, request=None, **kwargs):
         part = Participation()
         part.state = bundle.data['state']
-        part.participant = UserProfile.objects.get(pk=bundle.data['rider_id'])
-        if (bundle.data['horse'] > 0):
+        if ('rider_id' not in bundle.data and bundle.data['rider_name'] != None):
+            f = []
+            for v in bundle.data['rider_name'].split(" "):
+                f.append((Q(user__first_name__icontains=v) | Q(user__last_name__icontains=v)))
+            part.participant = UserProfile.objects.get(reduce(operator.and_, f))
+        else:
+            part.participant = UserProfile.objects.get(pk=bundle.data['rider_id'])
+        if (int(bundle.data['horse']) > 0):
             part.horse = Horse.objects.get(pk=bundle.data['horse'])
         part.event = Event.objects.get(pk=bundle.data['event_id'])
         part.start = datetime.datetime.strptime(bundle.data['start'], '%Y-%m-%dT%H:%M:%S')
@@ -127,6 +140,7 @@ class EventResource(Resource):
     start = fields.DateField(attribute='start')
     end = fields.DateField(attribute='end')
     title = fields.CharField(attribute='title')
+    event_id = fields.IntegerField(attribute='event_id')
     participations = fields.ToManyField(ParticipationResource, 'participations', full=True, null=True)
 
     def obj_get_list(self, request=None, **kwargs):
