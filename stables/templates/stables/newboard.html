@@ -12,9 +12,29 @@
 <script type='text/javascript'>
     Backbone.Tastypie.csrfToken = $.cookie( 'csrftoken' )
 
+    Date.prototype.addDays = function(days) {
+        var dat = new Date(this.valueOf())
+        dat.setDate(dat.getDate() + days);
+        return dat;
+    }
+
+    Date.prototype.toISODate = function() {
+        return this.toISOString().split("T")[0]
+    }
+
+    function getDates(startDate, stopDate) {
+        var dateArray = new Array();
+        var currentDate = startDate;
+        while (currentDate <= stopDate) {
+            dateArray.push( new Date (currentDate) )
+            currentDate = currentDate.addDays(1);
+        }
+        return dateArray;
+    }
+
     var week = new Week({ dates: [ new Date().toISOString().split("T")[0] ] })
     var weekView = new WeekView({ model: week })
-    $('.widget-content').append(weekView.$el)
+    $('.widget-content').html(weekView.$el)
 
     var WeekRouter = Backbone.Router.extend({
         routes: {
@@ -24,6 +44,7 @@
             var router = this,
             routes = [
             [ /^(\d{4}-\d{2}-\d{2})$/, 'getDate', this.date],
+            [ /^from(\d{4}-\d{2}-\d{2})to(\d{4}-\d{2}-\d{2})$/, 'getDate', this.dateRange],
             ]
             _.each(routes, function(route) {
                 router.route.apply(router, route)
@@ -31,12 +52,25 @@
         },
         default: function() { week.fetch(); },
         date: function(d) {
-            console.log("daty")
             _.each(_.keys(week.get("dates")), function(dd) {
                 if (dd != d)
                     delete week.get("dates")[dd]
             })
             week.get("dates")[d] = undefined
+            week.fetch()
+        },
+        dateRange: function(start, end) {
+            start = new Date(start)
+            end = new Date(end)
+            var dates = _.map(getDates(start, end), function(tof) { return tof.toISODate(); })
+            console.log("dateRange"+dates)
+            _.each(_.keys(week.get("dates")), function(dd) {
+                if (dates.indexOf(dd) < 0)
+                    delete week.get("dates")[dd]
+            })
+            _.each(dates, function(d) {
+                week.get("dates")[d] = undefined
+            })
             week.fetch()
         },
     })
@@ -93,8 +127,6 @@
 <div class="wide widget">
 
   <div class="widget-content">
-
-
   </div>
 </div>
 

@@ -99,10 +99,10 @@ var WeekView = Backbone.View.extend({
     render: function() {
         console.log('week render')
         this.$el.html(this.template(this.model.attributes))
-        this.$el.find('thead').append($('<tr><th></th></tr>'))
+        var $thead = $('<tr><th></th></tr>')
         var that = this
         this.model.get('days').each(function(day) {
-            var $header = $("<th></th>").appendTo(that.$el.find('thead tr'))
+            var $header = $("<th></th>").appendTo($thead)
             if (!(day.get('date') in that.dayViews))
             {
                 var dayv = new DayView({ model: day })
@@ -114,11 +114,11 @@ var WeekView = Backbone.View.extend({
             }
             $header.html(that.dayViews[day.get('date')].$header)
         })
+        this.$el.find('thead').append($thead)
         return this
     },
     renderTimes: function(dayView) {
-        console.log("render times")
-        console.log(dayView.model)
+        $(this).find('.loading').remove()
         var that = this
         var $body = this.$el.find('tbody')
         var dayPos = this.model.get('days').indexOf(dayView.model)+1
