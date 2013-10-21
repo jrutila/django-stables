@@ -85,6 +85,10 @@ def get_saldo(self):
           content_type=ContentType.objects.get_for_model(self),
           object_id=self.id).prefetch_related('ticket_set'))
 
+def get_customer_saldo(self):
+    return _count_saldo(Transaction.objects.filter(active=True,
+          customer=self).prefetch_related('ticket_set'))[0]
+
 def _get_unused_tickets(self):
     qrider = Q(owner_type=ContentType.objects.get_for_model(self), owner_id=self.id)
     qcustomer = Q(owner_type=ContentType.objects.get_for_model(self.customer), owner_id=self.customer.id)
@@ -100,6 +104,7 @@ from participations import Course, Participation
 Participation.get_saldo = get_saldo
 RiderInfo.unused_tickets = property(_get_unused_tickets)
 CustomerInfo.unused_tickets = property(_get_customer_unused_tickets)
+CustomerInfo.saldo = property(get_customer_saldo)
 
 def pay_participation(participation, ticket=None):
     transactions = Transaction.objects.filter(
