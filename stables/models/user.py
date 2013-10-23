@@ -60,7 +60,7 @@ class CustomerInfo(models.Model):
         app_label = 'stables'
     def __unicode__(self):
         try:
-            return UserProfile.objects.filter(customer=self)[0].__unicode__()
+            return self.user.__unicode__()
         except:
             return self.address
     address = models.CharField(max_length=500)
@@ -70,10 +70,7 @@ class RiderInfo(models.Model):
     class Meta:
         app_label = 'stables'
     def __unicode__(self):
-        try:
-            return self.user.__unicode__() + ": " + ','.join(str(n) for n in self.levels.all())
-        except:
-            return self.user.__unicode__()
+        return self.user.__unicode__()
     levels = models.ManyToManyField(RiderLevel, related_name='+', blank=True)
     customer = models.ForeignKey(CustomerInfo)
     ticket_warning_limit = 1

@@ -218,12 +218,12 @@ class TransactionManager(models.Manager):
     return TransactionQuerySet(self.model, using=self._db)
 
   def get_transactions(self, participations):
-    return self.filter(active=True, content_type=ContentType.objects.get_for_model(Participation), object_id__in=[p.id for p in participations]).order_by('object_id', 'created_on').prefetch_related('ticket_set')
+    return self.filter(active=True, content_type=ContentType.objects.get_for_model(Participation), object_id__in=participations).order_by('object_id', 'created_on').select_related().prefetch_related('ticket_set__type', 'ticket_set__owner')
 
   def get_saldos(self, participations):
       ret = {}
       trans = list(self.get_transactions(participations))
-      ids = [p.id for p in participations]
+      ids = participations
       for (pid, tt) in [(x, [y for y in trans if y.object_id==x]) for x in ids]:
           ret[pid] = _count_saldo(tt)
       return ret

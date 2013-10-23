@@ -65,7 +65,7 @@ class ViewEvent:
             self.title = occ.event.title
             self.event_id = occ.event.id
         if parts:
-            self.participations = ApiList([ ViewParticipation(p, p.get_saldo()) for p in parts])
+            self.participations = ApiList([ ViewParticipation(p, saldos[p.id]) for p in parts])
 
 class ParticipationResource(Resource):
     id = fields.IntegerField(attribute='id', null=True)
@@ -150,10 +150,10 @@ class EventResource(Resource):
         occs = []
         if at:
             at = datetime.datetime.strptime(at, '%Y-%m-%d').date()
-            parts = Participation.objects.generate_participations(
+            partids, parts = Participation.objects.generate_participations(
                             datetime.datetime.combine(at, datetime.time.min),
                             datetime.datetime.combine(at, datetime.time.max))
+            saldos = dict(Transaction.objects.get_saldos(partids))
             for (o, (c, p)) in parts.items():
-                saldos = dict(Transaction.objects.get_saldos(p))
                 occs.append(ViewEvent(o, c, p, saldos))
         return occs

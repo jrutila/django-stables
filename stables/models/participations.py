@@ -462,12 +462,14 @@ class ParticipationManager(models.Manager):
 
     def generate_participations(self, start, end):
         weekday = (start.isoweekday()+1) % 8
-        events = Event.objects.exclude(end_recurring_period__lt=start).filter((Q(start__week_day=weekday) & Q(rule__frequency='WEEKLY')) | (Q(rule__frequency__isnull=True) & Q(start__gte=start) & Q(end__lte=end))).prefetch_related('course_set')
-        courses = Course.objects.filter(events__in=events)
-        enrolls = list(Enroll.objects.filter(course__in=courses).exclude(state=CANCELED))
-        parts = list(Participation.objects.filter(event__in=events, start__gte=start, end__lte=end).prefetch_related('event').select_related())
+        events = Event.objects.exclude(end_recurring_period__lt=start).filter((Q(start__week_day=weekday) & Q(rule__frequency='WEEKLY')) | (Q(rule__frequency__isnull=True) & Q(start__gte=start) & Q(end__lte=end))).prefetch_related('course_set').prefetch_related('occurrence_set', 'rule').select_related()
+        events = list(events)
+        courses = Course.objects.filter(events__in=events).select_related()
+        enrolls = list(Enroll.objects.filter(course__in=courses).exclude(state=CANCELED).select_related())
+        parts = list(Participation.objects.filter(event__in=events, start__gte=start, end__lte=end).prefetch_related('event', 'participant__user').select_related())
         #.values('id', 'participant_id', 'state', 'event_id', 'start', 'end')
         ret = {}
+        partid_list = set()
         for event in events:
             if event.course_set.count() == 0:
               continue
@@ -485,7 +487,8 @@ class ParticipationManager(models.Manager):
                 p.note = ""
                 occ_parts.append(p)
               ret[occ] = (event.course_set.all()[0], [ p for p in occ_parts ])
-        return ret
+              partid_list = partid_list | set([p.id for p in occ_parts])
+        return (partid_list, ret)
 
 class Participation(models.Model):
     class Meta:
