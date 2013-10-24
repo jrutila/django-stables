@@ -86,6 +86,7 @@ input[name$='participant']
 {
   padding-left: 0px;
   list-style: none;
+  min-width: 300px;
 }
 
 .timetable select

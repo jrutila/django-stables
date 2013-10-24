@@ -90,6 +90,7 @@ function addAndGet($tr, nth, finalLength) {
 
 var WeekView = Backbone.View.extend({
     tagName: "table",
+    className: "timetable",
     initialize: function() {
         this.model.on('change:days', this.render, this)
         this.dayViews = {}
