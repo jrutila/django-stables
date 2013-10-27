@@ -7,6 +7,7 @@
 <script type='text/javascript' src="{{ STATIC_URL }}js/underscore-min.js"></script>
 <script type='text/javascript' src="{{ STATIC_URL }}js/backbone-min.js"></script>
 <script type='text/javascript' src="{{ STATIC_URL }}js/backbone-tastypie.js"></script>
+<script type='text/javascript' src="{{ STATIC_URL }}stables/js/tooltipTextarea.js"></script>
 <script type='text/javascript' src="{{ STATIC_URL }}stables/js/modules/participation.js"></script>
 <script type='text/javascript' src="{{ STATIC_URL }}stables/js/modules/dashboard.js"></script>
 <script type='text/javascript'>
@@ -107,6 +108,9 @@
         <option value="{{ s.0 }}">{{ s.1 }}</option>
         {% endfor %}
     </select>
+    <div class="note">
+    <textarea name="note"><%= note %></textarea>
+    </div>
 </script>
 
 <script type="text/html" id="EventView">

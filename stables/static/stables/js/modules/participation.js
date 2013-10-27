@@ -8,6 +8,7 @@ var Participation = Backbone.Model.extend({
         rider_url: null,
         rider_name: null,
         state: 0,
+        note: null,
     },
 })
 
@@ -20,6 +21,7 @@ var ParticipationView = Backbone.View.extend({
     events: {
         'change select[name="state"]': 'stateChange',
         'change select[name="horse"]': 'horseChange',
+        'change textarea[name="note"]': 'noteChange',
     },
     stateChange: function(ev) {
         this.model.set('state', $(ev.target).val())
@@ -33,6 +35,12 @@ var ParticipationView = Backbone.View.extend({
         //TODO: to model
         this.model.save()
     },
+    noteChange: function(ev) {
+        this.model.set('note', $(ev.target).val())
+        this.$el.find('textarea[name="note"]').parent('.note').addClass('changed')
+        //TODO: to model
+        this.model.save()
+    },
     notifyChanged: function(ev) {
         this.$el.find('.changed').removeClass('changed').effect("highlight", {"color": "lightGreen"}, 3000)
     },
@@ -41,6 +49,7 @@ var ParticipationView = Backbone.View.extend({
         this.$el.html(this.template(this.model.attributes))
         $('select[name="state"]', this.$el).val(this.model.get('state'))
         $('select[name="horse"]', this.$el).val(this.model.get('horse'))
+        $('.note', this.$el).tooltipTextarea()
         return this
     },
 })

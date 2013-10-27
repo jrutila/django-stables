@@ -81,6 +81,7 @@ class ParticipationResource(Resource):
     event_id = fields.IntegerField(attribute='event_id')
     start = fields.DateField(attribute='start')
     end = fields.DateField(attribute='end')
+    note = fields.CharField(attribute='note', null=True)
 
     class Meta:
         resource_name = 'participations'
@@ -107,6 +108,7 @@ class ParticipationResource(Resource):
             part.horse = None
         else:
             part.horse = Horse.objects.get(pk=bundle.data['horse'])
+        part.note = bundle.data['note']
         part.save()
         part = Participation.objects.get(pk=kwargs['pk'])
         bundle.obj = ViewParticipation(part, part.get_saldo())
@@ -122,8 +124,9 @@ class ParticipationResource(Resource):
             part.participant = UserProfile.objects.get(reduce(operator.and_, f))
         else:
             part.participant = UserProfile.objects.get(pk=bundle.data['rider_id'])
-        if (int(bundle.data['horse']) > 0):
+        if (bundle.data['horse'] and int(bundle.data['horse']) > 0):
             part.horse = Horse.objects.get(pk=bundle.data['horse'])
+        part.note = bundle.data['note']
         part.event = Event.objects.get(pk=bundle.data['event_id'])
         part.start = datetime.datetime.strptime(bundle.data['start'], '%Y-%m-%dT%H:%M:%S')
         part.end = datetime.datetime.strptime(bundle.data['end'], '%Y-%m-%dT%H:%M:%S')

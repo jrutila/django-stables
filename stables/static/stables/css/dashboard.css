@@ -10,7 +10,7 @@ div.note
 
 div.note.has_text
 {
-  background-color: green;
+  border: 6px solid green;
   cursor: pointer;
 }
 
@@ -46,6 +46,7 @@ div.note textarea
   left: 0px;
   top: 0px;
   z-index: 999;
+  display: none;
 }
 
 textarea[name$='notes']
