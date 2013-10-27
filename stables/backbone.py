@@ -6,16 +6,22 @@ from stables.models import Horse
 from stables.models import Transaction
 from stables.models import ATTENDING
 from schedule.models import Event
+from schedule.models import Occurrence
 from tastypie import fields
 from tastypie.bundle import Bundle
+from tastypie.cache import SimpleCache
+
+from django.db.models.signals import post_save
+
 import datetime
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext as _
 from django.db.models import Q
 import operator
 
 class UserResource(ModelResource):
     class Meta:
         queryset  = UserProfile.objects.all().prefetch_related('user')
+        cache = SimpleCache(timeout=30*60)
     name = fields.CharField()
 
     def dehydrate_name(self, bundle):
@@ -33,11 +39,12 @@ class ViewParticipation:
             self.event_id = part.event.id
             self.start = part.start
             self.end = part.end
+            self.note = part.note
 
             if part.horse:
                 self.horse_id = part.horse.id
             self.finance = "ok"
-            self.finance_hint = saldo[1]
+            self.finance_hint = unicode(saldo[1])
             if (saldo[0] == 0 and saldo[1] == None):
                 self.finance_hint = _("Cash")
             saldo = saldo[0]
@@ -49,7 +56,6 @@ class ViewParticipation:
                 self.finance = "--"
             if part.id:
                 self.finance_url = part.get_absolute_url()
-            self.part = part
 
 class ApiList(list):
     def all(self):
@@ -139,12 +145,38 @@ class EventResource(Resource):
     class Meta:
         resource_name = 'events'
         object_class = ViewEvent
+        cache = SimpleCache(timeout=30*60)
 
     start = fields.DateField(attribute='start')
     end = fields.DateField(attribute='end')
     title = fields.CharField(attribute='title')
     event_id = fields.IntegerField(attribute='event_id')
     participations = fields.ToManyField(ParticipationResource, 'participations', full=True, null=True)
+
+    def generate_cache_key(self, *args, **kwargs):
+        return "%s:%s:%s:%s" % (self._meta.api_name, self._meta.resource_name, 'at', kwargs['at'])
+
+    def get_list(self, request, **kwargs):
+        """
+        Copied from resources.py around line 1265
+        """
+        base_bundle = self.build_bundle(request=request)
+        objects = self.cached_obj_get_list(bundle=base_bundle, at=request.GET.get('at'), **self.remove_api_resource_names(kwargs))
+        sorted_objects = self.apply_sorting(objects, options=request.GET)
+
+        paginator = self._meta.paginator_class(request.GET, sorted_objects, resource_uri=self.get_resource_uri(), limit=self._meta.limit, max_limit=self._meta.max_limit, collection_name=self._meta.collection_name)
+        to_be_serialized = paginator.page()
+
+        # Dehydrate the bundles in preparation for serialization.
+        bundles = []
+
+        for obj in to_be_serialized[self._meta.collection_name]:
+            bundle = self.build_bundle(obj=obj, request=request)
+            bundles.append(self.full_dehydrate(bundle, for_list=True))
+
+        to_be_serialized[self._meta.collection_name] = bundles
+        to_be_serialized = self.alter_list_data_to_serialize(request, to_be_serialized)
+        return self.create_response(request, to_be_serialized)
 
     def obj_get_list(self, request=None, **kwargs):
         bundle = kwargs['bundle']
@@ -160,3 +192,18 @@ class EventResource(Resource):
             for (o, (c, p)) in parts.items():
                 occs.append(ViewEvent(o, c, p, saldos))
         return occs
+
+def update_event_resource(sender, **kwargs):
+    time_attrs = ['original_start', 'start']
+    dates = set()
+    for ta in time_attrs:
+        d = getattr(kwargs['instance'], ta, None)
+        if d:
+            dates.add(d.strftime('%Y-%m-%d'))
+    er = EventResource()
+    for d in dates:
+        key = er.generate_cache_key(at=d)
+        er._meta.cache.set(key, None)
+
+post_save.connect(update_event_resource, sender=Participation)
+post_save.connect(update_event_resource, sender=Occurrence)
