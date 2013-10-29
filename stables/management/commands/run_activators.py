@@ -12,7 +12,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         schema = options['schema']
         connection.set_schema(schema)
-        reversion.register(Participation)
+        #reversion.register(Participation)
         self.activate_transactions()
 
     @reversion.create_revision()
