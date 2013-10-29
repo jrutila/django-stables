@@ -19,6 +19,7 @@ var Day = Backbone.Model.extend({
 
 var DayCollection = Backbone.Collection.extend({
     model: Day,
+    comparator: 'date',
 })
 
 var Week = Backbone.Model.extend({
@@ -30,7 +31,6 @@ var Week = Backbone.Model.extend({
     },
     fetch: function() {
         var that = this
-        console.log('fetch')
         var newColl = new DayCollection()
         _.each(this.get('dates'), function(day, key) {
             if (day == undefined)
@@ -73,7 +73,6 @@ var DayView = Backbone.View.extend({
 
 function addAndGet($tr, nth, finalLength) {
     var len = $tr.find("td").length
-    console.log(len, nth, finalLength)
     if (len > nth)
         return $tr.find('td').eq(nth)
 
@@ -93,12 +92,11 @@ var WeekView = Backbone.View.extend({
     className: "timetable",
     initialize: function() {
         this.model.on('change:days', this.render, this)
-        this.dayViews = {}
         this.$timeslots = {}
     },
     template: _.template($('#WeekView').html()),
     render: function() {
-        console.log('week render')
+        this.dayViews = {}
         this.$el.html(this.template(this.model.attributes))
         var $thead = $('<tr><th></th></tr>')
         var that = this
@@ -123,7 +121,6 @@ var WeekView = Backbone.View.extend({
         var that = this
         var $body = this.$el.find('tbody')
         var dayPos = this.model.get('days').indexOf(dayView.model)+1
-        console.log("dayPos: "+dayView.model.get('date')+":"+dayPos)
         _.each(_.pairs(dayView.$timeslots), function(p) {
             var hour = parseInt(p[0])
             if (!(hour in that.$timeslots))

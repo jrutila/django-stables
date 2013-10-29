@@ -64,13 +64,13 @@
             start = new Date(start)
             end = new Date(end)
             var dates = _.map(getDates(start, end), function(tof) { return tof.toISODate(); })
-            console.log("dateRange"+dates)
             _.each(_.keys(week.get("dates")), function(dd) {
                 if (dates.indexOf(dd) < 0)
                     delete week.get("dates")[dd]
             })
             _.each(dates, function(d) {
-                week.get("dates")[d] = undefined
+                if (!(d in week.get("dates")))
+                    week.get("dates")[d] = undefined
             })
             week.fetch()
         },
