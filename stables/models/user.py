@@ -31,7 +31,7 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User)
     rider = models.OneToOneField('RiderInfo', null=True, blank=True, related_name='user', on_delete=models.SET_NULL)
     customer = models.OneToOneField('CustomerInfo', null=True, blank=True, on_delete=models.SET_NULL)
-    instructor = models.OneToOneField('InstructorInfo', null=True, blank=True)
+    instructor = models.OneToOneField('InstructorInfo', null=True, blank=True, related_name='user')
 
     phone_number = models.CharField(max_length=30, null=True, blank=True)
 
@@ -79,7 +79,7 @@ class InstructorInfo(models.Model):
     class Meta:
         app_label = 'stables'
     def __unicode__(self):
-        return UserProfile.objects.filter(instructor=self)[0].__unicode__()
+        return self.user.__unicode__()
 
 class CustomerForm(forms.ModelForm):
     class Meta:

@@ -138,7 +138,21 @@ class UserProfileAdmin(admin.ModelAdmin):
     selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
     return HttpResponseRedirect(reverse('stables.views.update_rider_levels')+'?ids='+','.join(selected))
 
+class InstructorParticipationAdminForm(forms.ModelForm):
+    class Meta:
+        model = InstructorParticipation
+    instructor = forms.ModelChoiceField(queryset=InstructorInfo.objects.all(), required=True, label=_('Instructor'))
+
+    #def __init__(self, instance):
+        #super(InstructorParticipationAdminForm, self).__init__(instance)
+        # TODO: Fix!
+        #self.initial['instructor'] = instance.instructor.instructor.pk
+
+    def clean_instructor(self):
+        return UserProfile.objects.get(instructor__id=self.data['instructor'])
+
 class InstructorParticipationAdmin(admin.ModelAdmin):
+  form = InstructorParticipationAdminForm
   list_display = ('instructor', 'event', 'start', 'end')
 
 class TransactionAdmin(reversion.VersionAdmin):

@@ -10,6 +10,7 @@ from django.contrib.contenttypes.models import ContentType
 from stables.forms import DashboardForm
 from stables.models import Course
 from stables.models import Horse
+from stables.models import InstructorInfo
 from stables.models import Participation
 from stables.models import Transaction
 from stables.models import PARTICIPATION_STATES
@@ -21,6 +22,7 @@ class Newboard(TemplateView):
         ctx = super(Newboard, self).get_context_data(**kwargs)
         ctx['states'] = PARTICIPATION_STATES
         ctx['horses'] = Horse.objects.all()
+        ctx['instructors'] = [ i.user for i in InstructorInfo.objects.all().prefetch_related('user', 'user__user')]
         return ctx
 
 class Dashboard(FormView):

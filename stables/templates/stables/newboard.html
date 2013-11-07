@@ -2,7 +2,6 @@
 {% load i18n sekizai_tags stablestags %}
 {% block content %}
 {% addtoblock "js" %}
-<script type='text/javascript' src="{{ STATIC_URL }}stables/js/dashboard.js"></script>
 <script type='text/javascript' src="{{ STATIC_URL }}js/jquery.cookie.js"></script>
 <script type='text/javascript' src="{{ STATIC_URL }}js/underscore-min.js"></script>
 <script type='text/javascript' src="{{ STATIC_URL }}js/backbone-min.js"></script>
@@ -115,6 +114,12 @@
 
 <script type="text/html" id="EventView">
     <span title='from <%= start %> to <%= end %>'><%= title %></span>
+    <select name="instructor">
+        <option value="0">{% trans "--" %}</option>
+        {% for i in instructors %}
+        <option value="{{ i.pk }}">{{ i }}</option>
+        {% endfor %}
+    </select>
     <ul class="rider-list">
     </ul>
 </script>

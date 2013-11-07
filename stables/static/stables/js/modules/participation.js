@@ -12,6 +12,10 @@ var Participation = Backbone.Model.extend({
     },
 })
 
+function changeHighlight($el) {
+        $el.find('.changed').removeClass('changed').effect("highlight", {"color": "lightGreen"}, 3000)
+}
+
 var ParticipationView = Backbone.View.extend({
     tagName: "li",
     initialize: function(data) {
@@ -42,7 +46,7 @@ var ParticipationView = Backbone.View.extend({
         this.model.save()
     },
     notifyChanged: function(ev) {
-        this.$el.find('.changed').removeClass('changed').effect("highlight", {"color": "lightGreen"}, 3000)
+        changeHighlight(this.$el)
     },
     template: _.template($('#ParticipationView').html()),
     render: function() {
@@ -110,9 +114,16 @@ var ParticipationCollection = Backbone.Collection.extend({
 })
 
 var Event = Backbone.Model.extend({
-    idAttribute: "start",
+    idAttribute: function() {
+        // Use this so that there can be multiple occurrences from the same event
+        return this.get('event_id') + this.get('start')
+    },
+    url: function() {
+        return apiUrl+'events/set/'
+    },
     parse: function(data) {
-        data['participations'] = new ParticipationCollection(ParticipationCollection.prototype.parse(data['participations']))
+        if ('participations' in data)
+            data['participations'] = new ParticipationCollection(ParticipationCollection.prototype.parse(data['participations']))
         return data
     },
     getHour: function() {
@@ -133,10 +144,15 @@ var EventView = Backbone.View.extend({
     tagName: 'div',
     initialize: function() {
         this.listenTo(this.model.get('participations'), "sort", this.render);
+        this.listenTo(this.model, "sync", this.notifyChanged);
+    },
+    events: {
+        'change select[name="instructor"]': 'instructorChange',
     },
     template: _.template($('#EventView').html()),
     render: function() {
         this.$el.html(this.template(this.model.attributes))
+        $('select[name="instructor"]', this.$el).val(this.model.get('instructor_id'))
         var ul = this.$el.find('ul')
         this.model.get('participations')
           .each(function(p) {
@@ -147,6 +163,12 @@ var EventView = Backbone.View.extend({
         }, this)
         this.renderAdder()
         return this
+    },
+    instructorChange: function(ev) {
+        this.model.set('instructor_id', parseInt($(ev.target).val()))
+        this.$el.find('select[name="instructor"]').addClass('changed')
+        //TODO: to model
+        this.model.save()
     },
     renderAdder: function() {
         var adder = new ParticipationAdderView({model:
@@ -169,5 +191,8 @@ var EventView = Backbone.View.extend({
             adder.remove()
             that.model.get("participations").add(this)
         })
+    },
+    notifyChanged: function(ev) {
+        changeHighlight(this.$el)
     },
 })

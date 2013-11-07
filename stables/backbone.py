@@ -2,6 +2,8 @@ from tastypie.resources import ModelResource
 from tastypie.resources import Resource
 from stables.models import UserProfile
 from stables.models import Participation
+from stables.models import InstructorParticipation
+from stables.models import InstructorInfo
 from stables.models import Horse
 from stables.models import Transaction
 from stables.models import ATTENDING
@@ -12,11 +14,13 @@ from tastypie.bundle import Bundle
 from tastypie.cache import SimpleCache
 
 from django.db.models.signals import post_save
+from django.conf.urls.defaults import url
 
 import datetime
 from django.utils.translation import ugettext as _
 from django.db.models import Q
 import operator
+import json
 
 class UserResource(ModelResource):
     class Meta:
@@ -62,7 +66,7 @@ class ApiList(list):
         return self
 
 class ViewEvent:
-    def __init__(self, occ=None, course=None, parts=None, saldos=None):
+    def __init__(self, occ=None, course=None, parts=None, saldos=None, instr=None):
         self.participations = []
         if occ:
             self.pk = occ.start
@@ -70,6 +74,8 @@ class ViewEvent:
             self.end = occ.end
             self.title = occ.event.title
             self.event_id = occ.event.id
+        if instr:
+            self.instructor_id = instr.instructor_id
         if parts:
             self.participations = ApiList([ ViewParticipation(p, saldos[p.id]) for p in parts])
 
@@ -146,11 +152,13 @@ class EventResource(Resource):
         resource_name = 'events'
         object_class = ViewEvent
         cache = SimpleCache(timeout=30*60)
+        list_allowed_methods = ['get', 'post']
 
     start = fields.DateField(attribute='start')
     end = fields.DateField(attribute='end')
     title = fields.CharField(attribute='title')
     event_id = fields.IntegerField(attribute='event_id')
+    instructor_id = fields.IntegerField(attribute='instructor_id', null=True)
     participations = fields.ToManyField(ParticipationResource, 'participations', full=True, null=True)
 
     def generate_cache_key(self, *args, **kwargs):
@@ -178,6 +186,34 @@ class EventResource(Resource):
         to_be_serialized = self.alter_list_data_to_serialize(request, to_be_serialized)
         return self.create_response(request, to_be_serialized)
 
+    def override_urls(self):
+        return [
+                url(r"^(?P<resource_name>%s)/set/$" %
+                    (self._meta.resource_name, ),
+                    self.wrap_view('setevent'), name='set_event'),
+                ]
+
+    def setevent(self, request, **kwargs):
+        obj = json.loads(request.body)
+        event_id = obj['event_id']
+        start = datetime.datetime.strptime(obj['start'], '%Y-%m-%dT%H:%M:%S')
+        end = datetime.datetime.strptime(obj['end'], '%Y-%m-%dT%H:%M:%S')
+        part = InstructorParticipation.objects.filter(event_id=event_id, start=start, end=end)
+        if obj['instructor_id'] == 0 or obj['instructor_id'] == None:
+            if part:
+                part.delete()
+        else:
+            if not part:
+                part = InstructorParticipation()
+                part.start = start
+                part.end = end
+                part.event_id = event_id
+            else:
+                part = part[0]
+            part.instructor = InstructorInfo.objects.get(user__id=obj['instructor_id']).user
+            part.save()
+        return self.create_response(request, {})
+
     def obj_get_list(self, request=None, **kwargs):
         bundle = kwargs['bundle']
         request = bundle.request
@@ -185,19 +221,28 @@ class EventResource(Resource):
         occs = []
         if at:
             at = datetime.datetime.strptime(at, '%Y-%m-%d').date()
-            partids, parts = Participation.objects.generate_participations(
-                            datetime.datetime.combine(at, datetime.time.min),
-                            datetime.datetime.combine(at, datetime.time.max))
+            start = datetime.datetime.combine(at, datetime.time.min)
+            end = datetime.datetime.combine(at, datetime.time.max)
+            partids, parts = Participation.objects.generate_participations(start, end)
+            instr = list(InstructorParticipation.objects.filter(start__gte=start, end__lte=end))
+            instr = dict((i.event.pk, i) for i in instr)
             saldos = dict(Transaction.objects.get_saldos(partids))
             for (o, (c, p)) in parts.items():
-                occs.append(ViewEvent(o, c, p, saldos))
+                ii = None
+                if o.event.pk in instr:
+                    ii = instr[o.event.pk]
+                occs.append(ViewEvent(o, c, p, saldos, ii))
+        #TODO: Set cache expire so that it will be always fetched!
         return occs
 
 def update_event_resource(sender, **kwargs):
+    inst = kwargs['instance']
+    if hasattr(kwargs['instance'], 'source'):
+        inst = kwargs['instance'].source
     time_attrs = ['original_start', 'start']
     dates = set()
     for ta in time_attrs:
-        d = getattr(kwargs['instance'], ta, None)
+        d = getattr(inst, ta, None)
         if d:
             dates.add(d.strftime('%Y-%m-%d'))
     er = EventResource()
@@ -207,3 +252,5 @@ def update_event_resource(sender, **kwargs):
 
 post_save.connect(update_event_resource, sender=Participation)
 post_save.connect(update_event_resource, sender=Occurrence)
+post_save.connect(update_event_resource, sender=InstructorParticipation)
+post_save.connect(update_event_resource, sender=Transaction)
