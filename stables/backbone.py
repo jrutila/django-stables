@@ -147,11 +147,18 @@ class ParticipationResource(Resource):
         bundle.obj = ViewParticipation(part, part.get_saldo())
         return bundle
 
+class ShortClientCache(SimpleCache):
+    def cache_control(self):
+        control = super(ShortClientCache, self).cache_control()
+        control['max-age'] = 10
+        control['s-maxage'] = 10
+        return control
+
 class EventResource(Resource):
     class Meta:
         resource_name = 'events'
         object_class = ViewEvent
-        cache = SimpleCache(timeout=30*60)
+        cache = ShortClientCache(timeout=30*60, private=True)
         list_allowed_methods = ['get', 'post']
 
     start = fields.DateField(attribute='start')
@@ -232,7 +239,6 @@ class EventResource(Resource):
                 if o.event.pk in instr:
                     ii = instr[o.event.pk]
                 occs.append(ViewEvent(o, c, p, saldos, ii))
-        #TODO: Set cache expire so that it will be always fetched!
         return occs
 
 def update_event_resource(sender, **kwargs):
