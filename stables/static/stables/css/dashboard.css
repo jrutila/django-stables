@@ -128,3 +128,26 @@ white-space: nowrap;
     margin-left: 10px;
     margin-right: 10px;
 }
+
+.icon-comment
+{
+    display: inline-block;
+}
+
+.comments
+{
+    border: 1px solid gray;
+}
+
+.comments .comment_user
+{
+    font-size: smaller;
+    color: gray;
+    float: right;
+}
+
+.comments .comment_date
+{
+    font-size: smaller;
+    color: ligthGray;
+}

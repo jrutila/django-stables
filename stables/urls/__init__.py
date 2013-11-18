@@ -1,12 +1,14 @@
 from django.conf.urls import *
 
 from tastypie.api import Api
-from stables.backbone import UserResource, ParticipationResource, EventResource
+from stables.backbone import *
 
 v1_api = Api(api_name="v1")
 v1_api.register(UserResource())
 v1_api.register(ParticipationResource())
 v1_api.register(EventResource())
+v1_api.register(CommentResource())
+v1_api.register(EventMetaDataResource())
 
 import reporting
 reporting.autodiscover()

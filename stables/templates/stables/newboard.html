@@ -108,8 +108,18 @@
         <option value="{{ i.pk }}">{{ i }}</option>
         {% endfor %}
     </select>
+    <div class='comments'>
+    </div>
     <ul class="rider-list">
     </ul>
+</script>
+
+<script type="text/html" id="CommentsView">
+   <i class="icon-comment"></i>
+   <% if (last_comment != undefined) { %>
+    <span class='comment'><%= last_comment.get('comment') %></span>
+   <% } %>
+   <input type='text' name='newcomment'/>
 </script>
 
 <script type="text/html" id="WeekView">

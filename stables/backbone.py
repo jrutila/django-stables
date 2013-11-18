@@ -9,12 +9,19 @@ from stables.models import Transaction
 from stables.models import ATTENDING
 from schedule.models import Event
 from schedule.models import Occurrence
+from stables.models import EventMetaData
 from tastypie import fields
 from tastypie.bundle import Bundle
 from tastypie.cache import SimpleCache
+from tastypie.authorization import Authorization
+from tastypie.contrib.contenttypes.fields import GenericForeignKeyField
 
 from django.db.models.signals import post_save
 from django.conf.urls.defaults import url
+
+from django.contrib.comments import Comment
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.sites.models import Site
 
 import datetime
 from django.utils.translation import ugettext as _
@@ -30,6 +37,42 @@ class UserResource(ModelResource):
 
     def dehydrate_name(self, bundle):
         return bundle.obj.user.first_name + " " + bundle.obj.user.last_name
+
+class EventMetaDataResource(ModelResource):
+    class Meta:
+        queryset  = EventMetaData.objects.all()
+        object_class = EventMetaData
+        authorization= Authorization()
+        always_return_data = True
+    event = fields.ForeignKey("stables.backbone.EventResource", attribute='event')
+
+    def detail_uri_kwargs(self, bundle_or_obj):
+        if isinstance(bundle_or_obj, Bundle):
+            bundle_or_obj = bundle_or_obj.obj
+        return { 'pk': bundle_or_obj.id }
+
+class CommentResource(ModelResource):
+    content_object = GenericForeignKeyField({
+            EventMetaData: EventMetaDataResource,
+        }, 'content_object')
+
+    class Meta:
+        queryset = Comment.objects.all()
+        model = Comment
+        authorization = Authorization()
+        filtering = {
+            'content_object': [ 'exact', ]
+        }
+        always_return_data = True
+
+    def detail_uri_kwargs(self, bundle_or_obj):
+        if isinstance(bundle_or_obj, Bundle):
+            bundle_or_obj = bundle_or_obj.obj
+        return { 'pk': bundle_or_obj.id }
+
+    def obj_create(self, bundle, **kwargs):
+        kwargs['site'] = Site.objects.get_current()
+        return super(CommentResource, self).obj_create(bundle, **kwargs)
 
 class ViewParticipation:
     def __init__(self, part=None, saldo=None):
@@ -66,7 +109,7 @@ class ApiList(list):
         return self
 
 class ViewEvent:
-    def __init__(self, occ=None, course=None, parts=None, saldos=None, instr=None):
+    def __init__(self, occ=None, course=None, parts=None, saldos=None, instr=None, metadata=None, last_comment=None):
         self.participations = []
         if occ:
             self.pk = occ.start
@@ -78,6 +121,13 @@ class ViewEvent:
             self.instructor_id = instr.instructor_id
         if parts:
             self.participations = ApiList([ ViewParticipation(p, saldos[p.id]) for p in parts])
+        if metadata:
+            self.metadata = metadata
+        if last_comment:
+            self.last_comment = last_comment.comment
+            self.last_comment_date = last_comment.submit_date
+            self.last_comment_user = last_comment.user_name
+
 
 class ParticipationResource(Resource):
     id = fields.IntegerField(attribute='id', null=True)
@@ -167,9 +217,22 @@ class EventResource(Resource):
     event_id = fields.IntegerField(attribute='event_id')
     instructor_id = fields.IntegerField(attribute='instructor_id', null=True)
     participations = fields.ToManyField(ParticipationResource, 'participations', full=True, null=True)
+    metadata = fields.ForeignKey(EventMetaDataResource, attribute='metadata', null=True)
+    last_comment_user = fields.CharField(attribute='last_comment_user', null=True)
+    last_comment_date = fields.DateField(attribute='last_comment_date', null=True)
+    last_comment = fields.CharField(attribute='last_comment', null=True)
 
     def generate_cache_key(self, *args, **kwargs):
-        return "%s:%s:%s:%s" % (self._meta.api_name, self._meta.resource_name, 'at', kwargs['at'])
+        if 'at' in kwargs:
+            return "%s:%s:%s:%s" % (self._meta.api_name, self._meta.resource_name, 'at', kwargs['at'])
+        return "%s:%s:%s" % (self._meta.api_name, self._meta.resource_name, kwargs['pk'])
+
+    def detail_uri_kwargs(self, bundle_or_obj):
+        if isinstance(bundle_or_obj, Bundle):
+            bundle_or_obj = bundle_or_obj.obj
+        if isinstance(bundle_or_obj, ViewEvent):
+            return { 'pk': bundle_or_obj.event_id }
+        return { 'pk': bundle_or_obj.id }
 
     def get_list(self, request, **kwargs):
         """
@@ -234,12 +297,24 @@ class EventResource(Resource):
             instr = list(InstructorParticipation.objects.filter(start__gte=start, end__lte=end))
             instr = dict((i.event.pk, i) for i in instr)
             saldos = dict(Transaction.objects.get_saldos(partids))
+            metadatas = dict((e.event.pk, e) for e in EventMetaData.objects.filter(start__gte=start, end__lte=end))
+            comments = {}
+            for c in Comment.objects.filter(object_pk__in=[m.pk for m in metadatas.values()], content_type=ContentType.objects.get_for_model(EventMetaData)):
+                comments[int(c.object_pk)] = c
+
             for (o, (c, p)) in parts.items():
-                ii = None
-                if o.event.pk in instr:
-                    ii = instr[o.event.pk]
-                occs.append(ViewEvent(o, c, p, saldos, ii))
+                metadata = metadatas.get(o.event.pk, None)
+                occs.append(ViewEvent(o, c, p, saldos,
+                    instr.get(o.event.pk, None),
+                    metadata,
+                    comments.get(metadata.pk if metadata else None, None)
+                ))
         return occs
+
+    def obj_get(self, bundle, **kwargs):
+        ev = Event.objects.get(pk=kwargs['pk'])
+        ev.event_id = ev.id
+        return ev
 
 def update_event_resource(sender, **kwargs):
     inst = kwargs['instance']

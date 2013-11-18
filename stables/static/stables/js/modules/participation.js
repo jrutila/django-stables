@@ -124,6 +124,17 @@ var Event = Backbone.Model.extend({
     parse: function(data) {
         if ('participations' in data)
             data['participations'] = new ParticipationCollection(ParticipationCollection.prototype.parse(data['participations']))
+        if ('last_comment' in data)
+        {
+            data['comments'] = new EventCommentsManager({
+                metadata: data['metadata'],
+                event: data,
+                last_comment: new EventComment({
+                    comment: data['last_comment'],
+                })
+            })
+            console.log(data['comments'])
+        }
         return data
     },
     getHour: function() {
@@ -162,6 +173,7 @@ var EventView = Backbone.View.extend({
             ul.append(view.$el)
         }, this)
         this.renderAdder()
+        this.renderComments()
         return this
     },
     instructorChange: function(ev) {
@@ -169,6 +181,12 @@ var EventView = Backbone.View.extend({
         this.$el.find('select[name="instructor"]').addClass('changed')
         //TODO: to model
         this.model.save()
+    },
+    renderComments: function() {
+        if (this.comments == undefined)
+            this.comments = new CommentsView({ model: this.model.get('comments') })
+        this.comments.render()
+        this.$el.find('.comments').html(this.comments.$el)
     },
     renderAdder: function() {
         var adder = new ParticipationAdderView({model:
