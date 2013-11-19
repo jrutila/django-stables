@@ -1,6 +1,7 @@
 import reporting
 from stables.models import Participation, InstructorParticipation
 from stables.models import Accident
+from stables.models import ATTENDING
 from django.db.models import Count
 from django.utils.translation import ugettext_lazy as _
 
@@ -136,6 +137,9 @@ class HorseReport(reporting.Report):
       ('start', HorseReportDateFieldListFilter),
       ('horse', MultipleRelatedFieldListFilter)
       ]
+
+  def get_root_query_set(self, request):
+      return self.model.objects.filter(state=ATTENDING)
 
 reporting.register('horse', HorseReport)
 
