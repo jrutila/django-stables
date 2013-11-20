@@ -46,7 +46,7 @@ setup(
       "Babel",
       "isoweek>=1.2.0",
       'django-schedule',
-      'django-reversion',
+      'django-reversion==1.7.1',
       'django-sekizai',
       'django-crispy-forms',
       'django-reporting==dev',
