@@ -9,10 +9,10 @@
     {% for course in object_list %}
     <li class="list-group-item">
     <a href="{{ course.get_absolute_url }}">{{ course }}</a>
-    {% if course.get_next_occurrence %}
-    {{ course.get_next_occurrence.start.weekday }}
-    {{ course.get_next_occurrence.start.time }} -
-    {{ course.get_next_occurrence.end.time }}
+    {% if course.next_occ %}
+    {{ course.next_occ.start|date:"D" }}
+    {{ course.next_occ.start.time }} -
+    {{ course.next_occ.end.time }}
     {% endif %}
     <a href="{% url 'change_course' pk=course.id %}">{% trans "Edit" %}</a>
     </li>

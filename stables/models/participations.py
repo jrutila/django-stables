@@ -85,6 +85,13 @@ class Course(models.Model):
     def get_occurrence(self, start):
         return self.get_occurrences(start=start)[0]
 
+    def get_course_time_info(self):
+        res = None
+        event = self.events.filter(Q(end_recurring_period__gte=datetime.datetime.now()) | Q(end_recurring_period__isnull=True))
+        if event:
+            res = { 'start': event[0].start, 'end': event[0].end }
+        return res
+
     def get_next_occurrence(self):
         occurrences = []
         for e in self.events.all():

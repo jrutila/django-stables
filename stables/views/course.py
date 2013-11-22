@@ -14,6 +14,19 @@ import dateutil.parser
 class ListCourse(ListView):
     model = Course
     template_name = 'stables/course/list.html'
+    queryset = Course.objects.all().prefetch_related('events')
+
+    def get_context_data(self, **kwargs):
+        context = super(ListCourse, self).get_context_data(**kwargs)
+        newlist = []
+        for c in context['course_list']:
+            next_occ = c.get_course_time_info()
+            c.next_occ = None
+            if next_occ:
+                c.next_occ = next_occ
+            newlist.append(c)
+        context['course_list'] = sorted(newlist, key=lambda x: x.next_occ['start'].weekday if x.next_occ else None )
+        return context
 
 class ViewCourse(DetailView):
     model = Course
