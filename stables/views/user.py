@@ -80,4 +80,4 @@ class ListUser(ListView):
     template_name = 'stables/user/userprofile_list.html'
 
     def get_queryset(self):
-        return super(ListUser, self).get_queryset().order_by('user__last_name')
+        return super(ListUser, self).get_queryset().order_by('user__last_name').select_related()
