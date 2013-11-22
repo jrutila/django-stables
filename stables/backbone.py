@@ -165,7 +165,7 @@ class ParticipationResource(Resource):
 
     def obj_update(self, bundle, request=None, **kwargs):
         part = Participation.objects.get(pk=kwargs['pk'])
-        part.state = bundle.data['state']
+        part.state = int(bundle.data['state'])
         if bundle.data['horse'] == '0' or bundle.data['horse'] == None:
             part.horse = None
         else:
@@ -188,7 +188,7 @@ class ParticipationResource(Resource):
             part.participant = UserProfile.objects.get(pk=bundle.data['rider_id'])
         if (bundle.data['horse'] and int(bundle.data['horse']) > 0):
             part.horse = Horse.objects.get(pk=bundle.data['horse'])
-        part.note = bundle.data['note']
+        part.note = bundle.data['note'] if bundle.data['note'] else ""
         part.event = Event.objects.get(pk=bundle.data['event_id'])
         part.start = datetime.datetime.strptime(bundle.data['start'], '%Y-%m-%dT%H:%M:%S')
         part.end = datetime.datetime.strptime(bundle.data['end'], '%Y-%m-%dT%H:%M:%S')
