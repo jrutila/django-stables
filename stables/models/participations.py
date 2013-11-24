@@ -403,7 +403,9 @@ def part_move(self, course, start, end):
 
 def part_cancel(self, course, start, end):
     occ = course.get_occurrence(start)
-    self.filter(event=occ.event, start=start, end=end).update(state=CANCELED)
+    for p in self.filter(event=occ.event, start=start, end=end).exclude(state=CANCELED):
+        p.state=CANCELED
+        p.save()
 
 class ParticipationManager(models.Manager):
     def get_participation(self, rider, occurrence):
