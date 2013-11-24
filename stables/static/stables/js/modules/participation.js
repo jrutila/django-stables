@@ -1,6 +1,7 @@
 var Participation = Backbone.Model.extend({
     urlRoot: apiUrl+'participations/',
     defaults: {
+        accident_url: null,
         alert_level: null,
         finance_url: null,
         finance_hint: null,

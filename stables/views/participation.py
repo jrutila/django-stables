@@ -13,6 +13,7 @@ from stables.models import Horse
 from stables.models import InstructorInfo
 from stables.models import Participation
 from stables.models import Transaction
+from stables.models import Accident
 from stables.models import PARTICIPATION_STATES
 
 class Newboard(TemplateView):
@@ -63,12 +64,14 @@ class ParticipationView(DetailView): # widget_user(request, pid):
         part = Participation.objects.get(pk=self.kwargs.get(self.pk_url_kwarg, None))
         unused_tickets = part.participant.rider.unused_tickets
         transactions = list(Transaction.objects.filter(active=True, content_type=ContentType.objects.get_for_model(Participation), object_id=part.id).order_by('object_id', 'created_on').prefetch_related('ticket_set'))
+        accidents = Accident.objects.filter(at__lte=part.end, at__gte=part.start, rider=part.participant.rider)
 
         setattr(part, 'transactions', [])
         setattr(part, 'saldo', 0)
         setattr(part, 'ticket_used', None)
         setattr(part, 'tickets', set())
         setattr(part, 'course', part.event.course_set.all()[0])
+        setattr(part, 'accidents', accidents)
 
         for ut in unused_tickets:
           part.tickets.add(ut.type)

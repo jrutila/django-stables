@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from stables.models import RiderInfo, Horse, InstructorInfo
 from django import forms
+from django.core.urlresolvers import reverse
 
 #--i18nfield begin
 
@@ -91,6 +92,9 @@ class Accident(models.Model):
 
     def __unicode__(self):
         return unicode(self.rider)+" "+unicode(self.type)
+
+    def get_absolute_url(self):
+        return reverse('edit_accident', args=(self.pk,))
 
     type = models.ForeignKey(AccidentType)
     at = models.DateTimeField()

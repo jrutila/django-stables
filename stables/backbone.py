@@ -10,6 +10,7 @@ from stables.models import ATTENDING
 from schedule.models import Event
 from schedule.models import Occurrence
 from stables.models import EventMetaData
+from stables.models import Accident
 from tastypie import fields
 from tastypie.bundle import Bundle
 from tastypie.cache import SimpleCache
@@ -75,9 +76,14 @@ class CommentResource(ModelResource):
         return super(CommentResource, self).obj_create(bundle, **kwargs)
 
 class ViewParticipation:
-    def __init__(self, part=None, saldo=None):
+    def __init__(self, part=None):
         self.id = 0
         if part:
+            saldo = None
+            if hasattr(part, 'saldo'):
+                saldo = part.saldo
+            else:
+                saldo = part.get_saldo()
             self.id = part.id
             self.rider_name = unicode(part.participant)
             self.rider_url = part.participant.get_absolute_url()
@@ -103,13 +109,15 @@ class ViewParticipation:
                 self.finance = "--"
             if part.id:
                 self.finance_url = part.get_absolute_url()
+            if hasattr(part, 'accident'):
+                self.accident_url = part.accident.get_absolute_url
 
 class ApiList(list):
     def all(self):
         return self
 
 class ViewEvent:
-    def __init__(self, occ=None, course=None, parts=None, saldos=None, instr=None, metadata=None, last_comment=None):
+    def __init__(self, occ=None, course=None, parts=None, saldos=None, instr=None, metadata=None, last_comment=None, accidents=None):
         self.participations = []
         if occ:
             self.pk = occ.start
@@ -120,7 +128,12 @@ class ViewEvent:
         if instr:
             self.instructor_id = instr.instructor_id
         if parts:
-            self.participations = ApiList([ ViewParticipation(p, saldos[p.id]) for p in parts])
+            self.participations = ApiList()
+            for p in parts:
+                p.saldo = saldos[p.id]
+                if p.participant.rider.pk in accidents:
+                    setattr(p, 'accident', accidents[p.participant.rider.pk])
+                self.participations.append(ViewParticipation(p))
         if metadata:
             self.metadata = metadata
         if last_comment:
@@ -144,6 +157,7 @@ class ParticipationResource(Resource):
     start = fields.DateField(attribute='start')
     end = fields.DateField(attribute='end')
     note = fields.CharField(attribute='note', null=True)
+    accident_url = fields.CharField(attribute='accident_url', null=True)
 
     class Meta:
         resource_name = 'participations'
@@ -152,7 +166,11 @@ class ParticipationResource(Resource):
 
     def obj_get(self, bundle, **kwargs):
         part = Participation.objects.get(pk=kwargs['pk'])
-        return ViewParticipation(part, part.get_saldo())
+        accidents = Accident.objects.filter(at__lte=part.end, at__gte=part.start, rider=part.participant.rider)
+        if accidents:
+            setattr(part, 'accident', accidents[0])
+        setattr(part, 'saldo', part.get_saldo())
+        return ViewParticipation(part)
 
     def detail_uri_kwargs(self, bundle_or_obj):
         kwargs = {}
@@ -173,7 +191,7 @@ class ParticipationResource(Resource):
         part.note = bundle.data['note']
         part.save()
         part = Participation.objects.get(pk=kwargs['pk'])
-        bundle.obj = ViewParticipation(part, part.get_saldo())
+        bundle.obj = ViewParticipation(part)
         return bundle
 
     def obj_create(self, bundle, request=None, **kwargs):
@@ -194,7 +212,7 @@ class ParticipationResource(Resource):
         part.end = datetime.datetime.strptime(bundle.data['end'], '%Y-%m-%dT%H:%M:%S')
         part.save()
         part = Participation.objects.get(pk=part.id)
-        bundle.obj = ViewParticipation(part, part.get_saldo())
+        bundle.obj = ViewParticipation(part)
         return bundle
 
 class ShortClientCache(SimpleCache):
@@ -298,6 +316,7 @@ class EventResource(Resource):
             instr = dict((i.event.pk, i) for i in instr)
             saldos = dict(Transaction.objects.get_saldos(partids))
             metadatas = dict((e.event.pk, e) for e in EventMetaData.objects.filter(start__gte=start, end__lte=end))
+            accidents = dict([ (a.rider.pk, a) for a in Accident.objects.filter(at__gte=start, at__lte=end)])
             comments = {}
             for c in Comment.objects.filter(object_pk__in=[m.pk for m in metadatas.values()], content_type=ContentType.objects.get_for_model(EventMetaData)):
                 comments[int(c.object_pk)] = c
@@ -307,7 +326,8 @@ class EventResource(Resource):
                 occs.append(ViewEvent(o, c, p, saldos,
                     instr.get(o.event.pk, None),
                     metadata,
-                    comments.get(metadata.pk if metadata else None, None)
+                    comments.get(metadata.pk if metadata else None, None),
+                    accidents
                 ))
         return occs
 
@@ -320,7 +340,7 @@ def update_event_resource(sender, **kwargs):
     inst = kwargs['instance']
     if hasattr(kwargs['instance'], 'source'):
         inst = kwargs['instance'].source
-    time_attrs = ['original_start', 'start']
+    time_attrs = ['original_start', 'start', 'at']
     dates = set()
     for ta in time_attrs:
         d = getattr(inst, ta, None)
@@ -336,3 +356,4 @@ post_save.connect(update_event_resource, sender=Occurrence)
 post_save.connect(update_event_resource, sender=InstructorParticipation)
 post_save.connect(update_event_resource, sender=Transaction)
 post_save.connect(update_event_resource, sender=Comment)
+post_save.connect(update_event_resource, sender=Accident)

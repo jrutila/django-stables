@@ -41,7 +41,15 @@
   </div>
   {{ object.participant.rider.ticket.count }}
 </div>
+<h3>{% trans "Accidents" %}</h3>
 <div>
+  {% if object.accidents %}
+  <ul>
+      {% for a in object.accidents %}
+      <li><a href="{{ a.get_absolute_url }}" title="{{ a.description }}">{{ a.type }}</a></li>
+      {% endfor %}
+  </ul>
+  {% endif %}
   <a href="{% url "add_accident" %}?participation_id={{ object.id }}">{% trans "Report accident" %}</a>
 </div>
 {% endblock content %}

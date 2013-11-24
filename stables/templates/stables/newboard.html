@@ -88,6 +88,9 @@
     <% if (finance_url != null) { %>
         <a href="<%= finance_url %>" title="<%= finance_hint %>"><%= finance %></a>
     <% } %>
+    <% if (accident_url != null) { %>
+        <a href="<%= accident_url %>">X</a>
+    <% } %>
     <a href="<%= rider_url %>"><%= rider_name %></a>
     </span>
     <select name="state">

@@ -1,4 +1,4 @@
-from django.views.generic.edit import CreateView
+from django.views.generic.edit import CreateView, UpdateView
 
 from stables.models import Accident
 from stables.models import Participation
@@ -37,3 +37,8 @@ class CreateAccident(CreateView):
         form = super(CreateView, self).get_form(form_class)
         form.user = self.request.user
         return form
+
+class EditAccident(UpdateView):
+    model = Accident
+    form_class = AccidentForm
+    template_name = 'stables/generic_form.html'
