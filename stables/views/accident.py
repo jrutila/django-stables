@@ -11,8 +11,10 @@ class CreateAccident(CreateView):
     template_name = 'stables/generic_form.html'
 
     def dispatch(self, request, *args, **kwargs):
-        self.participation = Participation.objects.get(pk=request.GET.get('participation_id'))
-        self.success_url = self.participation.get_absolute_url()
+        self.participation = None
+        if request.GET.get('participation_id'):
+            self.participation = Participation.objects.get(pk=request.GET.get('participation_id'))
+            self.success_url = self.participation.get_absolute_url()
         return super(CreateAccident, self).dispatch(request, *args, **kwargs)
 
     def get_initial(self):

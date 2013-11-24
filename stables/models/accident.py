@@ -19,7 +19,8 @@ class LocalizedText():
         self.texts = d
 
     def __unicode__(self):
-        return self.texts[django.utils.translation.get_language()]
+        lang = django.utils.translation.get_language()
+        return self.texts.get(lang, self.texts.get(lang.split('-')[0]))
 
 class LocalizedTextInput(forms.TextInput):
     def __init__(self, *args, **kwargs):

@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django import forms
 from django.core.urlresolvers import reverse
+
 import datetime
 
 class UserManager(models.Manager):
@@ -70,7 +71,10 @@ class RiderInfo(models.Model):
     class Meta:
         app_label = 'stables'
     def __unicode__(self):
-        return self.user.__unicode__()
+        try:
+            return self.user.__unicode__()
+        except UserProfile.DoesNotExist:
+            return 'N/A'
     levels = models.ManyToManyField(RiderLevel, related_name='+', blank=True)
     customer = models.ForeignKey(CustomerInfo)
     ticket_warning_limit = 1
