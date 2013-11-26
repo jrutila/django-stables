@@ -8,6 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.db import connection
 
 from south.modelsinspector import add_introspection_rules
 add_introspection_rules([], ["^stables\.models\.financial\.CurrencyField"])
@@ -26,6 +27,14 @@ class TicketType(models.Model):
     name = models.CharField(_("name"), max_length=32)
     description = models.TextField(_("description"))
 
+class TicketManager(models.Manager):
+    def get_ticketcounts(self, participations):
+        crs = connection.cursor()
+        schema = connection.get_schema()
+        query = 'select p.id, count(t.id) from %(schema)s.stables_participation p inner join %(schema)s.stables_userprofile u on u.id = p.participant_id inner join %(schema)s.stables_riderinfo r on r.id = u.rider_id inner join %(schema)s.stables_ticket t on (r.customer_id = t.owner_id and owner_type_id = %(rider)d) or (u.rider_id = t.owner_id and t.owner_type_id = %(customer)d) where p.id in (%(partids)s) and t.transaction_id is null and t.expires >= p.start group by p.id having count(t.id) <= 1' % { 'schema' : schema, 'customer': 21, 'rider': 20, 'partids': ', '.join(list(map(lambda x: '%s', participations))) }
+        crs.execute(query, list(participations))
+        return dict(crs.fetchall())
+
 class Ticket(models.Model):
     class Meta:
         app_label = 'stables'
@@ -36,6 +45,7 @@ class Ticket(models.Model):
         if self.transaction:
             s = s + "(USED)"
         return s
+    objects = TicketManager()
     type = models.ForeignKey(TicketType)
     owner_type = models.ForeignKey(ContentType)
     owner_id = models.PositiveIntegerField()

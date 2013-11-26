@@ -11,6 +11,7 @@ from schedule.models import Event
 from schedule.models import Occurrence
 from stables.models import EventMetaData
 from stables.models import Accident
+from stables.models import Ticket
 from tastypie import fields
 from tastypie.bundle import Bundle
 from tastypie.cache import SimpleCache
@@ -111,13 +112,16 @@ class ViewParticipation:
                 self.finance_url = part.get_absolute_url()
             if hasattr(part, 'accident'):
                 self.accident_url = part.accident.get_absolute_url
+            if hasattr(part, 'warning'):
+                self.alert_level = 'warning'
+                self.warning = part.warning
 
 class ApiList(list):
     def all(self):
         return self
 
 class ViewEvent:
-    def __init__(self, occ=None, course=None, parts=None, saldos=None, instr=None, metadata=None, last_comment=None, accidents=None):
+    def __init__(self, occ=None, course=None, parts=None, saldos=None, instr=None, metadata=None, last_comment=None, accidents=None, ticketcounts=None, warnings=None):
         self.participations = []
         if occ:
             self.pk = occ.start
@@ -133,6 +137,10 @@ class ViewEvent:
                 p.saldo = saldos[p.id]
                 if p.participant.rider.pk in accidents:
                     setattr(p, 'accident', accidents[p.participant.rider.pk])
+                if ticketcounts and p.pk in ticketcounts and ticketcounts[p.pk] <= 1:
+                    warnings[p.pk] = _('%d tickets remaining') % ticketcounts[p.pk]
+                if warnings and p.pk in warnings:
+                    setattr(p, 'warning', warnings[p.pk])
                 self.participations.append(ViewParticipation(p))
         if metadata:
             self.metadata = metadata
@@ -158,6 +166,7 @@ class ParticipationResource(Resource):
     end = fields.DateField(attribute='end')
     note = fields.CharField(attribute='note', null=True)
     accident_url = fields.CharField(attribute='accident_url', null=True)
+    warning = fields.CharField(attribute='warning', null=True)
 
     class Meta:
         resource_name = 'participations'
@@ -166,11 +175,19 @@ class ParticipationResource(Resource):
 
     def obj_get(self, bundle, **kwargs):
         part = Participation.objects.get(pk=kwargs['pk'])
+        self._set_extra(part)
+        return ViewParticipation(part)
+
+    def _set_extra(self, part):
         accidents = Accident.objects.filter(at__lte=part.end, at__gte=part.start, rider=part.participant.rider)
+        ticketcounts = Ticket.objects.get_ticketcounts([part.pk])
         if accidents:
             setattr(part, 'accident', accidents[0])
+        # TODO: This logic is now twice
+        if ticketcounts and part.pk in ticketcounts and ticketcounts[part.pk] <= 1:
+            part.alert_level = 'warning'
+            part.warning = _('%d tickets remaining') % ticketcounts[part.pk]
         setattr(part, 'saldo', part.get_saldo())
-        return ViewParticipation(part)
 
     def detail_uri_kwargs(self, bundle_or_obj):
         kwargs = {}
@@ -191,6 +208,7 @@ class ParticipationResource(Resource):
         part.note = bundle.data['note']
         part.save()
         part = Participation.objects.get(pk=kwargs['pk'])
+        self._set_extra(part)
         bundle.obj = ViewParticipation(part)
         return bundle
 
@@ -315,8 +333,10 @@ class EventResource(Resource):
             instr = list(InstructorParticipation.objects.filter(start__gte=start, end__lte=end))
             instr = dict((i.event.pk, i) for i in instr)
             saldos = dict(Transaction.objects.get_saldos(partids))
+            ticketcounts = Ticket.objects.get_ticketcounts(partids)
             metadatas = dict((e.event.pk, e) for e in EventMetaData.objects.filter(start__gte=start, end__lte=end))
             accidents = dict([ (a.rider.pk, a) for a in Accident.objects.filter(at__gte=start, at__lte=end)])
+            warnings = Participation.objects.generate_warnings(start, end)
             comments = {}
             for c in Comment.objects.filter(object_pk__in=[m.pk for m in metadatas.values()], content_type=ContentType.objects.get_for_model(EventMetaData)):
                 comments[int(c.object_pk)] = c
@@ -327,7 +347,9 @@ class EventResource(Resource):
                     instr.get(o.event.pk, None),
                     metadata,
                     comments.get(metadata.pk if metadata else None, None),
-                    accidents
+                    accidents,
+                    ticketcounts,
+                    warnings
                 ))
         return occs
 

@@ -85,6 +85,9 @@
         style="text-decoration: line-through;"
     <% } %>
     >
+    <% if (alert_level == 'warning') { %>
+        <span title="<%= warning %>">!</span>
+    <% } %>
     <% if (finance_url != null) { %>
         <a href="<%= finance_url %>" title="<%= finance_hint %>"><%= finance %></a>
     <% } %>

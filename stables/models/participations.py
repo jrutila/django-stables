@@ -449,8 +449,14 @@ class ParticipationManager(models.Manager):
     move = part_move
     cancel = part_cancel
 
+    def _get_events(self, start, end):
+        return Event.objects.filter((Q(rule__frequency='WEEKLY') & (Q(end_recurring_period__gte=start) | Q(end_recurring_period__isnull=True))) | (Q(rule__isnull=True) & Q(start__gte=start) & Q(end__lte=end)) | (Q(occurrence__start__gte=start) & Q(occurrence__end__lte=end))).select_related('rule').prefetch_related('course_set')
+
+    def generate_warnings(self, start, end):
+        return { }
+
     def generate_attending_participations(self, start, end):
-        events = Event.objects.filter((Q(rule__frequency='WEEKLY') & (Q(end_recurring_period__gte=start) | Q(end_recurring_period__isnull=True))) | (Q(rule__isnull=True) & Q(start__gte=start) & Q(end__lte=end)) | (Q(occurrence__start__gte=start) & Q(occurrence__end__lte=end))).select_related('rule').prefetch_related('course_set')
+        events = self._get_events()
         ret = {}
         for event in events:
             if event.course_set.count() == 0:
