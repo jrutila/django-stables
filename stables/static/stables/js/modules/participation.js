@@ -10,6 +10,16 @@ var Participation = Backbone.Model.extend({
         rider_name: null,
         state: 0,
         note: null,
+        enroll: null,
+    },
+})
+
+var Enroll = Backbone.Model.extend({
+    urlRoot: apiUrl+'enroll/',
+    defaults: {
+        event: null,
+        state: 0,
+        rider: null,
     },
 })
 
@@ -27,6 +37,47 @@ var ParticipationView = Backbone.View.extend({
         'change select[name="state"]': 'stateChange',
         'change select[name="horse"]': 'horseChange',
         'change textarea[name="note"]': 'noteChange',
+        'click button.enroll': 'enroll',
+        'click button.denroll': 'denroll',
+    },
+    enroll: function(ev) {
+        var model = this.model
+        $.msgbox("Are you sure?", {
+            type: "confirm",
+            buttons: [
+                { type: 'submit', value: 'Yes' },
+                { type: 'cancel', value: 'Cancel' },
+            ],
+        }, function (result) {
+            if (result) {
+                var e = new Enroll({
+                    event: model.get('event_id'),
+                    rider: model.get('rider_id'),
+                })
+                e.save()
+                model.fetch()
+            }
+        })
+    },
+    denroll: function(ev) {
+        var model = this.model
+        $.msgbox("Are you sure?", {
+            type: "confirm",
+            buttons: [
+                { type: 'submit', value: 'Yes' },
+                { type: 'cancel', value: 'Cancel' },
+            ],
+        }, function (result) {
+            if (result) {
+                var e = new Enroll()
+                e.url = model.get('enroll')
+                // Id must be set so that Backbone does POST
+                e.id = parseInt(model.get('enroll').split('/')[4])
+                e.set('state', 3)
+                e.save()
+                model.fetch()
+            }
+        })
     },
     stateChange: function(ev) {
         this.model.set('state', $(ev.target).val())

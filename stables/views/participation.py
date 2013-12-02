@@ -1,14 +1,18 @@
 from django.views.generic import FormView
 from django.views.generic import DetailView
 from django.views.generic import TemplateView
+from django.views.generic import CreateView, DeleteView
 from datetime import date, datetime
 from isoweek import Week
 from django.db.models import Max
 from django.core.urlresolvers import reverse
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 
 from stables.forms import DashboardForm
 from stables.models import Course
+from stables.models import Enroll
 from stables.models import Horse
 from stables.models import InstructorInfo
 from stables.models import Participation
@@ -55,6 +59,14 @@ class Dashboard(FormView):
         for p in form.deleted_participations:
           p.delete()
         return super(Dashboard, self).form_valid(form)
+
+class CreateEnroll(CreateView):
+    model = Enroll
+    template_name = 'stables/generic_form.html'
+
+class DeleteEnroll(DeleteView):
+    model = Enroll
+    template_name = 'stables/generic_form.html'
 
 class ParticipationView(DetailView): # widget_user(request, pid):
     model = Participation

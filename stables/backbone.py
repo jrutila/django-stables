@@ -12,6 +12,7 @@ from schedule.models import Occurrence
 from stables.models import EventMetaData
 from stables.models import Accident
 from stables.models import Ticket
+from stables.models import Enroll
 from tastypie import fields
 from tastypie.bundle import Bundle
 from tastypie.cache import SimpleCache
@@ -115,6 +116,10 @@ class ViewParticipation:
             if hasattr(part, 'warning'):
                 self.alert_level = 'warning'
                 self.warning = part.warning
+            if hasattr(part, 'enroll') and part.enroll.state == ATTENDING:
+                self.enroll = EnrollResource().get_resource_uri(part.enroll)
+            else:
+                self.enroll = None
 
 class ApiList(list):
     def all(self):
@@ -149,6 +154,27 @@ class ViewEvent:
             self.last_comment_date = last_comment.submit_date
             self.last_comment_user = last_comment.user_name
 
+class EnrollResource(ModelResource):
+    class Meta:
+        resource_name = 'enroll'
+        object_class = Enroll
+        list_allowed_methods = ['post', 'put']
+
+    event = fields.IntegerField()
+
+    def obj_create(self, bundle, request=None, **kwargs):
+        part = UserProfile.objects.get(pk=bundle.data['rider'])
+        event = Event.objects.get(pk=bundle.data['event'])
+        enroll = Enroll.objects.get_or_create(course=event.course_set.all()[0], participant=part)[0]
+        enroll.state = 0
+        enroll.last_state_change_on = datetime.datetime.now()
+        enroll.save()
+
+    def obj_update(self, bundle, request=None, **kwargs):
+        enroll = Enroll.objects.get(pk=kwargs['pk'])
+        enroll.state = bundle.data['state']
+        enroll.last_state_change_on = datetime.datetime.now()
+        enroll.save()
 
 class ParticipationResource(Resource):
     id = fields.IntegerField(attribute='id', null=True)
@@ -167,6 +193,7 @@ class ParticipationResource(Resource):
     note = fields.CharField(attribute='note', null=True)
     accident_url = fields.CharField(attribute='accident_url', null=True)
     warning = fields.CharField(attribute='warning', null=True)
+    enroll = fields.CharField(attribute='enroll', null=True)
 
     class Meta:
         resource_name = 'participations'
@@ -188,6 +215,9 @@ class ParticipationResource(Resource):
             part.alert_level = 'warning'
             part.warning = _('%d tickets remaining') % ticketcounts[part.pk]
         setattr(part, 'saldo', part.get_saldo())
+        enroll = Enroll.objects.get(participant=part.participant, course=part.event.course_set.all()[0])
+        if enroll:
+            setattr(part, 'enroll', enroll)
 
     def detail_uri_kwargs(self, bundle_or_obj):
         kwargs = {}
@@ -373,9 +403,14 @@ def update_event_resource(sender, **kwargs):
         key = er.generate_cache_key(at=d)
         er._meta.cache.set(key, None)
 
+def enroll_update_cache_clear(sender, **kwargs):
+    er = EventResource()
+
+
 post_save.connect(update_event_resource, sender=Participation)
 post_save.connect(update_event_resource, sender=Occurrence)
 post_save.connect(update_event_resource, sender=InstructorParticipation)
 post_save.connect(update_event_resource, sender=Transaction)
 post_save.connect(update_event_resource, sender=Comment)
 post_save.connect(update_event_resource, sender=Accident)
+post_save.connect(enroll_update_cache_clear, sender=Enroll)

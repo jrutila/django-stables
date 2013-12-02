@@ -104,6 +104,13 @@
     <div class="note">
     <textarea name="note"><%= note %></textarea>
     </div>
+    <% if (typeof id !== 'undefined' && id != null) { %>
+        <% if (state == 0 && enroll == null) { %>
+        <button class='enroll btn'>E</button>
+        <% } else if (state == 3 && enroll != null) { %>
+        <button class='denroll btn'>D</button>
+        <% } %>
+    <% } %>
 </script>
 
 <script type="text/html" id="EventView">
@@ -142,6 +149,5 @@
   <div class="widget-content">
   </div>
 </div>
-
 
 {% endblock content %}

@@ -9,6 +9,7 @@ v1_api.register(ParticipationResource())
 v1_api.register(EventResource())
 v1_api.register(CommentResource())
 v1_api.register(EventMetaDataResource())
+v1_api.register(EnrollResource())
 
 import reporting
 reporting.autodiscover()

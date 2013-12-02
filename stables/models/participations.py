@@ -491,6 +491,10 @@ class ParticipationManager(models.Manager):
             crs = event.course_set.all()[0]
             for occ in event.get_occurrences(start, end):
               occ_parts = [ p for p in parts if p.start == occ.start and p.end == occ.end and p.event == event ]
+              for p in occ_parts:
+                  enroll = [ e for e in enrolls if e.course == crs and e.participant == p.participant]
+                  if len(enroll) == 1:
+                      setattr(p, 'enroll', enroll[0])
               part_ids = [ p.participant.id for p in occ_parts ]
 
               for e in [ e for e in enrolls if e.course == crs and e.participant.id not in part_ids ]:
@@ -500,6 +504,7 @@ class ParticipationManager(models.Manager):
                 p.start = occ.start
                 p.end = occ.end
                 p.note = ""
+                p.enroll = e
                 occ_parts.append(p)
               ret[occ] = (event.course_set.all()[0], [ p for p in occ_parts ])
               partid_list = partid_list | set([p.id for p in occ_parts])
