@@ -497,7 +497,7 @@ class ParticipationManager(models.Manager):
                       setattr(p, 'enroll', enroll[0])
               part_ids = [ p.participant.id for p in occ_parts ]
 
-              for e in [ e for e in enrolls if e.course == crs and e.participant.id not in part_ids ]:
+              for e in [ e for e in enrolls if e.course == crs and e.last_state_change_on <= occ.start and e.participant.id not in part_ids ]:
                 p = Participation()
                 p.participant = e.participant
                 p.event = occ.event
