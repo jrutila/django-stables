@@ -209,7 +209,7 @@ class DashboardForm(forms.Form):
 
         # get warnings
         crs = connection.cursor()
-        schema = connection.get_schema()
+        schema = connection.schema_name
         query = 'select owner_type_id, owner_id, (select count(*) from %(schema)s.%(table)s t2 where transaction_id is null and t2.owner_type_id = t1.owner_type_id and t2.owner_id = t1.owner_id and expires >= now()), (select max(expires) from %(schema)s.%(table)s t3 where t3.owner_id = t1.owner_id and t3.owner_type_id = t1.owner_type_id) as expire from %(schema)s.%(table)s t1 group by owner_type_id, owner_id' % { 'schema' : schema, 'table': 'stables_ticket' }
         crs.execute(query)
         for row in crs.fetchall():
