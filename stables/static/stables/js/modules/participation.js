@@ -185,7 +185,6 @@ var Event = Backbone.Model.extend({
                     comment: data['last_comment'],
                 })
             })
-            console.log(data['comments'])
         }
         return data
     },

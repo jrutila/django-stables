@@ -22,18 +22,10 @@
         return this.toISOString().split("T")[0]
     }
 
-    function getDates(startDate, stopDate) {
-        var dateArray = new Array();
-        var currentDate = startDate;
-        while (currentDate <= stopDate) {
-            dateArray.push( new Date (currentDate) )
-            currentDate = currentDate.addDays(1);
-        }
-        return dateArray;
-    }
-
-    var week = new Week({ dates: [ new Date().toISOString().split("T")[0] ] })
+    var today = new Date().toISOString().split("T")[0]
+    var week = new Week({ dates: [ today ] })
     var weekView = new WeekView({ model: week })
+    weekView.render()
     $('.widget-content').html(weekView.$el)
 
     var WeekRouter = Backbone.Router.extend({
@@ -49,22 +41,36 @@
                 router.route.apply(router, route)
             })
         },
-        default: function() { week.fetch(); },
         dates: function(d) {
-            var dd = d.split(',')
-            _.each(_.keys(week.get("dates")), function(ed) {
-                if (!(ed in dd))
-                    delete week.get("dates")[ed]
-            })
-            _.each(dd, function(ed) {
-                    week.get("dates")[ed] = undefined
-            })
-            week.fetch()
+
+            console.log("got route: "+d)
+
+            if (d != null)
+            {
+                var dd = d.split(',')
+                _.each(_.keys(week.get("dates")), function(ed) {
+                    var ind = $.inArray(ed, dd)
+                    if (ind == -1)
+                        delete week.get("dates")[ed]
+                    else
+                        dd.splice(ind, 1)
+                })
+                _.each(dd, function(ed) {
+                        week.get("dates")[ed] = undefined
+                })
+                week.fetch()
+            }
         },
     })
     var dashboard_router = new WeekRouter()
 
+    console.log("start history")
     Backbone.history.start()
+    if (Backbone.history.fragment == "")
+    {
+        console.log("navigating: "+today)
+        dashboard_router.navigate(today, { trigger: true })
+    }
 
 </script>
 {% endaddtoblock %}
@@ -142,6 +148,10 @@
       <tbody>
       </tbody>
     </table>
+</script>
+
+<script type="text/html" id="EventLoadingView">
+    <img src="{{ STATIC_URL }}stables/img/ajax-loader.gif"/>
 </script>
 
 <div class="wide widget">

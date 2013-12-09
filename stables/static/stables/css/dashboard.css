@@ -151,3 +151,13 @@ white-space: nowrap;
     font-size: smaller;
     color: ligthGray;
 }
+
+.timetable .loaded img
+{
+    display: none;
+}
+
+.timetable tbody tr:not(:has(td.loaded:has(div)))
+{
+    display: none;
+}
