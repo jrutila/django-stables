@@ -33,9 +33,9 @@ createMetadata = function(ev) {
     })
     */
     var em = new EventMetaData({
-        start: ev.start,
-        end: ev.end,
-        event: apiUrl+'events/'+ev.event_id+'/',
+        start: ev.get('start'),
+        end: ev.get('end'),
+        event: ev.get('resource_uri'),
     })
     em.save()
     return em

@@ -166,6 +166,16 @@ var ParticipationCollection = Backbone.Collection.extend({
 })
 
 var Event = Backbone.Model.extend({
+    initialize: function() {
+        this.set('comments', new EventCommentsManager({
+            metadata: this.get('metadata'),
+            event: this,
+            last_comment: new EventComment({
+                comment: this.get('last_comment'),
+            })
+        })
+        )
+    },
     idAttribute: function() {
         // Use this so that there can be multiple occurrences from the same event
         return this.get('event_id') + this.get('start')
@@ -176,16 +186,6 @@ var Event = Backbone.Model.extend({
     parse: function(data) {
         if ('participations' in data)
             data['participations'] = new ParticipationCollection(ParticipationCollection.prototype.parse(data['participations']))
-        if ('last_comment' in data)
-        {
-            data['comments'] = new EventCommentsManager({
-                metadata: data['metadata'],
-                event: data['resource_uri'],
-                last_comment: new EventComment({
-                    comment: data['last_comment'],
-                })
-            })
-        }
         return data
     },
     getHour: function() {
