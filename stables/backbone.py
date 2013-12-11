@@ -73,6 +73,22 @@ class CommentResource(ModelResource):
             bundle_or_obj = bundle_or_obj.obj
         return { 'pk': bundle_or_obj.id }
 
+    def hydrate_content_object(self, bundle):
+        obj = bundle.data['content_object']
+        # TODO: There has to be better way!
+        if isinstance(obj, dict):
+            if 'id' not in obj:
+                obj['event'] = int(obj['event'].split('/')[-2])
+                obj['event'] = Event.objects.get(pk=obj['event'])
+            else:
+                pk = obj['id']
+                obj = { 'id': pk }
+        else:
+            pk = int(obj.split('/')[-2])
+            obj = { 'id': pk }
+        bundle.data['content_object'] = EventMetaData.objects.get_or_create(**obj)[0]
+        return bundle
+
     def obj_create(self, bundle, **kwargs):
         kwargs['site'] = Site.objects.get_current()
         return super(CommentResource, self).obj_create(bundle, **kwargs)

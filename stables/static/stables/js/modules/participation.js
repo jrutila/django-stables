@@ -180,7 +180,7 @@ var Event = Backbone.Model.extend({
         {
             data['comments'] = new EventCommentsManager({
                 metadata: data['metadata'],
-                event: data,
+                event: data['resource_uri'],
                 last_comment: new EventComment({
                     comment: data['last_comment'],
                 })
