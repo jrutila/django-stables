@@ -230,6 +230,8 @@ var EventView = Backbone.View.extend({
     instructorChange: function(ev) {
         this.model.set('instructor_id', parseInt($(ev.target).val()))
         this.$el.find('select[name="instructor"]').addClass('changed')
+        // TODO: Okay, so we remove comments so that there is no recursion
+        this.model.set('comments', null)
         //TODO: to model
         this.model.save()
     },
