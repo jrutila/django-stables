@@ -54,8 +54,11 @@ var ParticipationView = Backbone.View.extend({
                     event: model.get('event_id'),
                     rider: model.get('rider_id'),
                 })
-                e.save()
-                model.fetch()
+                e.save(null, {
+                    success: function() { model.fetch(); },
+                    // TODO: 201 is apparently error
+                    error: function() { model.fetch(); },
+                })
             }
         })
     },
@@ -74,8 +77,11 @@ var ParticipationView = Backbone.View.extend({
                 // Id must be set so that Backbone does POST
                 e.id = parseInt(model.get('enroll').split('/')[4])
                 e.set('state', 3)
-                e.save()
-                model.fetch()
+                e.save(null, {
+                    success: function() { model.fetch(); },
+                    // TODO: 201 is apparently error
+                    error: function() { model.fetch(); },
+                })
             }
         })
     },

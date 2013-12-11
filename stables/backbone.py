@@ -231,9 +231,9 @@ class ParticipationResource(Resource):
             part.alert_level = 'warning'
             part.warning = _('%d tickets remaining') % ticketcounts[part.pk]
         setattr(part, 'saldo', part.get_saldo())
-        enroll = Enroll.objects.get(participant=part.participant, course=part.event.course_set.all()[0])
+        enroll = Enroll.objects.filter(participant=part.participant, course=part.event.course_set.all()[0])
         if enroll:
-            setattr(part, 'enroll', enroll)
+            setattr(part, 'enroll', enroll[0])
 
     def detail_uri_kwargs(self, bundle_or_obj):
         kwargs = {}
@@ -276,6 +276,7 @@ class ParticipationResource(Resource):
         part.end = datetime.datetime.strptime(bundle.data['end'], '%Y-%m-%dT%H:%M:%S')
         part.save()
         part = Participation.objects.get(pk=part.id)
+        self._set_extra(part)
         bundle.obj = ViewParticipation(part)
         return bundle
 
