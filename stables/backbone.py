@@ -157,7 +157,7 @@ class ViewEvent:
             self.participations = ApiList()
             for p in parts:
                 p.saldo = saldos[p.id]
-                if p.participant.rider.pk in accidents:
+                if p.participant.rider and p.participant.rider.pk in accidents:
                     setattr(p, 'accident', accidents[p.participant.rider.pk])
                 if ticketcounts and p.pk in ticketcounts and ticketcounts[p.pk] <= 1:
                     warnings[p.pk] = _('%d tickets remaining') % ticketcounts[p.pk]
