@@ -120,7 +120,7 @@
 </script>
 
 <script type="text/html" id="EventView">
-    <span title='from <%= start %> to <%= end %>'><%= title %></span>
+<a class="<% if (cancelled) { %>cancelled<% } %>" href="<%= course_url %>" title='from <%= start %> to <%= end %>'><%= title %></a>
     <select name="instructor">
         <option value="0">{% trans "--" %}</option>
         {% for i in instructors %}

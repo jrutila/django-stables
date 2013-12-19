@@ -150,6 +150,7 @@ class ViewEvent:
             self.end = occ.end
             self.title = occ.event.title
             self.event_id = occ.event.id
+            self.cancelled = occ.cancelled
         if instr:
             self.instructor_id = instr.instructor_id
         if parts:
@@ -163,6 +164,8 @@ class ViewEvent:
                 if warnings and p.pk in warnings:
                     setattr(p, 'warning', warnings[p.pk])
                 self.participations.append(ViewParticipation(p))
+        if course:
+            self.course = course.get_absolute_url()
         if metadata:
             self.metadata = metadata
         if last_comment:
@@ -296,6 +299,7 @@ class EventResource(Resource):
 
     start = fields.DateField(attribute='start')
     end = fields.DateField(attribute='end')
+    cancelled = fields.BooleanField(attribute='cancelled')
     title = fields.CharField(attribute='title')
     event_id = fields.IntegerField(attribute='event_id')
     instructor_id = fields.IntegerField(attribute='instructor_id', null=True)
@@ -304,6 +308,7 @@ class EventResource(Resource):
     last_comment_user = fields.CharField(attribute='last_comment_user', null=True)
     last_comment_date = fields.DateField(attribute='last_comment_date', null=True)
     last_comment = fields.CharField(attribute='last_comment', null=True)
+    course_url = fields.CharField(attribute='course')
 
     def generate_cache_key(self, *args, **kwargs):
         if 'at' in kwargs:
