@@ -1,7 +1,14 @@
 {% extends "base.html" %}
 {% load i18n stablestags %}
 {% block content %}
-<h1><a href="{{ object.get_absolute_url }}">{{ object }}</a></h1>
+<h1>
+    <a href="{{ object.get_absolute_url }}">{{ object }}</a>
+    {% ifnotequal object.customer object.rider.customer %}
+    <small>
+    (<a href="{{ object.rider.customer.user.get_absolute_url }}">{{ object.rider.customer.user }}</a>)
+    </small>
+    {% endifnotequal %}
+</h1>
 
 {% if object.instructor %}
 <p>

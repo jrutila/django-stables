@@ -31,7 +31,7 @@ class UserProfile(models.Model):
     objects = UserManager()
     user = models.OneToOneField(User)
     rider = models.OneToOneField('RiderInfo', null=True, blank=True, related_name='user', on_delete=models.SET_NULL)
-    customer = models.OneToOneField('CustomerInfo', null=True, blank=True, on_delete=models.SET_NULL)
+    customer = models.OneToOneField('CustomerInfo', null=True, blank=True, on_delete=models.SET_NULL, related_name='user')
     instructor = models.OneToOneField('InstructorInfo', null=True, blank=True, related_name='user')
 
     phone_number = models.CharField(max_length=30, null=True, blank=True)
