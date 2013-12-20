@@ -59,6 +59,7 @@
                         week.get("dates")[ed] = undefined
                 })
                 week.fetch()
+                $.cookie("last-dashboard-route", d)
             }
         },
     })
@@ -68,8 +69,11 @@
     Backbone.history.start()
     if (Backbone.history.fragment == "")
     {
-        console.log("navigating: "+today)
-        dashboard_router.navigate(today, { trigger: true })
+        var rout = $.cookie("last-dashboard-route")
+        if (rout == null)
+            rout = today
+        console.log("navigating: "+rout)
+        dashboard_router.navigate(rout, { trigger: true })
     }
 
 </script>
