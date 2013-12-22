@@ -4,11 +4,9 @@ from django.db.models import Q
 from django.db import IntegrityError, transaction
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
-from schedule.models import Calendar, Event, Rule, Occurrence
-from user import UserProfile, RiderLevel, RiderInfo
+from schedule.models import Event, Occurrence
+from user import UserProfile, RiderLevel
 from financial import CurrencyField, TicketType
-from django import forms
-from django.template.defaultfilters import slugify
 import datetime
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.template.defaultfilters import date, time
@@ -458,26 +456,6 @@ class ParticipationManager(models.Manager):
 
     def generate_warnings(self, start, end):
         return { }
-
-    def generate_attending_participations(self, start, end):
-        events = self._get_events()
-        ret = {}
-        for event in events:
-            if event.course_set.count() == 0:
-              continue
-            for occ in event.get_occurrences(start, end):
-              parts = list(Participation.objects.filter(event=event, start=occ.start, end=occ.end).select_related('participant__user', 'horse'))
-              enrolls = list(Enroll.objects.filter(Q(course__in=event.course_set.all()) & Q(state=ATTENDING) & ~Q(participant__in=[ p.participant.id for p in parts ])).select_related('participant__user').prefetch_related('course'))
-              for e in enrolls:
-                p = Participation()
-                p.participant = e.participant
-                p.event = occ.event
-                p.start = occ.start
-                p.end = occ.end
-                p.note = ""
-                parts.append(p)
-              ret[occ] = (event.course_set.all()[0], [ p for p in parts ])
-        return ret
 
     def generate_participations(self, start, end):
         weekday = (start.isoweekday()+1) % 8
