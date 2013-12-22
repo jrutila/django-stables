@@ -7,6 +7,9 @@ from django.core.urlresolvers import reverse
 import datetime
 
 class UserManager(models.Manager):
+    def get_query_set(self):
+        return super(UserManager, self).get_query_set().prefetch_related('user')
+
     def participate(self, rider, occurrence):
         part = Participation()
         part.participant = rider
