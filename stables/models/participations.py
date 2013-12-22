@@ -333,6 +333,9 @@ ENROLL_STATES = (
 )
 
 class EnrollManager(models.Manager):
+    def get_query_set(self):
+        return super(EnrollManager, self).get_query_set().prefetch_related('course', 'participant__user')
+
     def get_enrolls(self, course, occurrence=None):
         return self.filter(course=course)
 
