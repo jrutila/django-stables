@@ -253,6 +253,8 @@ class Course(models.Model):
         return self.create_participation(rider, occurrence, ATTENDING)
 
     def create_participation(self, rider, occurrence, state, force=False):
+        if occurrence.cancelled:
+            raise ParticipationError("Cannot create participation on cancelled occurrence")
         pstates = self.get_possible_states(rider, occurrence)
         parti = Participation.objects.get_participation(rider, occurrence)
         if not parti:
@@ -381,7 +383,6 @@ class CourseParticipationActivator(models.Model):
     activate_before_hours = models.IntegerField()
 
     def try_activate(self):
-        pass
         if self.enroll.state != ATTENDING:
             self.delete()
             return None

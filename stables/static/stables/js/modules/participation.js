@@ -229,7 +229,8 @@ var EventView = Backbone.View.extend({
             view.render()
             ul.append(view.$el)
         }, this)
-        this.renderAdder()
+        if (!this.model.get('cancelled'))
+            this.renderAdder()
         this.renderComments()
         return this
     },

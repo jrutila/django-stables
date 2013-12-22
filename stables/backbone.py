@@ -153,7 +153,7 @@ class ViewEvent:
             self.cancelled = occ.cancelled
         if instr:
             self.instructor_id = instr.instructor_id
-        if parts:
+        if parts and not self.cancelled:
             self.participations = ApiList()
             for p in parts:
                 p.saldo = saldos[p.id]
@@ -262,21 +262,26 @@ class ParticipationResource(Resource):
         return bundle
 
     def obj_create(self, bundle, request=None, **kwargs):
-        part = Participation()
-        part.state = bundle.data['state']
+        event = Event.objects.get(pk=bundle.data['event_id'])
+        start = datetime.datetime.strptime(bundle.data['start'], '%Y-%m-%dT%H:%M:%S')
+        end = datetime.datetime.strptime(bundle.data['end'], '%Y-%m-%dT%H:%M:%S')
+        course = event.course_set.all()[0]
+        occ = course.get_occurrence(start)
+        state = bundle.data['state']
         if ('rider_id' not in bundle.data and bundle.data['rider_name'] != None):
             f = []
             for v in bundle.data['rider_name'].split(" "):
                 f.append((Q(user__first_name__icontains=v) | Q(user__last_name__icontains=v)))
-            part.participant = UserProfile.objects.get(reduce(operator.and_, f))
+            participant = UserProfile.objects.get(reduce(operator.and_, f))
         else:
-            part.participant = UserProfile.objects.get(pk=bundle.data['rider_id'])
+            participant = UserProfile.objects.get(pk=bundle.data['rider_id'])
+
+        # Create the participation through course
+        part = course.create_participation(participant, occ, state, True)
+
         if (bundle.data['horse'] and int(bundle.data['horse']) > 0):
             part.horse = Horse.objects.get(pk=bundle.data['horse'])
         part.note = bundle.data['note'] if bundle.data['note'] else ""
-        part.event = Event.objects.get(pk=bundle.data['event_id'])
-        part.start = datetime.datetime.strptime(bundle.data['start'], '%Y-%m-%dT%H:%M:%S')
-        part.end = datetime.datetime.strptime(bundle.data['end'], '%Y-%m-%dT%H:%M:%S')
         part.save()
         part = Participation.objects.get(pk=part.id)
         self._set_extra(part)
