@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.urlresolvers import reverse
 from django.db.models import Q
+from django.db.models import Count
 from django.db import IntegrityError, transaction
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
@@ -23,6 +24,11 @@ OCCURRENCE_LIST_WEEKS = 5
 
 class ParticipationError(Exception):
     pass
+
+class CourseManager(models.Manager):
+    def get_course_occurrences(self, start, end):
+        events = Participation.objects._get_events(start, end)
+        return events
 
 class Course(models.Model):
     """
@@ -59,6 +65,8 @@ class Course(models.Model):
     course_fee = CurrencyField(default=0)
     ticket_type = models.ManyToManyField(TicketType, verbose_name=_('Default ticket type'), blank=True)
     allowed_levels = models.ManyToManyField(RiderLevel, verbose_name=_('Allowed rider levels'), blank=True)
+
+    objects = CourseManager()
 
     def get_occurrences(self, delta=None, start=None):
         if not start:
@@ -452,19 +460,18 @@ class ParticipationManager(models.Manager):
     cancel = part_cancel
 
     def _get_events(self, start, end):
-        return Event.objects.filter((Q(rule__frequency='WEEKLY') & (Q(end_recurring_period__gte=start) | Q(end_recurring_period__isnull=True))) | (Q(rule__isnull=True) & Q(start__gte=start) & Q(end__lte=end)) | (Q(occurrence__start__gte=start) & Q(occurrence__end__lte=end))).select_related('rule').prefetch_related('course_set')
+        weekday = (start.isoweekday()+1) % 8
+        return Event.objects.annotate(num_courses=Count('course')).exclude(end_recurring_period__lt=start).exclude(num_courses=0).filter((Q(start__week_day=weekday) & Q(rule__frequency='WEEKLY')) | (Q(rule__frequency__isnull=True) & Q(start__gte=start) & Q(end__lte=end))).prefetch_related('course_set').prefetch_related('occurrence_set', 'rule').select_related()
 
     def generate_warnings(self, start, end):
         return { }
 
     def generate_participations(self, start, end):
-        weekday = (start.isoweekday()+1) % 8
-        events = Event.objects.exclude(end_recurring_period__lt=start).filter((Q(start__week_day=weekday) & Q(rule__frequency='WEEKLY')) | (Q(rule__frequency__isnull=True) & Q(start__gte=start) & Q(end__lte=end))).prefetch_related('course_set').prefetch_related('occurrence_set', 'rule').select_related()
+        events = self._get_events(start, end)
         events = list(events)
         courses = Course.objects.filter(events__in=events).select_related()
         enrolls = list(Enroll.objects.filter(course__in=courses).exclude(state=CANCELED).select_related())
         parts = list(Participation.objects.filter(event__in=events, start__gte=start, end__lte=end).prefetch_related('event', 'participant__user').select_related())
-        #.values('id', 'participant_id', 'state', 'event_id', 'start', 'end')
         ret = {}
         partid_list = set()
         for event in events:

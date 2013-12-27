@@ -24,4 +24,5 @@ urlpatterns = patterns('',
     url(r'^a/', include('stables.urls.accident')),
     url(r'^r/', include('reporting.urls')),
     url(r'^backbone/', include(v1_api.urls)),
+    url(r'^api/', include('stables.urls.api')),
 )

@@ -53,6 +53,7 @@ setup(
       'django-tastypie',
       'backbone-tastypie',
       'mimeparse',
+      'djangorestframework',
     ],
     zip_safe=False,
     dependency_links = [
