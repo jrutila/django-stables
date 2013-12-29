@@ -108,7 +108,7 @@ def list_course(request, week=None):
     if (request.user.has_perm('stables.change_participation')):
       if request.is_mobile:
         return redirect('stables.views.widget')
-      return redirect('stables.views.dashboard')
+      return redirect('newboard')
     if week == None:
         week = datetime.date.today().isocalendar()[1]
     week = int(week)
