@@ -17,7 +17,7 @@ class HorseForm(forms.ModelForm):
     class Meta:
         model = Horse
 
-    last_usage_date = forms.DateField(input_formats=formats.get_format('DATE_INPUT_FORMATS'))
+    last_usage_date = forms.DateField(input_formats=formats.get_format('DATE_INPUT_FORMATS'), required=False)
 
     def __init__(self, *args, **kwargs):
       super(HorseForm, self).__init__(*args, **kwargs)
