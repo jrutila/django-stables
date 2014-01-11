@@ -303,7 +303,7 @@ class EventResource(Resource):
 
     start = fields.DateField(attribute='start')
     end = fields.DateField(attribute='end')
-    cancelled = fields.BooleanField(attribute='cancelled')
+    cancelled = fields.BooleanField(attribute='cancelled', null=True)
     title = fields.CharField(attribute='title')
     event_id = fields.IntegerField(attribute='event_id')
     instructor_id = fields.IntegerField(attribute='instructor_id', null=True)
