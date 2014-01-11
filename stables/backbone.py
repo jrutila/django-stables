@@ -266,7 +266,7 @@ class ParticipationResource(Resource):
         start = datetime.datetime.strptime(bundle.data['start'], '%Y-%m-%dT%H:%M:%S')
         end = datetime.datetime.strptime(bundle.data['end'], '%Y-%m-%dT%H:%M:%S')
         occ = event.get_occurrence(start)
-        state = bundle.data['state']
+        state = int(bundle.data['state'])
         if ('rider_id' not in bundle.data and bundle.data['rider_name'] != None):
             f = []
             for v in bundle.data['rider_name'].split(" "):
