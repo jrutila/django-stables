@@ -51,12 +51,13 @@ class Ticket(models.Model):
             s = s + "(USED)"
         return s
     objects = TicketManager()
-    type = models.ForeignKey(TicketType)
+    type = models.ForeignKey(TicketType, verbose_name=_("Ticket type"))
     owner_type = models.ForeignKey(ContentType)
     owner_id = models.PositiveIntegerField()
     owner = generic.GenericForeignKey('owner_type', 'owner_id')
     transaction = models.ForeignKey("Transaction", null=True, blank=True, related_name="ticket_set")
-    expires = models.DateTimeField(default=datetime.datetime(datetime.datetime.now().year, datetime.datetime.now().month, datetime.datetime.now().day, 23, 59, 59), null=True, blank=True)
+    expires = models.DateTimeField(_("Expires"), default=datetime.datetime(datetime.datetime.now().year, datetime.datetime.now().month, datetime.datetime.now().day, 23, 59, 59), null=True, blank=True)
+    value = CurrencyField(_("Value"), null=True, blank=True, help_text=_("Sell value of one ticket. Can be used when calculating user revenue."))
 
 class TransactionActivator(models.Model):
     class Meta:

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-12-31 14:25+0200\n"
+"POT-Creation-Date: 2014-01-12 00:29+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -122,6 +122,10 @@ msgstr "Uusi"
 msgid "Family ticket"
 msgstr "Perhekortti"
 
+#: forms/financial.py:128
+msgid "Amount"
+msgstr "Määrä"
+
 #: forms/horse.py:31
 msgid "Expire information"
 msgstr "Vanhenemistiedot"
@@ -145,6 +149,24 @@ msgstr "nimi"
 #: models/financial.py:28
 msgid "description"
 msgstr "kuvaus"
+
+#: models/financial.py:54
+msgid "Ticket type"
+msgstr "Kortin tyyppi"
+
+#: models/financial.py:59
+msgid "Expires"
+msgstr "Vanhenee"
+
+#: models/financial.py:60
+msgid "Value"
+msgstr "Arvo"
+
+#: models/financial.py:60
+msgid "Sell value of one ticket. Can be used when calculating user revenue."
+msgstr ""
+"Kortin myyntiarvo. Myyntiarvoa voidaan käyttää asiakaskohtaisen tuoton "
+"laskennassa."
 
 #: models/horse.py:11
 msgid "last usage date"
@@ -186,54 +208,54 @@ msgstr "oletuskortti"
 msgid "Allowed rider levels"
 msgstr "sallitut ratsastajien tasot"
 
-#: models/participations.py:328 models/participations.py:337
+#: models/participations.py:298 models/participations.py:307
 msgid "Attending"
 msgstr "Osallistuu"
 
-#: models/participations.py:330 templatetags/stablestags.py:106
+#: models/participations.py:300 templatetags/stablestags.py:106
 msgid "Skipped"
 msgstr "Ei osallistunut"
 
-#: models/participations.py:331 models/participations.py:338
+#: models/participations.py:301 models/participations.py:308
 msgid "Canceled"
 msgstr "Peruttu"
 
-#: models/participations.py:332 models/participations.py:339
+#: models/participations.py:302 models/participations.py:309
 msgid "Rejected"
 msgstr "Hylätty"
 
-#: models/participations.py:333 models/participations.py:340
+#: models/participations.py:303 models/participations.py:310
 msgid "Reserved"
 msgstr "Varalla"
 
-#: models/participations.py:336
+#: models/participations.py:306
 msgid "Waiting for payment"
 msgstr "Odottaa maksua"
 
-#: models/participations.py:356 models/participations.py:521
+#: models/participations.py:326 models/participations.py:522
 #, python-format
 msgid "%(name)s %(state)s"
 msgstr ""
 
-#: models/participations.py:507
+#: models/participations.py:508
 msgid "DATE_FORMAT"
 msgstr "l d.m.Y"
 
-#: models/participations.py:508
+#: models/participations.py:509
 msgid "TIME_FORMAT"
 msgstr "h:i"
 
-#: models/participations.py:511
+#: models/participations.py:512
 #, python-format
 msgid "%(name)s %(state)s No Occurrence"
 msgstr ""
 
-#: models/participations.py:512
+#: models/participations.py:513
 #, python-format
 msgid "%(name)s %(state)s %(event)s: %(start)s %(starttime)s - %(endtime)s"
 msgstr ""
 
-#: models/participations.py:641
+#: models/participations.py:642
 #, python-format
 msgid "%(firstname)s %(lastname)s"
 msgstr ""
@@ -452,6 +474,8 @@ msgid ""
 "\n"
 "%(name)s: %(amount)s pcs (first expires: %(expire_date)s)\n"
 msgstr ""
+"\n"
+"%(name)s: %(amount)s kpl (ensimmäinen vanhenee: %(expire_date)s)\n"
 
 #: templates/stables/user/index.html:78
 msgid "Last transactions"

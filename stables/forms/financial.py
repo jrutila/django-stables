@@ -125,13 +125,13 @@ class TicketForm(forms.ModelForm):
           }
 
     to_customer = forms.BooleanField(required=False, label=_('Family ticket'))
-    amount = forms.IntegerField(required=True, initial=10)
+    amount = forms.IntegerField(required=True, initial=10, label=_('Amount'))
 
     def __init__(self, *args, **kwargs):
       super(TicketForm, self).__init__(*args, **kwargs)
       self.helper = FinancialFormHelper()
       self.helper.layout = Layout(
-            'type', 'expires', 'to_customer', 'amount', 'owner_type', 'owner_id',
+            'type', 'expires', 'to_customer', 'amount', 'owner_type', 'owner_id', 'value',
             ButtonHolder(
               Submit('submit', 'Submit')
               )
