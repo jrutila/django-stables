@@ -20,7 +20,7 @@ from tastypie.authorization import Authorization
 from tastypie.contrib.contenttypes.fields import GenericForeignKeyField
 
 from django.db.models.signals import post_save
-from django.conf.urls.defaults import url
+from django.conf.urls import url
 
 from django.contrib.comments import Comment
 from django.contrib.contenttypes.models import ContentType
@@ -265,8 +265,7 @@ class ParticipationResource(Resource):
         event = Event.objects.get(pk=bundle.data['event_id'])
         start = datetime.datetime.strptime(bundle.data['start'], '%Y-%m-%dT%H:%M:%S')
         end = datetime.datetime.strptime(bundle.data['end'], '%Y-%m-%dT%H:%M:%S')
-        course = event.course_set.all()[0]
-        occ = course.get_occurrence(start)
+        occ = event.get_occurrence(start)
         state = bundle.data['state']
         if ('rider_id' not in bundle.data and bundle.data['rider_name'] != None):
             f = []
@@ -277,7 +276,7 @@ class ParticipationResource(Resource):
             participant = UserProfile.objects.get(pk=bundle.data['rider_id'])
 
         # Create the participation through course
-        part = course.create_participation(participant, occ, state, True)
+        part = Participation.objects.create_participation(participant, occ, state, True)
 
         if (bundle.data['horse'] and int(bundle.data['horse']) > 0):
             part.horse = Horse.objects.get(pk=bundle.data['horse'])
@@ -313,7 +312,7 @@ class EventResource(Resource):
     last_comment_user = fields.CharField(attribute='last_comment_user', null=True)
     last_comment_date = fields.DateField(attribute='last_comment_date', null=True)
     last_comment = fields.CharField(attribute='last_comment', null=True)
-    course_url = fields.CharField(attribute='course')
+    course_url = fields.CharField(attribute='course', null=True)
 
     def generate_cache_key(self, *args, **kwargs):
         if 'at' in kwargs:

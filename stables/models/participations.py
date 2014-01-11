@@ -258,36 +258,6 @@ class Course(models.Model):
         """
         return self.create_participation(rider, occurrence, ATTENDING)
 
-    def create_participation(self, rider, occurrence, state, force=False):
-        if occurrence.cancelled:
-            raise ParticipationError("Cannot create participation on cancelled occurrence")
-        pstates = self.get_possible_states(rider, occurrence)
-        parti = Participation.objects.get_participation(rider, occurrence)
-        if not parti:
-            parti = Participation()
-            parti.participant = rider
-            parti.event = occurrence.event
-            parti.start = occurrence.start
-            parti.end = occurrence.end
-            parti.note = ""
-
-        if state in pstates or force:
-            reversion.set_comment("State change")
-            parti.state = state
-            if state not in pstates:
-              reversion.set_comment("Forced state change")
-        elif state == ATTENDING and RESERVED in pstates:
-            parti.state = RESERVED
-            reversion.set_comment("Automatically reserved")
-        else:
-            raise ParticipationError
-
-        if not parti.pk:
-            reversion.set_comment('Created participation')
-
-        parti.save()
-        return parti
-
     def get_participation(self, rider, occurrence):
         enroll = Enroll.objects.filter(participant=rider, course=self)
         parti = Participation.objects.get_participation(rider, occurrence)
@@ -418,6 +388,37 @@ def part_cancel(self, course, start, end):
         p.save()
 
 class ParticipationManager(models.Manager):
+    def create_participation(self, rider, occurrence, state, force=False):
+        if occurrence.cancelled:
+            raise ParticipationError("Cannot create participation on cancelled occurrence")
+        # TODO: check out the possible states when user can attend himself
+        pstates = [ATTENDING, CANCELED, SKIPPED] #self.get_possible_states(rider, occurrence)
+        parti = Participation.objects.get_participation(rider, occurrence)
+        if not parti:
+            parti = Participation()
+            parti.participant = rider
+            parti.event = occurrence.event
+            parti.start = occurrence.start
+            parti.end = occurrence.end
+            parti.note = ""
+
+        if state in pstates or force:
+            reversion.set_comment("State change")
+            parti.state = state
+            if state not in pstates:
+              reversion.set_comment("Forced state change")
+        elif state == ATTENDING and RESERVED in pstates:
+            parti.state = RESERVED
+            reversion.set_comment("Automatically reserved")
+        else:
+            raise ParticipationError
+
+        if not parti.pk:
+            reversion.set_comment('Created participation')
+
+        parti.save()
+        return parti
+
     def get_participation(self, rider, occurrence):
         parts = self.filter(participant=rider, start=occurrence.start, end=occurrence.end)
         if not parts:
@@ -461,7 +462,7 @@ class ParticipationManager(models.Manager):
 
     def _get_events(self, start, end):
         weekday = (start.isoweekday()+1) % 8
-        return Event.objects.annotate(num_courses=Count('course')).exclude(end_recurring_period__lt=start).exclude(num_courses=0).filter((Q(start__week_day=weekday) & Q(rule__frequency='WEEKLY')) | (Q(rule__frequency__isnull=True) & Q(start__gte=start) & Q(end__lte=end))).prefetch_related('course_set').prefetch_related('occurrence_set', 'rule').select_related()
+        return Event.objects.exclude(end_recurring_period__lt=start).filter((Q(start__week_day=weekday) & Q(rule__frequency='WEEKLY')) | (Q(rule__frequency__isnull=True) & Q(start__gte=start) & Q(end__lte=end))).prefetch_related('course_set').prefetch_related('occurrence_set', 'rule').select_related()
 
     def generate_warnings(self, start, end):
         return { }
@@ -475,9 +476,9 @@ class ParticipationManager(models.Manager):
         ret = {}
         partid_list = set()
         for event in events:
-            if event.course_set.count() == 0:
-              continue
-            crs = event.course_set.all()[0]
+            crs = event.course_set.all()
+            if crs:
+                crs = crs[0]
             for occ in event.get_occurrences(start, end):
               occ_parts = [ p for p in parts if p.start == occ.start and p.end == occ.end and p.event == event ]
               for p in occ_parts:
@@ -495,7 +496,7 @@ class ParticipationManager(models.Manager):
                 p.note = ""
                 p.enroll = e
                 occ_parts.append(p)
-              ret[occ] = (event.course_set.all()[0], [ p for p in occ_parts ])
+              ret[occ] = (crs if crs else None, [ p for p in occ_parts ])
               partid_list = partid_list | set([p.id for p in occ_parts])
         return (partid_list, ret)
 

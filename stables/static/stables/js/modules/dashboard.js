@@ -93,7 +93,7 @@ var WeekView = Backbone.View.extend({
         var $thead = $('<tr><th></th></tr>')
         var that = this
         var $tbody = this.$el.find('tbody')
-        var hours = [8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]
+        var hours = [4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]
         var daycount = 0
         this.model.get('days').each(function(day) {
             var $header = $("<th>"+day.get('date')+"</th>").appendTo($thead)

@@ -30,10 +30,13 @@ class TicketType(models.Model):
 class TicketManager(models.Manager):
     def get_ticketcounts(self, participations):
         crs = connection.cursor()
-        schema = connection.schema_name
+        try:
+            schema = connection.schema_name + "."
+        except AttributeError:
+            schema = ''
         if not participations:
             return dict()
-        query = 'select p.id, count(t.id) from %(schema)s.stables_participation p inner join %(schema)s.stables_userprofile u on u.id = p.participant_id inner join %(schema)s.stables_riderinfo r on r.id = u.rider_id inner join %(schema)s.stables_ticket t on (r.customer_id = t.owner_id and owner_type_id = %(customer)d) or (u.rider_id = t.owner_id and t.owner_type_id = %(rider)d) where p.id in (%(partids)s) and t.transaction_id is null and t.expires >= p.start group by p.id having count(t.id) <= 1' % { 'schema' : schema, 'customer': ContentType.objects.get_for_model(CustomerInfo).id, 'rider': ContentType.objects.get_for_model(RiderInfo).id, 'partids': ', '.join(list(map(lambda x: '%s', participations))) }
+        query = 'select p.id, count(t.id) from %(schema)sstables_participation p inner join %(schema)sstables_userprofile u on u.id = p.participant_id inner join %(schema)sstables_riderinfo r on r.id = u.rider_id inner join %(schema)sstables_ticket t on (r.customer_id = t.owner_id and owner_type_id = %(customer)d) or (u.rider_id = t.owner_id and t.owner_type_id = %(rider)d) where p.id in (%(partids)s) and t.transaction_id is null and t.expires >= p.start group by p.id having count(t.id) <= 1' % { 'schema' : schema, 'customer': ContentType.objects.get_for_model(CustomerInfo).id, 'rider': ContentType.objects.get_for_model(RiderInfo).id, 'partids': ', '.join(list(map(lambda x: '%s', participations))) }
         crs.execute(query, list(participations))
         return dict(crs.fetchall())
 
@@ -185,16 +188,18 @@ def handle_Participation_save(sender, **kwargs):
     if parti.state == participations.ATTENDING:
         # If there is deactivated stuff
         trans = trans.filter(active=False)
-        course = Course.objects.filter(events__in=[parti.event])[0]
-        if trans:
-          for t in trans:
-            t.active=True
-            t.save()
-            if not Ticket.objects.filter(transaction=t).exists() and t.amount < 0:
-              tickets = parti.participant.rider.unused_tickets.filter(type__in=course.ticket_type.all())
-              _use_ticket(tickets, t)
-        else:
-          ParticipationTransactionActivator.objects.try_create(parti, course.default_participation_fee, course.ticket_type.all())
+        course = Course.objects.filter(events__in=[parti.event])
+        if course:
+            course = course[0]
+            if trans:
+              for t in trans:
+                t.active=True
+                t.save()
+                if not Ticket.objects.filter(transaction=t).exists() and t.amount < 0:
+                  tickets = parti.participant.rider.unused_tickets.filter(type__in=course.ticket_type.all())
+                  _use_ticket(tickets, t)
+            else:
+              ParticipationTransactionActivator.objects.try_create(parti, course.default_participation_fee, course.ticket_type.all())
     elif parti.state == participations.CANCELED or parti.state == participations.RESERVED:
         ParticipationTransactionActivator.objects.filter(participation=parti).delete()
         trans.deactivate()
