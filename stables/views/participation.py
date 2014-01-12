@@ -15,7 +15,7 @@ class Newboard(TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super(Newboard, self).get_context_data(**kwargs)
-        ctx['states'] = PARTICIPATION_STATES
+        ctx['states'] = (PARTICIPATION_STATES[0], PARTICIPATION_STATES[2], PARTICIPATION_STATES[3])
         ctx['horses'] = Horse.objects.all()
         ctx['instructors'] = [ i.user for i in InstructorInfo.objects.all().prefetch_related('user', 'user__user')]
         return ctx
