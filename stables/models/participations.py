@@ -461,7 +461,7 @@ class ParticipationManager(models.Manager):
     cancel = part_cancel
 
     def _get_events(self, start, end):
-        weekday = (start.isoweekday()+1) % 7
+        weekday = (start.isoweekday()%7)+1
         return Event.objects.exclude(end_recurring_period__lt=start).filter((Q(start__week_day=weekday) & Q(rule__frequency='WEEKLY')) | (Q(rule__frequency__isnull=True) & Q(start__gte=start) & Q(end__lte=end))).prefetch_related('course_set').prefetch_related('occurrence_set', 'rule').select_related()
 
     def generate_warnings(self, start, end):
