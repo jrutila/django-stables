@@ -365,7 +365,7 @@ class CourseParticipationActivator(models.Model):
         p = None
         occ = self.enroll.course.get_next_occurrence()
         if occ and occ.start-datetime.timedelta(hours=self.activate_before_hours) < datetime.datetime.now() and not Participation.objects.filter(participant=self.enroll.participant, start=occ.start):
-          p = self.enroll.course.create_participation(self.enroll.participant, occ, self.enroll.state, force=True)
+          p = Participation.objects.create_participation(self.enroll.participant, occ, self.enroll.state, force=True)
           reversion.set_comment('Automatically created by activator')
         return p
 
