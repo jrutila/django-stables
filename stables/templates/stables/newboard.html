@@ -123,6 +123,14 @@
     <% } %>
 </script>
 
+<script type="text/html" id="FinancePopoverView">
+    <!--<input type="number" value="<%= value %>"/>-->
+    <% for (var t in ticket_types) { %>
+      <button value="<%= ticket_types[t] %>"><%= t %></button>
+    <% } %>
+    <a href="<%= participation_url %>">details</a>
+</script>
+
 <script type="text/html" id="EventView">
 <a class="<% if (cancelled) { %>cancelled<% } %>" href="<%= course_url %>" title='from <%= start %> to <%= end %>'><%= title %></a>
     <select name="instructor">

@@ -1,3 +1,12 @@
 Django-Stables
 
 For your horses
+
+To run test:
+install lettuce
+install django_nose
+install splinter
+install crispy_forms
+
+python manage test stables
+python manage harvest features/

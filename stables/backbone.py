@@ -12,6 +12,8 @@ from schedule.models import Occurrence
 from stables.models import EventMetaData
 from stables.models import Accident
 from stables.models import Ticket
+from stables.models import TicketType
+from stables.models import pay_participation
 from stables.models import Enroll
 from tastypie import fields
 from tastypie.bundle import Bundle
@@ -195,6 +197,53 @@ class EnrollResource(ModelResource):
         enroll.last_state_change_on = datetime.datetime.now()
         enroll.save()
 
+class ViewFinance:
+    def __init__(self, part=None):
+        self.id = 0
+        if part:
+            self.id = part.id
+            saldo, ticket = part.get_saldo()
+            self.ticket_types = {}
+            if saldo != 0:
+                self.value = saldo*-1
+                self.ticket_types[_("Cash")] = 0
+            if ticket:
+                self.ticket_type = ticket.type.id
+                self.ticket_types[_("Cash")] = 0
+                self.value = ticket.transaction.amount*-1
+                self.ticket = ticket
+            unused = part.participant.rider.unused_tickets
+            for u in unused:
+                self.ticket_types[u.type.name] = u.type.id
+            self.participation_url = part.get_absolute_url()
+
+class FinanceResource(Resource):
+    class Meta:
+        resource_name = "financials"
+        always_return_data = True
+        object_class = ViewFinance
+
+    id = fields.IntegerField(attribute='id')
+    ticket = fields.CharField(attribute='ticket', null=True)
+    ticket_type = fields.IntegerField(attribute='ticket_type', null=True)
+    ticket_types = fields.DictField(attribute='ticket_types', null=True)
+    value = fields.DecimalField(attribute='value', null=True)
+    participation_url = fields.CharField(attribute='participation_url')
+
+    def obj_get(self, bundle, **kwargs):
+        part = Participation.objects.get(pk=kwargs['pk'])
+        return ViewFinance(part)
+
+    def obj_update(self, bundle, request=None, **kwargs):
+        part = Participation.objects.get(pk=kwargs['pk'])
+        if bundle.data['ticket_type'] == 0:
+            pay_participation(part)
+        else:
+            tt = TicketType.objects.get(pk=bundle.data['ticket_type'])
+            pay_participation(part, tt)
+        bundle.obj = ViewFinance(part)
+        return bundle
+
 class ParticipationResource(Resource):
     id = fields.IntegerField(attribute='id', null=True)
     rider_name = fields.CharField(attribute='rider_name')
@@ -234,9 +283,11 @@ class ParticipationResource(Resource):
             part.alert_level = 'warning'
             part.warning = _('%d tickets remaining') % ticketcounts[part.pk]
         setattr(part, 'saldo', part.get_saldo())
-        enroll = Enroll.objects.filter(participant=part.participant, course=part.event.course_set.all()[0])
-        if enroll:
-            setattr(part, 'enroll', enroll[0])
+        course = part.event.course_set.all()
+        if course:
+            enroll = Enroll.objects.filter(participant=part.participant, course=course[0])
+            if enroll:
+                setattr(part, 'enroll', enroll[0])
 
     def detail_uri_kwargs(self, bundle_or_obj):
         kwargs = {}

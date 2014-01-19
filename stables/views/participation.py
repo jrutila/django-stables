@@ -42,7 +42,8 @@ class ParticipationView(DetailView): # widget_user(request, pid):
         setattr(part, 'saldo', 0)
         setattr(part, 'ticket_used', None)
         setattr(part, 'tickets', set())
-        setattr(part, 'course', part.event.course_set.all()[0])
+        crs = part.event.course_set.all()
+        setattr(part, 'course', crs[0] if crs else None)
         setattr(part, 'accidents', accidents)
 
         for ut in unused_tickets:

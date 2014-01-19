@@ -63,6 +63,7 @@ class CourseFormTest(unittest.TestCase):
                  'endtime': datetime.time(15, 00),
                }
         target = CourseForm(data)
+        target.user = user
         target.save()
       
     def testFormInitWithInstanceNoEnd(self):
@@ -75,6 +76,7 @@ class CourseFormTest(unittest.TestCase):
                }
         course = setupCourse(**data)
         target = CourseForm(instance=course)
+        target.user = user
 
         self.assertEqual(target.initial['starttime'], data['starttime'])
         self.assertEqual(target.initial['endtime'], data['endtime'])
@@ -89,6 +91,7 @@ class CourseFormTest(unittest.TestCase):
                }
         course = setupCourse(**data)
         target = CourseForm(instance=course)
+        target.user = user
 
         self.assertEqual(target.initial['starttime'], data['starttime'])
         self.assertEqual(target.initial['endtime'], data['endtime'])
@@ -108,6 +111,7 @@ class CourseFormTest(unittest.TestCase):
         e.save()
         course.events.add(e)
         target = CourseForm(instance=course)
+        target.user = user
 
         self.assertEqual(target.initial['starttime'], datetime.time(hour=data['starttime'].hour+1))
         self.assertEqual(target.initial['endtime'], datetime.time(hour=data['endtime'].hour+1))
@@ -132,6 +136,7 @@ class CourseFormTest(unittest.TestCase):
         data['endtime'] = (starttime+datetime.timedelta(hours=2)).replace(second=0,microsecond=0).time()
         data['events'] = [course.events.all()[0].pk]
         target = CourseForm(data, instance=course)
+        target.user = user
         course = target.save()
 
         self.assertEqual(course.events.count(), 2)
@@ -155,6 +160,7 @@ class CourseFormTest(unittest.TestCase):
         course = setupCourse(data['name'], data['start'], data['end'], data['starttime'], data['endtime'])
 
         target = CourseForm(data, instance=course)
+        target.user = user
 
         self.assertEqual(target.initial['end'], data['end'].date())
 
@@ -263,9 +269,9 @@ class TicketTestCase(unittest.TestCase):
         Ticket.objects.all().delete()
         Transaction.objects.all().delete()
         Participation.objects.all().delete()
-        o = self.course.get_occurrences()[1]
+        o = self.course.get_occurrences()[2]
         with reversion.create_revision():
-          self.participation = self.course.create_participation(self.user.get_profile(), o, ATTENDING, True)
+          self.participation = Participation.objects.create_participation(self.user.get_profile(), o, ATTENDING, True)
 
     def testUnusedTickets(self):
         rider = self.user.get_profile().rider
@@ -292,7 +298,8 @@ class TicketTestCase(unittest.TestCase):
         self.assertEqual(tickets.count(), 1)
         self.assertEqual(tickets[0].id, t1.id)
         
-        t = ParticipationTransactionActivator.objects.all()[0].try_activate()
+        self.__activateFirstActivator__()
+        t = Transaction.objects.all()[0]
         self.assertEqual(t.amount, Decimal('-45.17'))
         self.assertTrue(t.active)
 
@@ -303,7 +310,7 @@ class TicketTestCase(unittest.TestCase):
         self.assertEqual(tickets.count(), 0)
 
     def testParticipationPay(self):
-        t = ParticipationTransactionActivator.objects.all()[0].try_activate()
+        self.__activateFirstActivator__()
 
         pay_participation(self.participation)
 
@@ -312,7 +319,7 @@ class TicketTestCase(unittest.TestCase):
         self.assertEqual(t.amount, Decimal('45.17'))
 
     def testParticipationPayWithTicket(self):
-        t = ParticipationTransactionActivator.objects.all()[0].try_activate()
+        self.__activateFirstActivator__()
         
         t1 = Ticket.objects.create(type=self.ticket_type, owner=self.user.get_profile().rider, expires=datetime.datetime.now()+datetime.timedelta(days=10))
 
@@ -327,7 +334,7 @@ class TicketTestCase(unittest.TestCase):
         self.assertEqual(t1.transaction, t)
 
     def testParticipationPayWithNextExpiringTicket(self):
-        t = ParticipationTransactionActivator.objects.all()[0].try_activate()
+        self.__activateFirstActivator__()
         
         t1 = Ticket.objects.create(type=self.ticket_type, owner=self.user.get_profile().rider, expires=datetime.datetime.now()+datetime.timedelta(days=11))
         t2 = Ticket.objects.create(type=self.ticket_type, owner=self.user.get_profile().rider, expires=datetime.datetime.now()+datetime.timedelta(days=10))
@@ -348,7 +355,8 @@ class TicketTestCase(unittest.TestCase):
         type2, created = TicketType.objects.get_or_create(name='testtype2')
         t1 = Ticket.objects.create(type=self.ticket_type, owner=self.user.get_profile().rider, expires=datetime.datetime.now()+datetime.timedelta(days=10))
 
-        t = ParticipationTransactionActivator.objects.all()[0].try_activate()
+        self.__activateFirstActivator__()
+        t = Transaction.objects.all()[0]
         self.assertEqual(Ticket.objects.get(pk=t1.pk).transaction, t)
         
         t2 = Ticket.objects.create(type=type2, owner=self.user.get_profile().rider, expires=datetime.datetime.now()+datetime.timedelta(days=20))
@@ -366,7 +374,7 @@ class TicketTestCase(unittest.TestCase):
         self.assertEqual(Ticket.objects.get(pk=t2.pk).transaction, t)
 
     def testParticipationPayWithTicketAfterCash(self):
-        t = ParticipationTransactionActivator.objects.all()[0].try_activate()
+        self.__activateFirstActivator__()
         
         t1 = Ticket.objects.create(type=self.ticket_type, owner=self.user.get_profile().rider, expires=datetime.datetime.now()+datetime.timedelta(days=10))
 
@@ -381,6 +389,26 @@ class TicketTestCase(unittest.TestCase):
 
         pay_participation(self.participation, ticket=self.ticket_type)
 
+        self.assertEqual(Transaction.objects.count(), 1)
+
+        self.assertEqual(self.participation.get_saldo()[0], Decimal('0'))
+
+    def testParticipationPayWithTicketAfterCashAdditive(self):
+        self.__activateFirstActivator__()
+        
+        t1 = Ticket.objects.create(type=self.ticket_type, owner=self.user.get_profile().rider, expires=datetime.datetime.now()+datetime.timedelta(days=10))
+
+        pay_participation(self.participation)
+
+        self.assertEqual(Transaction.objects.count(), 2)
+
+        t = Transaction.objects.latest('id')
+
+        self.assertEqual(t.amount, Decimal('45.17'))
+        self.assertEqual(Ticket.objects.get(pk=t1.pk).transaction, None)
+
+        pay_participation(self.participation, ticket=self.ticket_type, replace=False)
+
         self.assertEqual(Transaction.objects.count(), 2)
 
         t = Transaction.objects.latest('id')
@@ -388,20 +416,22 @@ class TicketTestCase(unittest.TestCase):
         self.assertEqual(t.amount, Decimal('45.17'))
         self.assertEqual(Ticket.objects.get(pk=t1.pk).transaction, Transaction.objects.all()[0])
 
-        self.assertEqual(self.participation.get_saldo()[0], Decimal('45.17'))
-
         # Delete cash manually
         t.delete()
+
         self.assertEqual(self.participation.get_saldo()[0], Decimal('0'))
+
+    def __activateFirstActivator__(self):
+        pta = ParticipationTransactionActivator.objects.all()
+        if pta:
+            pta[0].activate()
 
 class ActivatorTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         from django.contrib.auth.models import User
-        cal = Calendar()
-        cal.save()
-        rule = Rule(frequency = "WEEKLY", name = "Weekly")
-        rule.save()
+        cal, created = Calendar.objects.get_or_create(pk=1)
+        rule, created = Rule.objects.get_or_create(name="Weekly", frequency="WEEKLY")
         event = Event(calendar=cal,rule=rule, start=datetime.datetime.now()+datetime.timedelta(hours=10), end=datetime.datetime.now()+datetime.timedelta(hours=12))
         event.save()
         user = User(username='user',first_name='Test', last_name='Guy')
@@ -419,6 +449,11 @@ class ActivatorTestCase(unittest.TestCase):
 
         cls.user = user
         cls.event = event
+
+    def setUp(self):
+        Ticket.objects.all().delete()
+        Transaction.objects.all().delete()
+        Participation.objects.all().delete()
 
     def testCourseParticipationActivator(self):
         user = self.user
@@ -474,13 +509,13 @@ class ActivatorTestCase(unittest.TestCase):
         course = setupCourse('course1', start, None, starttime, endtime)
         course.default_participation_fee=Decimal('45.16')
         course.save()
-        o = course.get_occurrences()[1]
+        o = course.get_occurrences()[4]
         pa = ParticipationTransactionActivator.objects.filter()
 
         self.assertEqual(pa.count(), 0)
 
         with reversion.create_revision():
-          p = course.create_participation(user.get_profile(), o, ATTENDING, True)
+          Participation.objects.create_participation(user.get_profile(), o, ATTENDING, True)
 
         self.assertEqual(pa.count(), 1)
         self.assertEqual(pa[0].fee, Decimal('45.16'))
@@ -495,7 +530,7 @@ class ActivatorTestCase(unittest.TestCase):
         ee = now+datetime.timedelta(hours=6)
         starttime = ss.time()
         endtime = ee.time()
-        start = ss.date()-datetime.timedelta(days=7)
+        start = ss.date()+datetime.timedelta(days=7)
         course = setupCourse('course1', start, None, starttime, endtime)
         course.default_participation_fee=45.19
         course.save()
@@ -507,7 +542,7 @@ class ActivatorTestCase(unittest.TestCase):
         p1.end=event.end
         p1.participant = user.get_profile()
         p1.save()
-        t = ParticipationTransactionActivator.objects.all()[0].try_activate()
+        t = ParticipationTransactionActivator.objects.all()[0].activate()
         self.assertEqual(t.amount, Decimal('-45.19'))
         count = ParticipationTransactionActivator.objects.count()
         self.assertEqual(count, 0)
@@ -553,6 +588,7 @@ class CourseEnrollTest(unittest.TestCase):
                  'endtime': datetime.time(15, 00),
                }
         course = CourseForm(data)
+        course.user = user
         cls.course=course.save()
         cls.user = user
 
@@ -566,7 +602,7 @@ class CourseEnrollTest(unittest.TestCase):
         (users) = self.runHelper(table)
         for (i, u) in enumerate(users):
             result = self.course.get_possible_states(u)
-            self.assertEqual(set(result), set(table[i][1]), "user%d: " % i + str(result) )
+            self.assertEqual(set(result), set(table[i][1]), "user%d: %s %s" % (i, str(result), str(table[i][1])) )
 
     def runHelper(self, table):
         users = []
@@ -713,6 +749,7 @@ class CourseParticipationTest(unittest.TestCase):
                  'endtime': datetime.time(15, 00),
                }
         course = CourseForm(data)
+        course.user = user
         cls.course=course.save()
         cls.user = user
 
@@ -746,7 +783,7 @@ class CourseParticipationTest(unittest.TestCase):
         for (i, row) in enumerate(table):
             if row[1] is not None:
                 with reversion.create_revision():
-                  self.course.create_participation(row[-1], occ, row[1], force=True)
+                  Participation.objects.create_participation(row[-1], occ, row[1], force=True)
         return (occ, users)
 
     def runFull(self, table, full):
@@ -761,7 +798,7 @@ class CourseParticipationTest(unittest.TestCase):
         (occ, users) = self.runHelper(table)
         for (i, u) in enumerate(users):
             result = self.course.get_possible_states(u, occ)
-            self.assertEqual(set(result), set(table[i][2]), "user%d: " % i + str(result) )
+            self.assertEqual(set(result), set(table[i][2]), "user%d: %s %s" % (i, str(result), str(table[i][2])) )
 
     def testNextParticipations(self):
         pr = self.user.get_profile()
@@ -787,7 +824,7 @@ class CourseParticipationTest(unittest.TestCase):
 
         target = Participation.objects.get_next_participation(pr, datetime.datetime.now())
 
-        self.assertEqual(target.id, None)
+        self.assertEqual(target.id, 1)
         self.assertEqual(target.start.time(), datetime.time(12, 00))
         self.assertEqual(target.end.time(), datetime.time(12, 30))
         self.assertEqual(target.participant, pr)

@@ -10,6 +10,7 @@ v1_api.register(EventResource())
 v1_api.register(CommentResource())
 v1_api.register(EventMetaDataResource())
 v1_api.register(EnrollResource())
+v1_api.register(FinanceResource())
 
 import reporting
 reporting.autodiscover()

@@ -23,9 +23,30 @@ var Enroll = Backbone.Model.extend({
     },
 })
 
+var Finance = Backbone.Model.extend({
+    urlRoot: apiUrl+'financials/',
+})
+
 function changeHighlight($el) {
         $el.find('.changed').removeClass('changed').effect("highlight", {"color": "lightGreen"}, 3000)
 }
+
+var FinanceView = Backbone.View.extend({
+    initialize: function(data) {
+        this.listenTo(this.model, "sync", this.render);
+    },
+    events: {
+        'click button': 'buttonClick',
+    },
+    buttonClick: function(ev) {
+        trg = $(ev.target)
+        this.model.set('ticket_type', parseInt(trg.val()))
+        this.model.save()
+    },
+    render: function() {
+        this.$el.html(_.template($('#FinancePopoverView').html())(this.model.attributes))
+    }
+})
 
 var ParticipationView = Backbone.View.extend({
     tagName: "li",
@@ -39,6 +60,10 @@ var ParticipationView = Backbone.View.extend({
         'change textarea[name="note"]': 'noteChange',
         'click button.enroll': 'enroll',
         'click button.denroll': 'denroll',
+        'click .detail_url': 'detail_click',
+    },
+    detail_click: function(ev) {
+        return false
     },
     enroll: function(ev) {
         var model = this.model
@@ -112,6 +137,18 @@ var ParticipationView = Backbone.View.extend({
         $('select[name="state"]', this.$el).val(this.model.get('state'))
         $('select[name="horse"]', this.$el).val(this.model.get('horse'))
         $('.note', this.$el).tooltipTextarea()
+        var that = this
+        $('.detail_url', this.$el).popover({ trigger: 'click', placement: 'left', content: function() {
+            var fm = new Finance({ id: 1 });
+            var fv = new FinanceView({ model: fm });
+            fm.fetch({ success: function() {
+                fv.render();
+            }, silent: true });
+            that.listenTo(fm, "change", function() { 
+                that.model.fetch()
+            });
+            return fv.$el;
+        }, html: true }).tooltip()
         return this
     },
 })

@@ -122,7 +122,7 @@ RiderInfo.unused_tickets = property(_get_unused_tickets)
 CustomerInfo.unused_tickets = property(_get_customer_unused_tickets)
 CustomerInfo.saldo = property(get_customer_saldo)
 
-def pay_participation(participation, ticket=None):
+def pay_participation(participation, ticket=None, replace=True):
     transactions = Transaction.objects.filter(
         active=True,
         content_type=ContentType.objects.get_for_model(participation),
@@ -137,6 +137,9 @@ def pay_participation(participation, ticket=None):
       ticket = participation.participant.rider.unused_tickets.filter(type=ticket).order_by('expires')[0]
       ticket.transaction = transactions.filter(amount__lt=0)[0]
       ticket.save()
+      if replace:
+          if transactions.count() > 1:
+              transactions.latest('id').delete()
     
     saldo = _count_saldo(transactions)[0]
 

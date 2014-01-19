@@ -22,22 +22,18 @@
   <li>{{ t.ticket_set.all.0.type }} {{ t.created_on }}</li>
   {% endif %}
   {% endfor %}
-  {% if perms.stables.add_transaction %}
   <a href="{% url "modify_transactions" pid=object.id %}">{% trans "Modify transactions" %}</a>
-  {% endif %}
   </ul>
 </div>
 <div>
   <div>
-  {% if perms.stables.add_transaction %}
-    {% if object.saldo or object.ticket_used %}
+   {% if object.saldo or object.ticket_used %}
     <div>{% pay_button object %}</div>
-    {% endif %}
+   {% endif %}
 
-  {% for ttype in object.tickets %}
+   {% for ttype in object.tickets %}
     <div>{% pay_button object ttype %}</div>
-  {% endfor %}
-  {% endif %}
+   {% endfor %}
   </div>
   {{ object.participant.rider.ticket.count }}
 </div>

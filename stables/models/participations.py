@@ -31,20 +31,6 @@ class CourseManager(models.Manager):
         return events
 
 class Course(models.Model):
-    """
-    >>> reversion.set_comment = lambda x: x
-    >>> cal = Calendar()
-    >>> cal.save()
-    >>> rule = Rule(frequency = "WEEKLY", name = "Weekly")
-    >>> rule.save()
-    >>> course = Course.objects.create(name='test', start=datetime.date.today()-datetime.timedelta(days=3), end=datetime.date.today()+datetime.timedelta(days=27))
-    >>> event = Event(calendar=cal,rule=rule, start=course.start+datetime.timedelta(hours=11), end=course.start+datetime.timedelta(hours=12), end_recurring_period=course.start+datetime.timedelta(days=30, hours=12))
-    >>> event.save()
-    >>> course.events.add(event)
-    >>> course.save()
-    >>> user = User(username='user',first_name='Test', last_name='Guy')
-    >>> user.save()
-    """
     class Meta:
         verbose_name = _('course')
         verbose_name_plural = _('courses')
@@ -205,7 +191,7 @@ class Course(models.Model):
           enroll = enroll[0]
           if enroll.state == ATTENDING:
             return [CANCELED]
-          full = c_attnd.order_by('last_state_change_on')[0:self.max_participants]
+          full = list(c_attnd.order_by('last_state_change_on')[0:self.max_participants])
           if enroll.state == RESERVED:
             if enroll in full:
               return [ATTENDING, CANCELED]
@@ -215,48 +201,7 @@ class Course(models.Model):
         return [ATTENDING]
 
     def attend(self, rider, occurrence):
-        """
-        >>> course = Course.objects.get(pk=1)
-        >>> user = User.objects.filter(username='user')[0]
-        >>> occ = course.get_occurrences()[1]
-        >>> p = course.attend(user.get_profile(), occ)
-        >>> p.state
-        0
-        >>> p.id > 0
-        True
-        >>> oc2 = course.get_occurrences()[2]
-        >>> p2 = course.attend(user.get_profile(), occ)
-        Traceback (most recent call last):
-          File "/usr/lib/python2.7/site-packages/django/test/_doctest.py", line 1267, in __run
-            compileflags, 1) in test.globs
-          File "<doctest stables.models.CourseForm.Meta.model.attend[16]>", line 1, in <module>
-            p2 = course.attend(user.get_profile(), occ)
-          File "/home/jorutila/devel/hepokoti/stables/models.py", line 136, in attend
-            raise AlreadyAttendingError()
-        AlreadyAttendingError
-        >>> cuser = User(username='cuser', first_name='Second', last_name='Guy')
-        >>> cuser.save()
-        >>> pc = course.attend(cuser.get_profile(), occ)
-        >>> pc.state
-        0
-        >>> pc.state = 3
-        >>> pc.save()
-        >>> course.max_participants = 1
-        >>> user2 = User(username='user2', first_name='Second', last_name='Guy')
-        >>> user2.save()
-        >>> p2 = course.attend(user2.get_profile(), occ)
-        >>> p2.state
-        5
-        >>> pc = course.attend(cuser.get_profile(), oc2)
-        >>> pc.state
-        0
-        >>> pc.state = 3
-        >>> pc.save()
-        >>> p2 = course.attend(user2.get_profile(), oc2)
-        >>> p2.state
-        0
-        """
-        return self.create_participation(rider, occurrence, ATTENDING)
+        return Participation.objects.create_participation(rider, occurrence, ATTENDING)
 
     def get_participation(self, rider, occurrence):
         enroll = Enroll.objects.filter(participant=rider, course=self)
@@ -563,37 +508,6 @@ class Participation(models.Model):
         self.save()
 
     def get_occurrence(self):
-        """
-        >>> cal = Calendar()
-        >>> cal.save()
-        >>> rule = Rule(frequency = "WEEKLY", name = "Weekly")
-        >>> rule.save()
-        >>> event = Event(calendar=cal,rule=rule, start=datetime.datetime(2011,1,1,11,0,0), end=datetime.datetime(2011,1,1,12,0,0))
-        >>> event.rule
-        <Rule: Weekly>
-        >>> event.save()
-        >>> fake = Event(calendar=cal,rule=rule, start=datetime.datetime(2011,1,1,11,0,0), end=datetime.datetime(2011,1,1,12,0,0))
-        >>> fake.save()
-        >>> occurrences = event.get_occurrences(datetime.datetime(2011,1,1), datetime.datetime(2011,1,31))
-        >>> ["%s to %s" %(o.start, o.end) for o in occurrences]
-        ['2011-01-01 11:00:00 to 2011-01-01 12:00:00', '2011-01-08 11:00:00 to 2011-01-08 12:00:00', '2011-01-15 11:00:00 to 2011-01-15 12:00:00', '2011-01-22 11:00:00 to 2011-01-22 12:00:00', '2011-01-29 11:00:00 to 2011-01-29 12:00:00']
-        >>> p = Participation(event=event,start=datetime.datetime(2011,1,8,11,0,0), end=datetime.datetime(2011,1,8,12,0,0))
-        >>> o = p.get_occurrence()
-        >>> o.event
-        <Event: : Saturday, Jan. 1, 2011-Saturday, Jan. 1, 2011>
-        >>> o.start
-        datetime.datetime(2011, 1, 8, 11, 0)
-        >>> o.end
-        datetime.datetime(2011, 1, 8, 12, 0)
-        >>> o.move(datetime.datetime(2011, 1, 9, 15, 0), datetime.datetime(2011, 1, 9, 16, 0))
-        >>> o = p.get_occurrence()
-        >>> o.event
-        <Event: : Saturday, Jan. 1, 2011-Saturday, Jan. 1, 2011>
-        >>> o.start
-        datetime.datetime(2011, 1, 9, 15, 0)
-        >>> o.end
-        datetime.datetime(2011, 1, 9, 16, 0)
-        """
         occ = self.event.get_occurrence(self.start)
         if occ:
             return occ
@@ -645,8 +559,6 @@ class InstructorParticipation(models.Model):
     start = models.DateTimeField()
     end = models.DateTimeField()
     objects = InstructorParticipationManager()
-#class RiderEvent(models.Model):
-    #allowed_levels = models.CharField(max_length=20, choices=RIDER_LEVELS)
 
 class EventMetaDataManager(models.Manager):
     def get_metadatas(self, start, end):

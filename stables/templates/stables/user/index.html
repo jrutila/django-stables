@@ -18,11 +18,6 @@
 
 <a class="btn btn-default lightbox-type" href="{% url "edit_user" username=object.user.username %}?lightbox[width]=300&lightbox[height]=400">{% trans "Edit" %}</a>
 
-
-{% ifequal object.user request.user %}
-{% include "stables/object/account.html" %}
-{% endifequal %}
-
 <p>
 {% trans "E-mail" %}: {{ object.object.email }}
 </p>
@@ -60,9 +55,7 @@
 
 <h3>{% trans "Saldo" %}</h3>
 {{ object.saldo }}
-{% if perms.stables.add_ticket %}
 <a href="{% url "add_tickets" username=object.user.username %}">{% trans "Add tickets" %}</a>
-{% endif %}
 <ul>
 {% for t, l in object.tickets.iteritems %}
 <li>
