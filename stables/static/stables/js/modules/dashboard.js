@@ -58,6 +58,8 @@ var DayView = Backbone.View.extend({
         this.$header.html(this.model.get('date'))
 
         var that = this
+        for (var h in that.$timeslots)
+            that.$timeslots[h].html($('#EventLoadingView').html())
         this.model.get('events').each(function(ev) {
             var hour = ev.getHour()
             if (!(ev.id in that.eventViews))
@@ -107,6 +109,8 @@ var WeekView = Backbone.View.extend({
                 var dayv = new DayView({ model: day })
                 dayv.$timeslots = $timeslot
                 that.dayViews[day.get('date')] = dayv
+            } else {
+                that.dayViews[day.get('date')].render()
             }
         })
         this.$el.find('thead').append($thead)
