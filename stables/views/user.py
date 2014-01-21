@@ -18,6 +18,10 @@ class EditUser(UpdateView):
     template_name = 'stables/user/edit_user.html'
     form_class = UserProfileForm
 
+    def form_valid(self, form):
+        super(EditUser, self).form_valid(form)
+        return HttpResponse(_('Success. Close this window.'))
+
     def get_object(self, **kwargs):
         return UserProfile.objects.filter(user__username=self.kwargs['username'])[0]
 
@@ -27,7 +31,7 @@ class AddUser(FormView):
 
     def form_valid(self, form):
         form.save(commit = True)
-        return HttpResponse(_('Close this window.'))
+        return HttpResponse(_('Success. Close this window.'))
 
     def get_context_data(self, **kwargs):
         if self.request.GET.get('orig'):

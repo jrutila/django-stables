@@ -9,11 +9,11 @@ from stables.models import UserProfile
 from stables.models import InstructorInfo
 
 class UserProfileAddForm(forms.Form):
-  first_name = forms.CharField(max_length=500, required=True)
-  last_name = forms.CharField(max_length=500, required=True)
-  phone_number = forms.CharField(max_length=500, required=False)
-  email = forms.EmailField(required=False)
-  levels = forms.ModelMultipleChoiceField(queryset=RiderLevel.objects.all(), required=False)
+  first_name = forms.CharField(label=_('first name').capitalize(), max_length=500, required=True)
+  last_name = forms.CharField(label=_('last name').capitalize(), max_length=500, required=True)
+  phone_number = forms.CharField(label=_('phone number').capitalize(), max_length=500, required=False)
+  email = forms.EmailField(label=_('email address').capitalize(), required=False)
+  levels = forms.ModelMultipleChoiceField(label=_('levels').capitalize(), queryset=RiderLevel.objects.all(), required=False)
 
   def save(self, force_insert=False, force_update=False, commit=True):
     import random
@@ -52,11 +52,11 @@ class UserProfileAddForm(forms.Form):
       pass
 
 class UserProfileForm(forms.ModelForm):
-  first_name = forms.CharField(max_length=500, required=True)
-  last_name = forms.CharField(max_length=500, required=True)
-  levels = forms.ModelMultipleChoiceField(queryset=RiderLevel.objects.all(), required=False)
-  rider_customer = forms.ModelChoiceField(queryset=CustomerInfo.objects.all(), required=True, label=_('Customer'))
-  is_instructor = forms.BooleanField(required=False)
+  first_name = forms.CharField(label=_('first name').capitalize(), max_length=500, required=True)
+  last_name = forms.CharField(label=_('last name').capitalize(), max_length=500, required=True)
+  levels = forms.ModelMultipleChoiceField(label=_('levels').capitalize(), queryset=RiderLevel.objects.all(), required=False)
+  rider_customer = forms.ModelChoiceField(queryset=CustomerInfo.objects.all().prefetch_related('user__user'), required=True, label=_('Customer'))
+  is_instructor = forms.BooleanField(label=_('instructor'), required=False)
   #address = forms.CharField(max_length=500, widget=forms.Textarea, required=False)
 
   def __init__(self, *args, **kwargs):

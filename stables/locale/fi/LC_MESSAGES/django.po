@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-01-12 00:29+0200\n"
+"POT-Creation-Date: 2014-01-21 11:31+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -45,44 +45,45 @@ msgstr "Asiakastieto"
 msgid "Instructor"
 msgstr "Opettaja"
 
-#: backbone.py:120 templatetags/stablestags.py:51
+#: backbone.py:122 backbone.py:209 backbone.py:212
+#: templatetags/stablestags.py:51
 msgid "Cash"
 msgstr "Käteinen"
 
-#: backbone.py:163 backbone.py:235
+#: backbone.py:165 backbone.py:284
 #, python-format
 msgid "%d tickets remaining"
 msgstr "%d korttia jäljellä"
 
-#: reports.py:28
+#: reports.py:65
 msgid "All"
 msgstr "Kaikki"
 
-#: reports.py:99
+#: reports.py:136
 msgid "This week"
 msgstr "Tämä viikko"
 
-#: reports.py:103
+#: reports.py:140
 msgid "Last week"
 msgstr "Viime viikko"
 
-#: reports.py:107
+#: reports.py:144
 msgid "This month"
 msgstr "Tämä kuu"
 
-#: reports.py:111
+#: reports.py:148
 msgid "Last month"
 msgstr "Viime kuu"
 
-#: reports.py:122
+#: reports.py:159
 msgid "Horse report"
 msgstr "Hevosraportti"
 
-#: reports.py:149
+#: reports.py:186
 msgid "Instructor report"
 msgstr "Opettajaraportti"
 
-#: reports.py:172
+#: reports.py:209
 msgid "Accident report"
 msgstr "Vahinkoraportti"
 
@@ -130,6 +131,18 @@ msgstr "Määrä"
 msgid "Expire information"
 msgstr "Vanhenemistiedot"
 
+#: forms/user.py:14
+msgid "phone number"
+msgstr "puhelinnumero"
+
+#: forms/user.py:16 forms/user.py:57
+msgid "levels"
+msgstr "tasot"
+
+#: forms/user.py:59
+msgid "instructor"
+msgstr "Opettaja"
+
 #: models/accident.py:38
 msgid "Localizable String"
 msgstr "Lokalisoituva teksti"
@@ -142,7 +155,7 @@ msgstr "vahinko"
 msgid "accidents"
 msgstr "vahingot"
 
-#: models/financial.py:27 models/horse.py:10 models/participations.py:57
+#: models/financial.py:27 models/horse.py:10 models/participations.py:43
 msgid "name"
 msgstr "nimi"
 
@@ -176,86 +189,86 @@ msgstr "viimeinen käyttöpäivä"
 msgid "Last usage date can't be before last participation"
 msgstr "Viimeinen käyttöpäivä ei voi olla ennen viimeistä tapahtumaa"
 
-#: models/participations.py:49
+#: models/participations.py:35
 msgid "course"
 msgstr "kurssi"
 
-#: models/participations.py:50
+#: models/participations.py:36
 msgid "courses"
 msgstr "tunnit"
 
-#: models/participations.py:58
+#: models/participations.py:44
 msgid "start"
 msgstr "alkaa"
 
-#: models/participations.py:59
+#: models/participations.py:45
 msgid "end"
 msgstr "päättyy"
 
-#: models/participations.py:63
+#: models/participations.py:49
 msgid "maximum participants"
 msgstr "maksimi osallistujamäärä"
 
-#: models/participations.py:64
+#: models/participations.py:50
 msgid "default participation fee"
 msgstr "tunnin oletushinta"
 
-#: models/participations.py:66
+#: models/participations.py:52
 msgid "Default ticket type"
 msgstr "oletuskortti"
 
-#: models/participations.py:67
+#: models/participations.py:53
 msgid "Allowed rider levels"
 msgstr "sallitut ratsastajien tasot"
 
-#: models/participations.py:298 models/participations.py:307
+#: models/participations.py:243 models/participations.py:252
 msgid "Attending"
 msgstr "Osallistuu"
 
-#: models/participations.py:300 templatetags/stablestags.py:106
+#: models/participations.py:245 templatetags/stablestags.py:106
 msgid "Skipped"
 msgstr "Ei osallistunut"
 
-#: models/participations.py:301 models/participations.py:308
+#: models/participations.py:246 models/participations.py:253
 msgid "Canceled"
 msgstr "Peruttu"
 
-#: models/participations.py:302 models/participations.py:309
+#: models/participations.py:247 models/participations.py:254
 msgid "Rejected"
 msgstr "Hylätty"
 
-#: models/participations.py:303 models/participations.py:310
+#: models/participations.py:248 models/participations.py:255
 msgid "Reserved"
 msgstr "Varalla"
 
-#: models/participations.py:306
+#: models/participations.py:251
 msgid "Waiting for payment"
 msgstr "Odottaa maksua"
 
-#: models/participations.py:326 models/participations.py:522
+#: models/participations.py:271 models/participations.py:467
 #, python-format
 msgid "%(name)s %(state)s"
 msgstr ""
 
-#: models/participations.py:508
+#: models/participations.py:453
 msgid "DATE_FORMAT"
 msgstr "l d.m.Y"
 
-#: models/participations.py:509
+#: models/participations.py:454
 msgid "TIME_FORMAT"
 msgstr "h:i"
 
-#: models/participations.py:512
+#: models/participations.py:457
 #, python-format
 msgid "%(name)s %(state)s No Occurrence"
 msgstr ""
 
-#: models/participations.py:513
+#: models/participations.py:458
 #, python-format
 msgid "%(name)s %(state)s %(event)s: %(start)s %(starttime)s - %(endtime)s"
 msgstr ""
 
-#: models/participations.py:642
+#: models/participations.py:556
 #, python-format
 msgid "%(firstname)s %(lastname)s"
 msgstr ""
@@ -297,7 +310,7 @@ msgstr ""
 "\n"
 "Säkä: ca. %(withers)s cm.\n"
 
-#: templates/stables/newboard.html:88 templates/stables/newboard.html:129
+#: templates/stables/newboard.html:88 templates/stables/newboard.html:137
 msgid "--"
 msgstr ""
 
@@ -403,16 +416,16 @@ msgstr "Takaisin"
 msgid "Total"
 msgstr "Yhteensä"
 
-#: templates/stables/participation/participation.html:26
+#: templates/stables/participation/participation.html:25
 msgid "Modify transactions"
 msgstr "Muokkaa maksutapahtumia"
 
-#: templates/stables/participation/participation.html:44
+#: templates/stables/participation/participation.html:40
 #, fuzzy
 msgid "Accidents"
 msgstr "vahingot"
 
-#: templates/stables/participation/participation.html:53
+#: templates/stables/participation/participation.html:49
 msgid "Report accident"
 msgstr "Raportoi vahinko"
 
@@ -444,31 +457,31 @@ msgstr "Lisää"
 msgid "Save"
 msgstr "Tallenna"
 
-#: templates/stables/user/index.html:27
+#: templates/stables/user/index.html:22
 msgid "E-mail"
 msgstr "Sähköposti"
 
-#: templates/stables/user/index.html:32
+#: templates/stables/user/index.html:27
 msgid "Next event"
 msgstr "Seuraava tapahtuma"
 
-#: templates/stables/user/index.html:48
+#: templates/stables/user/index.html:43
 msgid "Last participations"
 msgstr "Viimeiset osallistumiset"
 
-#: templates/stables/user/index.html:57 templates/stables/user/index.html:86
+#: templates/stables/user/index.html:52 templates/stables/user/index.html:79
 msgid "More..."
 msgstr "Lisää..."
 
-#: templates/stables/user/index.html:61
+#: templates/stables/user/index.html:56
 msgid "Saldo"
 msgstr ""
 
-#: templates/stables/user/index.html:64
+#: templates/stables/user/index.html:58
 msgid "Add tickets"
 msgstr "Lisää kortteja"
 
-#: templates/stables/user/index.html:69
+#: templates/stables/user/index.html:62
 #, python-format
 msgid ""
 "\n"
@@ -477,7 +490,7 @@ msgstr ""
 "\n"
 "%(name)s: %(amount)s kpl (ensimmäinen vanhenee: %(expire_date)s)\n"
 
-#: templates/stables/user/index.html:78
+#: templates/stables/user/index.html:71
 msgid "Last transactions"
 msgstr "Viimeiset tilitapahtumat"
 
@@ -512,3 +525,7 @@ msgstr "Tilaa"
 #: views/oldviews.py:129
 msgid "Full"
 msgstr "Täynnä"
+
+#: views/user.py:30
+msgid "Close this window."
+msgstr ""

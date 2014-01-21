@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django import forms
 from django.core.urlresolvers import reverse
+from django.utils.translation import ugettext_lazy as _
 
 import datetime
 
@@ -37,7 +38,7 @@ class UserProfile(models.Model):
     customer = models.OneToOneField('CustomerInfo', null=True, blank=True, on_delete=models.SET_NULL, related_name='user')
     instructor = models.OneToOneField('InstructorInfo', null=True, blank=True, related_name='user')
 
-    phone_number = models.CharField(max_length=30, null=True, blank=True)
+    phone_number = models.CharField(_('phone number'), max_length=30, null=True, blank=True)
 
     def get_participations(self):
         from participations import Participation
