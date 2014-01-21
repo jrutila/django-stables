@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-01-21 11:31+0200\n"
+"POT-Creation-Date: 2014-01-21 16:07+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -55,35 +55,35 @@ msgstr "Käteinen"
 msgid "%d tickets remaining"
 msgstr "%d korttia jäljellä"
 
-#: reports.py:65
+#: reports.py:28
 msgid "All"
 msgstr "Kaikki"
 
-#: reports.py:136
+#: reports.py:99
 msgid "This week"
 msgstr "Tämä viikko"
 
-#: reports.py:140
+#: reports.py:103
 msgid "Last week"
 msgstr "Viime viikko"
 
-#: reports.py:144
+#: reports.py:107
 msgid "This month"
 msgstr "Tämä kuu"
 
-#: reports.py:148
+#: reports.py:111
 msgid "Last month"
 msgstr "Viime kuu"
 
-#: reports.py:159
+#: reports.py:122
 msgid "Horse report"
 msgstr "Hevosraportti"
 
-#: reports.py:186
+#: reports.py:149
 msgid "Instructor report"
 msgstr "Opettajaraportti"
 
-#: reports.py:209
+#: reports.py:172
 msgid "Accident report"
 msgstr "Vahinkoraportti"
 
@@ -131,9 +131,22 @@ msgstr "Määrä"
 msgid "Expire information"
 msgstr "Vanhenemistiedot"
 
-#: forms/user.py:14
+#: forms/user.py:12 forms/user.py:55
+msgid "first name"
+msgstr ""
+
+#: forms/user.py:13 forms/user.py:56
+#, fuzzy
+msgid "last name"
+msgstr "nimi"
+
+#: forms/user.py:14 models/user.py:41
 msgid "phone number"
 msgstr "puhelinnumero"
+
+#: forms/user.py:15
+msgid "email address"
+msgstr ""
 
 #: forms/user.py:16 forms/user.py:57
 msgid "levels"
@@ -163,19 +176,19 @@ msgstr "nimi"
 msgid "description"
 msgstr "kuvaus"
 
-#: models/financial.py:54
+#: models/financial.py:56
 msgid "Ticket type"
 msgstr "Kortin tyyppi"
 
-#: models/financial.py:59
+#: models/financial.py:61
 msgid "Expires"
 msgstr "Vanhenee"
 
-#: models/financial.py:60
+#: models/financial.py:62
 msgid "Value"
 msgstr "Arvo"
 
-#: models/financial.py:60
+#: models/financial.py:62
 msgid "Sell value of one ticket. Can be used when calculating user revenue."
 msgstr ""
 "Kortin myyntiarvo. Myyntiarvoa voidaan käyttää asiakaskohtaisen tuoton "
@@ -276,6 +289,10 @@ msgstr ""
 #: templates/stables/courselist.html:10 templates/stables/dashboard.html:17
 msgid "Select week"
 msgstr "Valitse viikko"
+
+#: templates/stables/daily.html:62
+msgid "cancelled"
+msgstr "peruttu"
 
 #: templates/stables/dashboard.html:34
 msgid "Show unattending"
@@ -526,6 +543,6 @@ msgstr "Tilaa"
 msgid "Full"
 msgstr "Täynnä"
 
-#: views/user.py:30
-msgid "Close this window."
+#: views/user.py:23 views/user.py:34
+msgid "Success. Close this window."
 msgstr ""

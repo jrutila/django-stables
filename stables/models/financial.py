@@ -28,7 +28,7 @@ class TicketType(models.Model):
     description = models.TextField(_("description"))
 
 class TicketManager(models.Manager):
-    def get_ticketcounts(self, participations):
+    def get_ticketcounts(self, participations, limit=1):
         crs = connection.cursor()
         try:
             schema = connection.schema_name + "."
@@ -36,7 +36,9 @@ class TicketManager(models.Manager):
             schema = ''
         if not participations:
             return dict()
-        query = 'select p.id, count(t.id) from %(schema)sstables_participation p inner join %(schema)sstables_userprofile u on u.id = p.participant_id inner join %(schema)sstables_riderinfo r on r.id = u.rider_id inner join %(schema)sstables_ticket t on (r.customer_id = t.owner_id and owner_type_id = %(customer)d) or (u.rider_id = t.owner_id and t.owner_type_id = %(rider)d) where p.id in (%(partids)s) and t.transaction_id is null and t.expires >= p.start group by p.id having count(t.id) <= 1' % { 'schema' : schema, 'customer': ContentType.objects.get_for_model(CustomerInfo).id, 'rider': ContentType.objects.get_for_model(RiderInfo).id, 'partids': ', '.join(list(map(lambda x: '%s', participations))) }
+        query = 'select p.id, count(t.id) from %(schema)sstables_participation p inner join %(schema)sstables_userprofile u on u.id = p.participant_id inner join %(schema)sstables_riderinfo r on r.id = u.rider_id inner join %(schema)sstables_ticket t on (r.customer_id = t.owner_id and owner_type_id = %(customer)d) or (u.rider_id = t.owner_id and t.owner_type_id = %(rider)d) where p.id in (%(partids)s) and t.transaction_id is null and t.expires >= p.start group by p.id' % { 'schema' : schema, 'customer': ContentType.objects.get_for_model(CustomerInfo).id, 'rider': ContentType.objects.get_for_model(RiderInfo).id, 'partids': ', '.join(list(map(lambda x: '%s', participations))) }
+        if limit:
+            query += " having count(t.id) <= %d" % limit
         crs.execute(query, list(participations))
         return dict(crs.fetchall())
 

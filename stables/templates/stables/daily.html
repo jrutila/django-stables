@@ -1,22 +1,71 @@
-{% extends "site_base.html" %}
-{% load i18n sekizai_tags cms_tags %}
-{% load stablestags %}
-{% block content %}
+{% load sekizai_tags staticfiles i18n %}
 {% addtoblock "css" %}
-<link href="{{ STATIC_URL }}stables/css/daily.css" rel="stylesheet" type="text/css" />
 {% endaddtoblock %}
-<h1>{{ daily_date|date:"DATE_FORMAT" }}</h1>
-{% for e, ps in events %}
-  <span class="dailytitle">{{ e.title }}</span>
-  <span class="dailytime">{{ e.start.time }} - {{ e.end.time }}</span>
-  <ul class="daily">
-  {% for p in ps %}
-  <li>
-    <span class="rider">{{ p.participant }}</span>
-    <span class="horse">{{ p.horse.nickname }}</span>
-  </li>
-  {% endfor %}
-  </ul>
+
+{% block content %}
+
+<html>
+<head>
+<link href="{% static 'stables/css/daily.css' %}" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<h1>{{ date }}</h1>
+
+<table>
+{% for o,c,parts in events %}
+<tr><td class="event" colspan="3">
+    <h2
+        {% if o.cancelled %}
+        style="text-decoration: line-through"
+        {% endif %}
+        >
+
+        <span
+        {% if o.start != o.original_start %}
+        style="color: red; text-decoration: underline"
+        {% endif %}>
+        {{ o.start|time:"H:i" }}
+        </span>
+
+        {{ o.title }}
+
+        {% if o.start != o.original_start %}
+        <span style="font-size:smaller; text-decoration: line-through">
+        ({{ o.original_start|time:"H:i" }})
+        </span>
+        {% endif %}
+
+        </h2> 
+</td></tr>
+    {% if not o.cancelled %}
+    {% for p in parts %}
+        <tr class="participation">
+        <td class="rider"
+        {% ifnotequal p.state 0 %}
+        style="text-decoration: line-through"
+        {% endifnotequal %}
+        >
+        {{ p.participant }}
+        </td>
+        <td class="horse">
+        {% if p.state == 0 and p.horse %}
+        {{ p.horse }}
+        {% endif %}
+        </td>
+        <td class="tickets">
+        {{ p.ticketcount }}
+        </td>
+    </tr>
+    {% endfor %}
+    {% else %}
+    <tr><td colspan="3">
+    {% trans "cancelled"|capfirst %}
+    </td></tr>
+    {% endif %}
 {% endfor %}
+</table>
+
+</body>
+</html>
 
 {% endblock content %}

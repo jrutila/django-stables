@@ -6,9 +6,12 @@ from stables.models import Enroll
 from stables.models import Horse
 from stables.models import InstructorInfo
 from stables.models import Participation
+from stables.models import Ticket
 from stables.models import Transaction
 from stables.models import Accident
+from stables.models import InstructorParticipation
 from stables.models import PARTICIPATION_STATES
+import datetime
 
 class Newboard(TemplateView):
     template_name = 'stables/newboard.html'
@@ -57,3 +60,27 @@ class ParticipationView(DetailView): # widget_user(request, pid):
         part.saldo = part.get_saldo()[0]
 
         return part
+
+class DailyView(TemplateView):
+    template_name = 'stables/daily.html'
+
+    def get_context_data(self, **kwargs):
+        ctx = super(TemplateView, self).get_context_data(**kwargs)
+        date = datetime.datetime.strptime(kwargs['date'], '%Y-%m-%d').date()
+        ctx['date'] = date
+        start = datetime.datetime.combine(date, datetime.time.min)
+        end = datetime.datetime.combine(date, datetime.time.max)
+
+        partids, parts = Participation.objects.generate_participations(start, end)
+        instr = list(InstructorParticipation.objects.filter(start__gte=start, end__lte=end))
+        instr = dict((i.event.pk, i) for i in instr)
+        ticketcounts = Ticket.objects.get_ticketcounts(partids, limit=None)
+        ctx['events'] = []
+        for p in sorted(parts.items()):
+            for part in p[1][1]:
+                if part.id in ticketcounts:
+                    setattr(part, 'ticketcount', ticketcounts[part.id])
+                else:
+                    setattr(part, 'ticketcount', 0)
+            ctx['events'].append((p[0],p[1][0],sorted(p[1][1], key=lambda x: x.state)))
+        return ctx

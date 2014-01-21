@@ -1,32 +1,19 @@
-.dailytitle
-{
-  font-weight: bold;
+td.event {
+    padding-top: 20px;
 }
 
-.daily
-{
-  display: table;
+td.rider {
+    padding-right: 20px;
 }
 
-.daily li
-{
-  display: table-row;
+td.horse {
+    padding-right: 20px;
 }
 
-.daily .rider, .daily .horse
-{
-  display: table-cell;
+td.tickets {
+    padding-left: 5px;
 }
 
-@media print
-{
-  .daily .rider
-  {
-    width: 300px;
-  }
-
-  .daily
-  {
-    margin-bottom: 100px;
-  }
+tr.participation td {
+    border: 1px solid black;
 }
