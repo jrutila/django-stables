@@ -15,6 +15,9 @@ v1_api.register(FinanceResource())
 import reporting
 reporting.autodiscover()
 
+import reportengine
+reportengine.autodiscover()
+
 urlpatterns = patterns('',
     url(r'^', include('stables.urls.old')),
     url(r'^c/', include('stables.urls.course')),
@@ -24,6 +27,7 @@ urlpatterns = patterns('',
     url(r'^f/', include('stables.urls.financial')),
     url(r'^a/', include('stables.urls.accident')),
     url(r'^r/', include('reporting.urls')),
+    url(r'^r2/', include('reportengine.urls')),
     url(r'^backbone/', include(v1_api.urls)),
     url(r'^api/', include('stables.urls.api')),
 )

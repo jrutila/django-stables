@@ -1,5 +1,6 @@
 import reporting
 from stables.models import Participation, InstructorParticipation
+from stables.models import Transaction
 from stables.models import Accident
 from stables.models import ATTENDING
 from django.db.models import Count
@@ -8,6 +9,42 @@ from django.utils.translation import ugettext_lazy as _
 from django.contrib.admin import RelatedFieldListFilter, DateFieldListFilter
 from django.contrib.admin.util import get_model_from_relation
 from django.db import models
+
+from stables.forms.reports import DateFilterForm
+
+import reportengine
+
+from collections import defaultdict
+from decimal import Decimal
+
+def amountval_factory():
+    return { 'amount': 0, 'value': Decimal('0.00') }
+
+class FinanceReport(reportengine.Report):
+    verbose_name = 'Finance report'
+    slug = 'finance-report'
+    namespace = 'stables'
+    labels = ('horse', 'amount', 'value')
+
+    def get_filter_form(self, data):
+        form = DateFilterForm(data=data)
+        return form
+
+    def get_rows(self, filter={}, order_by=None):
+        parts = Participation.objects.filter(state=ATTENDING, start__gte=filter['start'], end__lte=filter['end'])
+        trans = Transaction.objects.filter(object_id__in=[ p.id for p in parts ])
+        horses = defaultdict(amountval_factory)
+        #{ 'amount': 0, 'value': Decimal('0.00')})
+        rows = []
+        for t in trans:
+            if t.source.horse:
+                horses[t.source.horse.name]['amount'] = horses[t.source.horse.name]['amount'] + 1
+        for h,av in horses.items():
+            rows.append([h, av.values()[0], av.values()[1]])
+        return rows,(("total", len(rows)),)
+
+reportengine.register(FinanceReport)
+
 
 class MultipleRelatedFieldListFilter(RelatedFieldListFilter):
     def __init__(self, field, request, params, model, model_admin, field_path):

@@ -50,6 +50,7 @@ setup(
       'django-sekizai',
       'django-crispy-forms',
       'django-reporting==dev',
+      'django-reportengine',
       'django-tastypie',
       'backbone-tastypie',
       'mimeparse',
