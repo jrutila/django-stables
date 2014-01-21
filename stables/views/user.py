@@ -4,6 +4,7 @@ from django.views.generic import ListView
 from django.views.generic import DetailView
 from django.http import HttpResponse
 from django.contrib.auth.models import User
+from django.utils.translation import ugettext_lazy as _
 from datetime import datetime
 from collections import defaultdict
 
@@ -26,7 +27,7 @@ class AddUser(FormView):
 
     def form_valid(self, form):
         form.save(commit = True)
-        return HttpResponse('<script type="text/javascript">window.close()</script>Close this window.')
+        return HttpResponse(_('Close this window.'))
 
     def get_context_data(self, **kwargs):
         if self.request.GET.get('orig'):
