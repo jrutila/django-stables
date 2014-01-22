@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-01-21 16:07+0200\n"
+"POT-Creation-Date: 2014-01-22 11:22+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -290,7 +290,15 @@ msgstr ""
 msgid "Select week"
 msgstr "Valitse viikko"
 
-#: templates/stables/daily.html:62
+#: templates/stables/daily.html:16
+msgid "You can type custom message below"
+msgstr "Voit kirjoittaa vapaan viestin alle"
+
+#: templates/stables/daily.html:47
+msgid "hide"
+msgstr "piilota"
+
+#: templates/stables/daily.html:71
 msgid "cancelled"
 msgstr "peruttu"
 

@@ -7,13 +7,21 @@
 <html>
 <head>
 <link href="{% static 'stables/css/daily.css' %}" rel="stylesheet" type="text/css" />
+<link href="http://fonts.googleapis.com/css?family=Open+Sans:400italic,600italic,400,600" rel="stylesheet">
+<script src="{{ STATIC_URL }}theme/js/libs/jquery-1.9.1.min.js"></script>
+<script type='text/javascript' src="{% static 'stables/js/daily.js' %}"></script>
 </head>
 <body>
 <h1>{{ date }}</h1>
+<i class="nonprint">{% trans "You can type custom message below" %}</i>
+<p>
+<textarea class="nonprint"></textarea>
+<span id='note'></span>
+</p>
 
 <table>
 {% for o,c,parts in events %}
-<tr><td class="event" colspan="3">
+<tr class="event"><td class="event" colspan="3">
     <h2
         {% if o.cancelled %}
         style="text-decoration: line-through"
@@ -36,6 +44,7 @@
         {% endif %}
 
         </h2> 
+        <a class="nonprint hide">{% trans "hide" %}</a>
 </td></tr>
     {% if not o.cancelled %}
     {% for p in parts %}

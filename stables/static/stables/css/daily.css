@@ -17,3 +17,22 @@ td.tickets {
 tr.participation td {
     border: 1px solid black;
 }
+
+textarea {
+    height: 200px;
+    width: 400px;
+}
+
+#note {
+    display:none;
+}
+
+@media print {
+    #note {
+        display: inline;
+        white-space: pre;
+    }
+    .nonprint {
+        display: none;
+    }
+}
