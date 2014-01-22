@@ -49,6 +49,8 @@ class ViewUser(DetailView):
     def get_object(self, *args, **kwargs):
         user = User.objects.filter(username=self.kwargs['username'])[0]
         user = user.get_profile()
+        pmore = self.request.GET.get('pmore', 5)
+        tmore = self.request.GET.get('tmore', 5)
 
         setattr(user, 'next', [])
         if user.rider:
@@ -56,8 +58,11 @@ class ViewUser(DetailView):
 
         if user.customer:
             setattr(user, 'transactions', Transaction.objects.filter(
-              customer=user.customer, active=True).order_by('-created_on')[:5])
-            setattr(user, 'participations', Participation.objects.filter(participant__in=user.customer.riderinfo_set.values_list('user', flat=True), start__lte=datetime.now()).order_by('-start')[:5])
+              customer=user.customer, active=True)
+              .order_by('-created_on').select_related()[:tmore])
+            setattr(user, 'participations', Participation.objects.filter(
+              participant__in=user.customer.riderinfo_set.values_list('user', flat=True), start__lte=datetime.now())
+              .order_by('-start').select_related()[:pmore])
             setattr(user, 'tickets', user.customer.unused_tickets)
             setattr(user, 'saldo', user.customer.saldo)
             for rdr in user.customer.riderinfo_set.all():
@@ -65,7 +70,7 @@ class ViewUser(DetailView):
                 user.next.append(Participation.objects.get_next_participation(rdr.user))
         elif user.rider:
             setattr(user, 'participations', Participation.objects.filter(
-              participant=user).order_by('-start')[:5])
+              participant=user).order_by('-start').select_related()[:pmore])
             setattr(user, 'tickets', user.rider.unused_tickets)
 
         if hasattr(user, 'tickets'):

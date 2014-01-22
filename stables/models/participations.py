@@ -374,7 +374,7 @@ class ParticipationManager(models.Manager):
         return self.filter(start=occurrence.start, end=occurrence.end, ).order_by('last_state_change_on')
 
     def get_next_participation(self, rider, start=None):
-        enrolls = Enroll.objects.filter(participant=rider, state=ATTENDING)
+        enrolls = list(Enroll.objects.filter(participant=rider, state=ATTENDING).prefetch_related('course', 'course__events', 'course__events__rule', 'course__events__occurrence_set'))
         next_occ = None
         next_part = None
         for e in enrolls:
@@ -383,7 +383,7 @@ class ParticipationManager(models.Manager):
             continue
           if not next_occ or next_occ.start > n.start:
             next_occ = n 
-        parts = Participation.objects.filter(participant=rider, start__gte=datetime.datetime.now())
+        parts = Participation.objects.filter(participant=rider, start__gte=datetime.datetime.now()).select_related()
         for p in parts:
           n = p.event.next_occurrence()
           if not n:
