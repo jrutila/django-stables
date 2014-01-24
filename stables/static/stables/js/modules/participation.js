@@ -60,7 +60,7 @@ var ParticipationView = Backbone.View.extend({
         'change textarea[name="note"]': 'noteChange',
         'click button.enroll': 'enroll',
         'click button.denroll': 'denroll',
-        //TODO: uncomment when dialog is ready 'click .detail_url': 'detail_click',
+        'click .detail_url': 'detail_click',
     },
     detail_click: function(ev) {
         return false
@@ -138,7 +138,7 @@ var ParticipationView = Backbone.View.extend({
         $('select[name="horse"]', this.$el).val(this.model.get('horse'))
         $('.note', this.$el).tooltipTextarea()
         var that = this
-        $('.detail_url', this.$el).tooltip()/* TODO: uncomment when dialog ready .popover({ trigger: 'click', placement: 'left', content: function() {
+        $('.detail_url', this.$el).popover({ trigger: 'click', placement: 'left', content: function() {
             var fm = new Finance({ id: 1 });
             var fv = new FinanceView({ model: fm });
             fm.fetch({ success: function() {
@@ -148,7 +148,7 @@ var ParticipationView = Backbone.View.extend({
                 that.model.fetch()
             });
             return fv.$el;
-        }, html: true })*/
+        }, html: true }).tooltip()
         return this
     },
 })
