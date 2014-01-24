@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-01-22 11:22+0200\n"
+"POT-Creation-Date: 2014-01-24 13:30+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -45,12 +45,12 @@ msgstr "Asiakastieto"
 msgid "Instructor"
 msgstr "Opettaja"
 
-#: backbone.py:122 backbone.py:209 backbone.py:212
+#: backbone.py:124 backbone.py:212 backbone.py:216 backbone.py:219
 #: templatetags/stablestags.py:51
 msgid "Cash"
 msgstr "Käteinen"
 
-#: backbone.py:165 backbone.py:284
+#: backbone.py:167 backbone.py:293
 #, python-format
 msgid "%d tickets remaining"
 msgstr "%d korttia jäljellä"
@@ -335,9 +335,13 @@ msgstr ""
 "\n"
 "Säkä: ca. %(withers)s cm.\n"
 
-#: templates/stables/newboard.html:88 templates/stables/newboard.html:137
+#: templates/stables/newboard.html:88 templates/stables/newboard.html:140
 msgid "--"
 msgstr ""
+
+#: templates/stables/newboard.html:133
+msgid "details"
+msgstr "lisätiedot"
 
 #: templates/stables/participations.html:11
 msgid "Save changes"

@@ -206,6 +206,11 @@ class ViewFinance:
             self.id = part.id
             saldo, ticket = part.get_saldo()
             self.ticket_types = {}
+
+            self.finance_hint = unicode(ticket)
+            if (saldo == 0 and ticket == None):
+                self.finance_hint = _("Cash")
+
             if saldo != 0:
                 self.value = saldo*-1
                 self.ticket_types[_("Cash")] = 0
@@ -216,7 +221,8 @@ class ViewFinance:
                 self.ticket = ticket
             unused = part.participant.rider.unused_tickets
             for u in unused:
-                self.ticket_types[u.type.name] = u.type.id
+                if (not ticket) or (ticket.type != u.type):
+                    self.ticket_types[u.type.name] = u.type.id
             self.participation_url = part.get_absolute_url()
 
 class FinanceResource(Resource):
@@ -231,6 +237,7 @@ class FinanceResource(Resource):
     ticket_types = fields.DictField(attribute='ticket_types', null=True)
     value = fields.DecimalField(attribute='value', null=True)
     participation_url = fields.CharField(attribute='participation_url')
+    finance_hint = fields.CharField(attribute='finance_hint', null=True)
 
     def obj_get(self, bundle, **kwargs):
         part = Participation.objects.get(pk=kwargs['pk'])

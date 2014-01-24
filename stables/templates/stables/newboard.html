@@ -124,11 +124,14 @@
 </script>
 
 <script type="text/html" id="FinancePopoverView">
+    <div><%= finance_hint %></div>
     <!--<input type="number" value="<%= value %>"/>-->
     <% for (var t in ticket_types) { %>
       <button value="<%= ticket_types[t] %>"><%= t %></button>
     <% } %>
-    <a href="<%= participation_url %>">details</a>
+    <div>
+    <a href="<%= participation_url %>">{% trans "details" %}</a>
+    </div>
 </script>
 
 <script type="text/html" id="EventView">

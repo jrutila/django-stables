@@ -138,17 +138,32 @@ var ParticipationView = Backbone.View.extend({
         $('select[name="horse"]', this.$el).val(this.model.get('horse'))
         $('.note', this.$el).tooltipTextarea()
         var that = this
-        $('.detail_url', this.$el).popover({ trigger: 'click', placement: 'left', content: function() {
-            var fm = new Finance({ id: 1 });
-            var fv = new FinanceView({ model: fm });
-            fm.fetch({ success: function() {
-                fv.render();
-            }, silent: true });
-            that.listenTo(fm, "change", function() { 
-                that.model.fetch()
+        $('.detail_url', this.$el)
+        .removeAttr("title")
+        .popover({
+            trigger: 'click',
+            placement: 'right',
+            content: function() {
+                var fm = new Finance({ id: that.model.get('id') });
+                var fv = new FinanceView({ model: fm });
+                fm.fetch({ success: function() {
+                    fv.render();
+                }, silent: true });
+                that.listenTo(fm, "sync", function() {
+                    that.model.fetch()
+                });
+                return fv.$el;
+            },
+            title: function() {
+                return that.model.get('rider_name') + "<button class='close'>&times;</button>";
+            },
+            html: true,
+        }).on('shown.bs.popover', function () {
+            var $thisPopover = $(this);
+            $(this).next(".popover").find(".popover-title button.close").click(function() {
+                $thisPopover.click();
             });
-            return fv.$el;
-        }, html: true }).tooltip()
+        }).tooltip({ title: this.model.get('finance_hint') })
         return this
     },
 })

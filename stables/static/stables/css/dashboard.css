@@ -161,3 +161,12 @@ white-space: nowrap;
 {
     display: none;
 }
+
+.popover.right .arrow
+{
+    top: 27px;
+}
+
+button.close {
+    padding-left: 10px;
+}
