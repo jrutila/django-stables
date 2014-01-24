@@ -240,19 +240,19 @@ REJECTED = 4
 RESERVED = 5
 WAITFORPAY = 6
 PARTICIPATION_STATES = (
-    (ATTENDING, _('Attending')),
+    (ATTENDING, ugettext('Attending')),
     (-1, 'Obsolete'),
-    (SKIPPED, _('Skipped')),
-    (CANCELED, _('Canceled')),
-    (REJECTED, _('Rejected')),
-    (RESERVED, _('Reserved')),
+    (SKIPPED, ugettext('Skipped')),
+    (CANCELED, ugettext('Canceled')),
+    (REJECTED, ugettext('Rejected')),
+    (RESERVED, ugettext('Reserved')),
 )
 ENROLL_STATES = (
-    (WAITFORPAY, _('Waiting for payment')),
-    (ATTENDING, _('Attending')),
-    (CANCELED, _('Canceled')),
-    (REJECTED, _('Rejected')),
-    (RESERVED, _('Reserved')),
+    (WAITFORPAY, ugettext('Waiting for payment')),
+    (ATTENDING, ugettext('Attending')),
+    (CANCELED, ugettext('Canceled')),
+    (REJECTED, ugettext('Rejected')),
+    (RESERVED, ugettext('Reserved')),
 )
 
 class EnrollManager(models.Manager):

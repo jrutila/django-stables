@@ -211,7 +211,7 @@ class ViewFinance:
             if (saldo == 0 and ticket == None):
                 self.finance_hint = _("Cash")
 
-            if saldo != 0:
+            if saldo != None and saldo != 0:
                 self.value = saldo*-1
                 self.ticket_types[_("Cash")] = 0
             if ticket:
@@ -224,6 +224,11 @@ class ViewFinance:
                 if (not ticket) or (ticket.type != u.type):
                     self.ticket_types[u.type.name] = u.type.id
             self.participation_url = part.get_absolute_url()
+
+            if part.state != ATTENDING:
+                self.ticket_types = []
+                from stables.models import PARTICIPATION_STATES
+                self.finance_hint = PARTICIPATION_STATES[part.state][1]
 
 class FinanceResource(Resource):
     class Meta:

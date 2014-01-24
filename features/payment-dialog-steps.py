@@ -13,6 +13,10 @@ def when_i_am_on_the_dashboard(step):
 @step(u'And I click ([^"]*)')
 def and_i_click_the_group1_button(step, group1):
     world.find_element(group1).click()
+@step(u'And I select state ([^"]*)')
+def and_i_select_state(step, state):
+    world.browser.find_by_css("select[name='state']")[0].select(3)
+    world.browser.is_text_present('line-through' , wait_time=2)
 @step(u'Then I can move with link to ([^"]*) page')
 def then_i_can_move_with_link_to_certain_page(step, name):
     link = world.get_page_url(name)
@@ -41,3 +45,6 @@ def and_the_participation_is_paid_with_cash(step):
 def and_the_rider_has_1_used_ticket(step):
     from stables.models import Ticket
     assert_is_not_none(Ticket.objects.get(pk=1).transaction)
+@step(u'And there is no pay buttons present')
+def and_there_is_no_pay_buttons_present(step):
+    assert not world.browser.is_element_present_by_css('.popover-content button')

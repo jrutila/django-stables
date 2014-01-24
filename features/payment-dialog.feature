@@ -21,3 +21,12 @@ Feature: Payment dialog feature
         And I click the ticket button
         Then the participation link informs about ticket
         And the rider has 1 used ticket
+
+    Scenario: Upkeeper canceles participation
+        Given situation "ticketpaid participation"
+        When I am on the dashboard
+        And I select state "Canceled"
+        And I click the participation link
+        Then I can move with link to the participation 1 details page
+        And there is no pay buttons present
+        And the rider has 1 unused ticket
