@@ -20,6 +20,8 @@ from tastypie.bundle import Bundle
 from tastypie.cache import SimpleCache
 from tastypie.authorization import Authorization
 from tastypie.contrib.contenttypes.fields import GenericForeignKeyField
+from tastypie.http import HttpBadRequest
+from tastypie.exceptions import ImmediateHttpResponse
 
 from django.db.models.signals import post_save
 from django.conf.urls import url
@@ -292,9 +294,9 @@ class ParticipationResource(Resource):
     def detail_uri_kwargs(self, bundle_or_obj):
         kwargs = {}
         if isinstance(bundle_or_obj, Bundle):
-           kwargs['pk'] = bundle_or_obj.obj.id
+            kwargs['pk'] = bundle_or_obj.obj.id
         else:
-           kwargs['pk'] = bundle_or_obj.id
+            kwargs['pk'] = bundle_or_obj.id
 
         return kwargs
 
@@ -322,7 +324,13 @@ class ParticipationResource(Resource):
             f = []
             for v in bundle.data['rider_name'].split(" "):
                 f.append((Q(user__first_name__icontains=v) | Q(user__last_name__icontains=v)))
-            participant = UserProfile.objects.get(reduce(operator.and_, f))
+            try:
+                participant = UserProfile.objects.get(reduce(operator.and_, f))
+            except UserProfile.DoesNotExist:
+                # TODO: Implement new user adding logic!
+                raise ImmediateHttpResponse(HttpBadRequest("Given user does not exist"))
+            except UserProfile.MultipleObjectsReturned:
+                raise ImmediateHttpResponse(HttpBadRequest("Given user is too ambiquous"))
         else:
             participant = UserProfile.objects.get(pk=bundle.data['rider_id'])
 
