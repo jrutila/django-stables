@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% load i18n sekizai_tags stablestags %}
+{% load staticfiles i18n sekizai_tags stablestags %}
 {% block content %}
 {% addtoblock "js" %}
-<script type='text/javascript' src="{{ STATIC_URL }}stables/js/dashboard.js"></script>
+<script type='text/javascript' src="{% static 'stables/js/dashboard.js' %}"></script>
 {% endaddtoblock %}
 {% addtoblock "css" %}
-<link href="{{ STATIC_URL }}stables/css/dashboard.css" rel="stylesheet" type="text/css" />
-<link href="{{ STATIC_URL }}stables/css/course.css" rel="stylesheet" type="text/css" />
+<link href="{% static 'stables/css/dashboard.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'stables/css/course.css' %}" rel="stylesheet" type="text/css" />
 {% endaddtoblock %}
 
 <div class="wide widget">

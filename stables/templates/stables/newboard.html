@@ -1,14 +1,14 @@
 {% extends "base.html" %}
-{% load i18n sekizai_tags stablestags %}
+{% load staticfiles i18n sekizai_tags stablestags %}
 {% block content %}
 {% addtoblock "js" %}
-<script type='text/javascript' src="{{ STATIC_URL }}js/jquery.cookie.js"></script>
-<script type='text/javascript' src="{{ STATIC_URL }}js/underscore-min.js"></script>
-<script type='text/javascript' src="{{ STATIC_URL }}js/backbone-min.js"></script>
-<script type='text/javascript' src="{{ STATIC_URL }}js/backbone-tastypie.js"></script>
-<script type='text/javascript' src="{{ STATIC_URL }}stables/js/tooltipTextarea.js"></script>
-<script type='text/javascript' src="{{ STATIC_URL }}stables/js/modules/participation.js"></script>
-<script type='text/javascript' src="{{ STATIC_URL }}stables/js/modules/dashboard.js"></script>
+<script type='text/javascript' src="{% static 'js/jquery.cookie.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/underscore-min.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/backbone-min.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/backbone-tastypie.js' %}"></script>
+<script type='text/javascript' src="{% static 'stables/js/tooltipTextarea.js' %}"></script>
+<script type='text/javascript' src="{% static 'stables/js/modules/participation.js' %}"></script>
+<script type='text/javascript' src="{% static 'stables/js/modules/dashboard.js' %}"></script>
 <script type='text/javascript'>
     Backbone.Tastypie.csrfToken = $.cookie( 'csrftoken' )
 
@@ -79,8 +79,8 @@
 </script>
 {% endaddtoblock %}
 {% addtoblock "css" %}
-<link href="{{ STATIC_URL }}stables/css/dashboard.css" rel="stylesheet" type="text/css" />
-<link href="{{ STATIC_URL }}stables/css/course.css" rel="stylesheet" type="text/css" />
+<link href="{% static 'stables/css/dashboard.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'stables/css/course.css' %}" rel="stylesheet" type="text/css" />
 {% endaddtoblock %}
 
 <script type="text/html" id="ParticipationView">
@@ -166,7 +166,7 @@
 </script>
 
 <script type="text/html" id="EventLoadingView">
-    <img src="{{ STATIC_URL }}stables/img/ajax-loader.gif"/>
+    <img src="{% static 'stables/img/ajax-loader.gif' %}"/>
 </script>
 
 <div class="wide widget">
