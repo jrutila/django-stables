@@ -6,6 +6,7 @@ from rest_framework.permissions import AllowAny
 from stables.models import Participation
 from stables.models import InstructorParticipation
 from stables.models import Course
+from stables.models import CANCELED
 from datetime import datetime, date, timedelta
 
 class UserAllowedParticipationSerializer(serializers.ModelSerializer):
@@ -49,6 +50,7 @@ class TimetableView(views.APIView):
             endtime = datetime.combine(d, datetime.max.time())
             events = list(Course.objects.get_course_occurrences(starttime, endtime))
             instructors = InstructorParticipation.objects.filter(event__in=events, start__gte=starttime, end__lte=endtime).select_related()
+            slots = Participation.objects.generate_participations(starttime, endtime)[1]
             dates[str(d)] = []
             for e in events:
                 occ = e.get_occurrences(starttime, endtime)
@@ -58,12 +60,18 @@ class TimetableView(views.APIView):
                         eh['title'] = e.title
                         eh['start'] = o.start
                         eh['end'] = o.end
+                        if o.original_start != o.start:
+                            eh['original_start'] = o.original_start
+                        if o.original_end != o.end:
+                            eh['original_end'] = o.original_end
                         eh['cancelled'] = o.cancelled
                         eh['instructor'] = [ unicode(i.instructor) for i in instructors if i.event_id == e.id and i.start == o.start and i.end == o.end ]
                         if eh['instructor']:
                             eh['instructor'] = eh['instructor'][0]
                         else:
                             eh['instructor'] = None
+                        if slots[o][0]:
+                            eh['free_slots'] = slots[o][0].max_participants > len([ p for p in slots[o][1] if p.state != CANCELED ])
                         dates[str(d)].append(eh)
 
             d += timedelta(days=1)
