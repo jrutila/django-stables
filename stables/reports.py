@@ -8,6 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from django.contrib.admin import RelatedFieldListFilter, DateFieldListFilter
 from django.contrib.admin.util import get_model_from_relation
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
 from stables.forms.reports import DateFilterForm
@@ -21,10 +22,7 @@ def amountval_factory():
     return { 'amount': 0, 'value': Decimal('0.00') }
 
 class FinanceReport(reportengine.Report):
-    verbose_name = 'Finance report'
-    slug = 'finance-report'
     namespace = 'stables'
-    labels = ('horse', 'amount', 'value')
 
     def get_filter_form(self, data):
         form = DateFilterForm(data=data)
@@ -32,19 +30,39 @@ class FinanceReport(reportengine.Report):
 
     def get_rows(self, filter={}, order_by=None):
         parts = Participation.objects.filter(state=ATTENDING, start__gte=filter['start'], end__lte=filter['end'])
-        trans = Transaction.objects.filter(object_id__in=[ p.id for p in parts ])
-        horses = defaultdict(amountval_factory)
-        #{ 'amount': 0, 'value': Decimal('0.00')})
+        trans = Transaction.objects.filter(object_id__in=[ p.id for p in parts ], content_type=ContentType.objects.get_for_model(Participation))
+        values = defaultdict(amountval_factory)
         rows = []
         for t in trans:
-            if t.source.horse:
-                horses[t.source.horse.name]['amount'] = horses[t.source.horse.name]['amount'] + 1
-        for h,av in horses.items():
+            value = eval("t.source"+self.attr)
+            if value:
+                values[value.__unicode__()]['amount'] = values[value.__unicode__()]['amount'] + 1
+                values[value.__unicode__()]['value'] = values[value.__unicode__()]['value'] + t.getIncomeValue()
+        for h,av in values.items():
             rows.append([h, av.values()[0], av.values()[1]])
         return rows,(("total", len(rows)),)
 
-reportengine.register(FinanceReport)
+class HorseFinanceReport(FinanceReport):
+    labels = ('horse', 'amount', 'value')
+    attr = '.horse'
+    slug = 'horse-finance-report'
+    verbose_name = 'Horse finance report'
 
+class CourseFinanceReport(FinanceReport):
+    labels = ('course', 'amount', 'value')
+    attr = '.event.course_set.all()[0]'
+    slug = 'course-finance-report'
+    verbose_name = 'Course finance report'
+
+class RiderFinanceReport(FinanceReport):
+    labels = ('rider', 'amount', 'value')
+    attr = '.participant'
+    slug = 'rider-finance-report'
+    verbose_name = 'Rider finance report'
+
+reportengine.register(HorseFinanceReport)
+reportengine.register(CourseFinanceReport)
+reportengine.register(RiderFinanceReport)
 
 class MultipleRelatedFieldListFilter(RelatedFieldListFilter):
     def __init__(self, field, request, params, model, model_admin, field_path):

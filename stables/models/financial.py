@@ -9,6 +9,7 @@ from django.contrib.contenttypes import generic
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.db import connection
+from decimal import Decimal
 
 from south.modelsinspector import add_introspection_rules
 add_introspection_rules([], ["^stables\.models\.financial\.CurrencyField"])
@@ -276,3 +277,13 @@ class Transaction(models.Model):
     def delete(self):
         self.ticket_set.clear()
         super(Transaction, self).delete()
+
+    def getIncomeValue(self):
+        if self.ticket_set.count() == 1:
+            val = self.ticket_set.all()[0].value
+            if val != None:
+                return val
+            return self.amount*-1
+        if self.amount < 0:
+            return Decimal('0.00')
+        return self.amount
