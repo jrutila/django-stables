@@ -49,7 +49,6 @@ setup(
       'django-reversion==1.7.1',
       'django-sekizai',
       'django-crispy-forms',
-      'django-reporting==dev',
       'django-reportengine',
       'django-tastypie',
       'backbone-tastypie',
@@ -59,7 +58,6 @@ setup(
     zip_safe=False,
     dependency_links = [
       'http://github.com/jrutila/django-schedule/tarball/master#egg=django-schedule',
-      'http://github.com/jrutila/django-reporting/tarball/master#egg=django-reporting-dev',
       'http://github.com/jrutila/backbone-tastypie/tarball/master#egg=backbone-tastypie-dev',
     ]
 )
