@@ -7,5 +7,5 @@ class FilterFormHelper(FormHelper):
     form_method = 'post'
 
 class DateFilterForm(forms.Form):
-    start = forms.DateField()
-    end = forms.DateField()
+    start = forms.DateField(required=False)
+    end = forms.DateField(required=False)
