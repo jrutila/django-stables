@@ -1,10 +1,11 @@
 from django.conf.urls import *
+from rest_framework import routers
 
 # from rest_framework import routers
 from stables.api import TimetableView
 
+router = routers.DefaultRouter()
 
-urlpatterns = patterns('',
-    url(r'^timetable/', TimetableView.as_view()),
-    url(r'^auth/', include('rest_framework.urls', namespace='rest_framework')),
-)
+urlpatterns = router.urls + [
+ url(r'^timetable/', TimetableView.as_view(), name="timetable"),
+]
