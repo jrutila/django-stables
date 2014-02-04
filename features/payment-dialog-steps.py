@@ -7,9 +7,9 @@ from nose.tools import assert_equals, assert_is_not_none
 def given_situation_group1(step, situation):
     world.load_data(situation)
     world.login_admin()
-@step(u'When I am on the dashboard')
-def when_i_am_on_the_dashboard(step):
-    world.goto_page('the dashboard')
+@step(u'When I am on ([^"]*)')
+def when_i_am_on_page(step, page):
+    world.goto_page(page)
 @step(u'And I click ([^"]*)')
 def and_i_click_the_group1_button(step, group1):
     world.find_element(group1).click()

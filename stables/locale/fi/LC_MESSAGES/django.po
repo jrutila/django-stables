@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-01-24 13:30+0200\n"
+"POT-Creation-Date: 2014-02-04 15:36+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -50,42 +50,26 @@ msgstr "Opettaja"
 msgid "Cash"
 msgstr "Käteinen"
 
-#: backbone.py:167 backbone.py:293
+#: backbone.py:167 backbone.py:298
 #, python-format
 msgid "%d tickets remaining"
 msgstr "%d korttia jäljellä"
 
-#: reports.py:28
-msgid "All"
-msgstr "Kaikki"
+#: reports.py:106
+msgid "At"
+msgstr ""
 
-#: reports.py:99
-msgid "This week"
-msgstr "Tämä viikko"
+#: reports.py:106
+msgid "Horse"
+msgstr "Hevonen"
 
-#: reports.py:103
-msgid "Last week"
-msgstr "Viime viikko"
+#: reports.py:106
+msgid "Rider name"
+msgstr "Ratsastajan nimi"
 
-#: reports.py:107
-msgid "This month"
-msgstr "Tämä kuu"
-
-#: reports.py:111
-msgid "Last month"
-msgstr "Viime kuu"
-
-#: reports.py:122
-msgid "Horse report"
-msgstr "Hevosraportti"
-
-#: reports.py:149
-msgid "Instructor report"
-msgstr "Opettajaraportti"
-
-#: reports.py:172
-msgid "Accident report"
-msgstr "Vahinkoraportti"
+#: reports.py:106
+msgid "Type"
+msgstr "Tyyppi"
 
 #: forms/course.py:24
 msgid "Start time"
@@ -133,12 +117,11 @@ msgstr "Vanhenemistiedot"
 
 #: forms/user.py:12 forms/user.py:55
 msgid "first name"
-msgstr ""
+msgstr "etunimi"
 
 #: forms/user.py:13 forms/user.py:56
-#, fuzzy
 msgid "last name"
-msgstr "nimi"
+msgstr "sukunimi"
 
 #: forms/user.py:14 models/user.py:41
 msgid "phone number"
@@ -168,27 +151,27 @@ msgstr "vahinko"
 msgid "accidents"
 msgstr "vahingot"
 
-#: models/financial.py:27 models/horse.py:10 models/participations.py:43
+#: models/financial.py:28 models/horse.py:10 models/participations.py:43
 msgid "name"
 msgstr "nimi"
 
-#: models/financial.py:28
+#: models/financial.py:29
 msgid "description"
 msgstr "kuvaus"
 
-#: models/financial.py:56
+#: models/financial.py:57
 msgid "Ticket type"
 msgstr "Kortin tyyppi"
 
-#: models/financial.py:61
+#: models/financial.py:62
 msgid "Expires"
 msgstr "Vanhenee"
 
-#: models/financial.py:62
+#: models/financial.py:63
 msgid "Value"
 msgstr "Arvo"
 
-#: models/financial.py:62
+#: models/financial.py:63
 msgid "Sell value of one ticket. Can be used when calculating user revenue."
 msgstr ""
 "Kortin myyntiarvo. Myyntiarvoa voidaan käyttää asiakaskohtaisen tuoton "
@@ -291,14 +274,18 @@ msgid "Select week"
 msgstr "Valitse viikko"
 
 #: templates/stables/daily.html:16
+msgid "Print"
+msgstr ""
+
+#: templates/stables/daily.html:17
 msgid "You can type custom message below"
 msgstr "Voit kirjoittaa vapaan viestin alle"
 
-#: templates/stables/daily.html:47
+#: templates/stables/daily.html:48
 msgid "hide"
 msgstr "piilota"
 
-#: templates/stables/daily.html:71
+#: templates/stables/daily.html:72
 msgid "cancelled"
 msgstr "peruttu"
 
@@ -450,7 +437,6 @@ msgid "Modify transactions"
 msgstr "Muokkaa maksutapahtumia"
 
 #: templates/stables/participation/participation.html:40
-#, fuzzy
 msgid "Accidents"
 msgstr "vahingot"
 
@@ -498,7 +484,7 @@ msgstr "Seuraava tapahtuma"
 msgid "Last participations"
 msgstr "Viimeiset osallistumiset"
 
-#: templates/stables/user/index.html:52 templates/stables/user/index.html:79
+#: templates/stables/user/index.html:52 templates/stables/user/index.html:86
 msgid "More..."
 msgstr "Lisää..."
 
@@ -519,7 +505,15 @@ msgstr ""
 "\n"
 "%(name)s: %(amount)s kpl (ensimmäinen vanhenee: %(expire_date)s)\n"
 
-#: templates/stables/user/index.html:71
+#: templates/stables/user/index.html:69
+msgid ""
+"\n"
+"Expired %(name)s: %(amount)s pcs (first expired: %(expire_date)s)\n"
+msgstr ""
+"\n"
+"Vanhentunut %(name)s: %(amount)s kpl (vanhentunut: %(expire_date)s)\n"
+
+#: templates/stables/user/index.html:78
 msgid "Last transactions"
 msgstr "Viimeiset tilitapahtumat"
 
