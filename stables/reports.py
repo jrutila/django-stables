@@ -38,8 +38,8 @@ class FinanceReport(reportengine.Report):
 
     def get_rows(self, filter={}, order_by=None):
         start, end = get_daterange(filter['start'], filter['end'])
-        parts = Participation.objects.filter(state=ATTENDING, start__gte=start, end__lte=end)
-        trans = Transaction.objects.filter(object_id__in=[ p.id for p in parts ], content_type=ContentType.objects.get_for_model(Participation))
+        parts = Participation.objects.filter(state=ATTENDING, start__gte=start, end__lte=end).prefetch_related('participant')
+        trans = Transaction.objects.filter(object_id__in=[ p.id for p in parts ], content_type=ContentType.objects.get_for_model(Participation)).prefetch_related('ticket_set', 'source__participant__user', 'source__event__course_set', 'source__horse')
         values = defaultdict(amountval_factory)
         rows = []
         for t in trans:
