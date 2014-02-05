@@ -108,21 +108,44 @@ def get_customer_saldo(self):
     return _count_saldo(Transaction.objects.filter(active=True,
           customer=self).prefetch_related('ticket_set'))[0]
 
-def _get_unused_tickets(self):
-    qrider = Q(owner_type=ContentType.objects.get_for_model(self), owner_id=self.id)
+def _get_rider_q(self):
     qcustomer = Q(owner_type=ContentType.objects.get_for_model(self.customer), owner_id=self.customer.id)
-    return Ticket.objects.filter(qrider | qcustomer, transaction__isnull=True).exclude(expires__lt=datetime.datetime.now())
+    qrider = Q(owner_type=ContentType.objects.get_for_model(self), owner_id=self.id)
+    return Q(qrider | qcustomer)
 
-def _get_customer_unused_tickets(self):
+def _get_customer_q(self):
     qcustomer = Q(owner_type=ContentType.objects.get_for_model(self), owner_id=self.id)
     qrider = Q(owner_type=ContentType.objects.get_for_model(RiderInfo), owner_id__in=self.riderinfo_set.all())
-    return Ticket.objects.filter(qrider | qcustomer, transaction__isnull=True).exclude(expires__lt=datetime.datetime.now())
+    return Q(qrider | qcustomer)
+
+def _get_valid_q():
+    return Q(expires__gte=datetime.datetime.now())
+
+def _get_expired_q():
+    return Q(expires__lt=datetime.datetime.now())
+
+def _get_tickets(owner_q, expire_q):
+    return Ticket.objects.filter(owner_q, transaction__isnull=True).filter(expire_q)
+
+def _get_rider_valid_unused_tickets(self):
+    return _get_tickets(_get_rider_q(self), _get_valid_q())
+
+def _get_rider_expired_unused_tickets(self):
+    return _get_tickets(_get_rider_q(self), _get_expired_q())
+
+def _get_customer_valid_unused_tickets(self):
+    return _get_tickets(_get_customer_q(self), _get_valid_q())
+
+def _get_customer_expired_unused_tickets(self):
+    return _get_tickets(_get_customer_q(self), _get_expired_q())
 
 import participations
 from participations import Course, Participation
 Participation.get_saldo = get_saldo
-RiderInfo.unused_tickets = property(_get_unused_tickets)
-CustomerInfo.unused_tickets = property(_get_customer_unused_tickets)
+RiderInfo.unused_tickets = property(_get_rider_valid_unused_tickets)
+RiderInfo.expired_tickets = property(_get_rider_expired_unused_tickets)
+CustomerInfo.unused_tickets = property(_get_customer_valid_unused_tickets)
+CustomerInfo.expired_tickets = property(_get_customer_expired_unused_tickets)
 CustomerInfo.saldo = property(get_customer_saldo)
 
 def pay_participation(participation, ticket=None, replace=True):

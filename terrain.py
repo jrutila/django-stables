@@ -2,6 +2,7 @@ from lettuce import before, after, world
 from splinter.browser import Browser
 from django.test.utils import setup_test_environment, teardown_test_environment
 from django.core.management import call_command
+from django.contrib.auth.models import User
 from django.db import connection
 from django.conf import settings
 from lettuce.django import django_url
@@ -10,17 +11,21 @@ import re
 
 DATA = {
         'ticketpaid participation': 'fixtures/harvest.json',
+        'rider with expired tickets': 'fixtures/rider_with_expired_tickets.json',
         }
 
 PAGES = {
         'the participation ([^"]*) details': 'view_participation',
         'the dashboard': 'newboard',
+        'the rider page': 'view_user',
         }
 
 LINKS = {
         'the participation link': '.detail_url',
         'the cash button': 'button[value="0"]',
         'the ticket button': 'button[value="1"]',
+        'valid tickets': 'li[class="ticket_valid"]',
+        'expired tickets': 'li[class="ticket_expired"]',
         }
 
 @before.harvest
@@ -70,6 +75,8 @@ def goto_page(name, *args):
     assert name in PAGES
     if name == 'the dashboard':
         world.browser.visit(django_url(reverse(PAGES[name], *args)+"#2014-01-09"))
+    elif name == 'the rider page':
+        world.browser.visit(django_url(reverse(PAGES[name], args=[User.objects.get(pk=2).username])))
     else:
         world.browser.visit(django_url(reverse(PAGES[name], *args)))
     world.browser.reload()

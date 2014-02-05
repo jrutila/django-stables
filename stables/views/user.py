@@ -64,6 +64,7 @@ class ViewUser(DetailView):
               participant__in=user.customer.riderinfo_set.values_list('user', flat=True), start__lte=datetime.now())
               .order_by('-start').select_related()[:pmore])
             setattr(user, 'tickets', user.customer.unused_tickets)
+            setattr(user, 'expired_tickets', user.customer.expired_tickets)
             setattr(user, 'saldo', user.customer.saldo)
             for rdr in user.customer.riderinfo_set.all():
               if rdr.user != user:
@@ -72,16 +73,18 @@ class ViewUser(DetailView):
             setattr(user, 'participations', Participation.objects.filter(
               participant=user).order_by('-start').select_related()[:pmore])
             setattr(user, 'tickets', user.rider.unused_tickets)
+            setattr(user, 'expired_tickets', user.rider.expired_tickets)
 
-        if hasattr(user, 'tickets'):
-          ticketamount = defaultdict(int)
-          ticketexp = dict()
-          for t in user.tickets:
-            ticketamount[t.type] = ticketamount[t.type] + 1
-            ticketexp[t.type] = t.expires if not t.type in ticketexp or ticketexp[t.type] > t.expires else ticketexp[t.type]
-          user.tickets = dict()
-          for tt in ticketexp.keys():
-            user.tickets[tt] = (ticketamount[tt], ticketexp[tt])
+        for attr in ['tickets', 'expired_tickets']:
+            if hasattr(user, attr):
+              ticketamount = defaultdict(int)
+              ticketexp = dict()
+              for t in getattr(user, attr):
+                ticketamount[t.type] = ticketamount[t.type] + 1
+                ticketexp[t.type] = t.expires if not t.type in ticketexp or ticketexp[t.type] > t.expires else ticketexp[t.type]
+              setattr(user, attr, dict())
+              for tt in ticketexp.keys():
+                getattr(user, attr)[tt] = (ticketamount[tt], ticketexp[tt])
 
         return user
 
