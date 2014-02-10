@@ -12,6 +12,7 @@ import re
 DATA = {
         'ticketpaid participation': 'fixtures/harvest.json',
         'rider with expired tickets': 'fixtures/rider_with_expired_tickets.json',
+        'multiple events': 'fixtures/multiple_events.json',
         }
 
 PAGES = {
@@ -26,6 +27,7 @@ LINKS = {
         'the ticket button': 'button[value="1"]',
         'valid tickets': 'li[class="ticket_valid"]',
         'expired tickets': 'li[class="ticket_expired"]',
+        'horse chooser': 'select[name="horse"]',
         }
 
 @before.harvest
@@ -59,9 +61,9 @@ def login_admin(name='admin'):
     pass
 
 @world.absorb
-def find_element(name):
+def find_element(name, nth=0):
     assert name in LINKS
-    return world.browser.find_by_css(LINKS[name])[0]
+    return world.browser.find_by_css(LINKS[name])[nth]
 
 @world.absorb
 def get_page_url(name):
@@ -74,7 +76,7 @@ def get_page_url(name):
 def goto_page(name, *args):
     assert name in PAGES
     if name == 'the dashboard':
-        world.browser.visit(django_url(reverse(PAGES[name], *args)+"#2014-01-09"))
+        world.browser.visit(django_url(reverse(PAGES[name], *args)+"#2014-01-09,2014-01-10"))
     elif name == 'the rider page':
         world.browser.visit(django_url(reverse(PAGES[name], args=[User.objects.get(pk=2).username])))
     else:

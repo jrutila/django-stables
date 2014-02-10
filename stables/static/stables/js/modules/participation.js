@@ -12,8 +12,29 @@ var Participation = Backbone.Model.extend({
         note: null,
         enroll: null,
     },
+    initialize: function(attrs, options) {
+        this.on("change:horse", this.handleHorseLimit)
+        if (options && 'limits' in options)
+        {
+            this.limits = options['limits']
+            this.handleHorseLimit()
+        }
+    },
+    handleHorseLimit: function() {
+        var myHorse = this.get('horse')
+        if (myHorse)
+            myHorse = parseInt(myHorse)
+        var prevHorse = this.previous('horse')
+        if (prevHorse)
+            prevHorse = parseInt(prevHorse)
+        if (myHorse !== prevHorse)
+        {
+            this.limits.increase(myHorse)
+            this.limits.decrease(prevHorse)
+        }
+    },
 })
-
+ 
 var Enroll = Backbone.Model.extend({
     urlRoot: apiUrl+'enroll/',
     defaults: {
@@ -53,6 +74,8 @@ var ParticipationView = Backbone.View.extend({
     initialize: function(data) {
         this.listenTo(this.model, "change", this.render);
         this.listenTo(this.model, "sync", this.notifyChanged);
+        this.listenTo(this.model.limits, "topped", this.limitTopped);
+        this.listenTo(this.model.limits, "cleared", this.limitCleared);
     },
     events: {
         'change select[name="state"]': 'stateChange',
@@ -110,6 +133,20 @@ var ParticipationView = Backbone.View.extend({
             }
         })
     },
+    limitTopped: function(limit) {
+        var horse = limit.get('horse')
+        if (parseInt(this.model.get('horse')) == horse)
+        {
+            this.$el.find('select[name="horse"]').addClass('warning')
+        }
+    },
+    limitCleared: function(limit) {
+        var horse = limit.get('horse')
+        if (parseInt(this.model.get('horse')) == horse)
+        {
+            this.$el.find('select[name="horse"]').removeClass('warning')
+        }
+    },
     stateChange: function(ev) {
         this.model.set('state', $(ev.target).val())
         this.$el.find('select[name="state"]').addClass('changed')
@@ -136,6 +173,10 @@ var ParticipationView = Backbone.View.extend({
         this.$el.html(this.template(this.model.attributes))
         $('select[name="state"]', this.$el).val(this.model.get('state'))
         $('select[name="horse"]', this.$el).val(this.model.get('horse'))
+        var limit = this.model.limits.findLimit(parseInt(this.model.get('horse')))
+        if (limit != null && limit.isTopped())
+            $('select[name="horse"]', this.$el).addClass('warning')
+
         $('.note', this.$el).tooltipTextarea()
         var that = this
         $('.detail_url', this.$el)
@@ -224,7 +265,7 @@ var ParticipationCollection = Backbone.Collection.extend({
 })
 
 var Event = Backbone.Model.extend({
-    initialize: function() {
+    initialize: function(attrs, options) {
         this.set('comments', new EventCommentsManager({
             metadata: this.get('metadata'),
             event: this,
@@ -233,6 +274,11 @@ var Event = Backbone.Model.extend({
             })
         })
         )
+        this.limits = options['limits']
+        this.get('participations').each(function (p) {
+            p.limits = options['limits']
+            p.handleHorseLimit()
+        })
     },
     idAttribute: function() {
         // Use this so that there can be multiple occurrences from the same event
@@ -306,7 +352,7 @@ var EventView = Backbone.View.extend({
                 event_id: this.model.get('event_id'),
                 start: this.model.get('start'),
                 end: this.model.get('end'),
-            })
+            }, { limits: this.model.limits })
         })
         adder.render()
         this.$el.find("ul").append(adder.$el)
