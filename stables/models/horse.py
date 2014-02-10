@@ -9,6 +9,8 @@ class Horse(models.Model):
         return self.name
     name = models.CharField(_('name'), max_length=500)
     last_usage_date = models.DateField(_('last usage date'), null=True, blank=True)
+    day_limit = models.IntegerField(_('day limit'), null=True, blank=True,
+        help_text=_('How many times the horse is allowed to ride in a day. Warning will be shown if this limit is topped.'))
 
     @models.permalink
     def get_absolute_url(self):

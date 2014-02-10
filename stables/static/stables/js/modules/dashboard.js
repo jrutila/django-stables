@@ -1,14 +1,55 @@
+var DayLimit = Backbone.Model.extend({
+    defaults: {
+        'amount': 0
+    },
+    increase: function() {
+        this.set('amount', this.get('amount') + 1);
+        var over = this.get('limit') - this.get('amount')
+        if (over == -1)
+            this.trigger('topped', this)
+    },
+    decrease: function() {
+        this.set('amount', this.get('amount') - 1);
+        var over = this.get('limit') - this.get('amount')
+        if (over == 0)
+            this.trigger('cleared', this)
+    },
+    isTopped: function() {
+        var over = this.get('limit') - this.get('amount')
+        return over <= -1
+    },
+})
+
+var DayLimits = Backbone.Collection.extend({
+    model: DayLimit,
+    increase: function(horse) {
+        if (horse)
+            this.findLimit(horse).increase()
+    },
+    decrease: function(horse) {
+        if (horse)
+            this.findLimit(horse).decrease()
+    },
+    findLimit: function(horse) {
+        return this.find(function(h) { return h.get('horse') == horse; })
+    },
+})
+
 var Day = Backbone.Model.extend({
+    initialize: function() {
+        this.set('limits', new DayLimits(horseLimits.toJSON()))
+    },
     url: function() {
         return apiUrl+'events/?at='+this.get('date')
     },
     parse: function(data) {
-        data['events'] = new EventCollection(EventCollection.prototype.parse(data.objects))
+        data['events'] = new EventCollection(EventCollection.prototype.parse(data.objects), { 'limits': this.get('limits')})
         delete data.objects
         return data
     },
     defaults: {
         events: new EventCollection(),
+        limits: new DayLimits(),
     },
     getEventsInHour: function(hour) {
         return this.get('events').filter(function(ev) {
@@ -49,9 +90,19 @@ var Week = Backbone.Model.extend({
 var DayView = Backbone.View.extend({
     initialize: function() {
         this.listenTo(this.model, "change", this.render)
+        this.listenTo(this.model.get('limits'), "topped", this.limitTopped)
         this.$timeslots = {}
         this.eventViews = {}
         this.$header = $('<div></div>')
+    },
+    limitTopped: function(limit) {
+        var content = $('<div></div>')
+        content.append(_.template($('#HorseLimitReachedMessage').html(), limit.attributes))
+        $.msgGrowl({
+            type: 'warning',
+            title: content.find('h4').html(),
+            text: content.find('span').html(),
+        })
     },
     tagName: 'div',
     render: function() {

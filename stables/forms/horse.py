@@ -25,7 +25,7 @@ class HorseForm(forms.ModelForm):
       self.helper.layout = Layout(
             Fieldset(
               _('Basic information'), 
-              'name' 
+              'name', 'day_limit'
               ),
             Fieldset(
               _('Expire information'), 

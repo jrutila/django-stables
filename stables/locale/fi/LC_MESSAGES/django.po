@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-02-04 15:36+0200\n"
+"POT-Creation-Date: 2014-02-09 11:51+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -181,7 +181,19 @@ msgstr ""
 msgid "last usage date"
 msgstr "viimeinen käyttöpäivä"
 
-#: models/horse.py:20
+#: models/horse.py:12
+msgid "day limit"
+msgstr "päiväraja"
+
+#: models/horse.py:13
+msgid ""
+"How many times the horse is allowed to ride in a day. Warning will be shown "
+"if this limit is topped."
+msgstr ""
+"Kuinka monta kertaa hevosta saa ratsastaa päivän aikana. Jos raja ylitetään, "
+"näytetään varoitus."
+
+#: models/horse.py:22
 msgid "Last usage date can't be before last participation"
 msgstr "Viimeinen käyttöpäivä ei voi olla ennen viimeistä tapahtumaa"
 
@@ -257,7 +269,7 @@ msgstr "h:i"
 #: models/participations.py:457
 #, python-format
 msgid "%(name)s %(state)s No Occurrence"
-msgstr ""
+msgstr "%(name)s %(state)s Ei tapahtumaa"
 
 #: models/participations.py:458
 #, python-format
@@ -322,13 +334,21 @@ msgstr ""
 "\n"
 "Säkä: ca. %(withers)s cm.\n"
 
-#: templates/stables/newboard.html:88 templates/stables/newboard.html:140
+#: templates/stables/newboard.html:101 templates/stables/newboard.html:153
 msgid "--"
 msgstr ""
 
-#: templates/stables/newboard.html:133
+#: templates/stables/newboard.html:146
 msgid "details"
 msgstr "lisätiedot"
+
+#: templates/stables/newboard.html:186
+msgid "Horse day limit reached"
+msgstr "Hevosen päiväraja ylitetty"
+
+#: templates/stables/newboard.html:187
+msgid "Horse <%%= name %%> is riding over it's limit of <%%= limit %%>"
+msgstr "<%%= name %%> on ylittänyt päivärajansa <%%= limit %%>"
 
 #: templates/stables/participations.html:11
 msgid "Save changes"
@@ -352,12 +372,10 @@ msgstr "Muokkaa tuntia"
 
 #: templates/stables/course/course.html:15
 #: templates/stables/horsereport/report.html:5
-#, python-format
 msgid "From %(start)s to %(end)s"
 msgstr "%(start)s - %(end)s"
 
 #: templates/stables/course/course.html:18
-#, python-format
 msgid ""
 "\n"
 "Enrolled: %(attending)s/%(space)s\n"
@@ -506,6 +524,7 @@ msgstr ""
 "%(name)s: %(amount)s kpl (ensimmäinen vanhenee: %(expire_date)s)\n"
 
 #: templates/stables/user/index.html:69
+#, python-format
 msgid ""
 "\n"
 "Expired %(name)s: %(amount)s pcs (first expired: %(expire_date)s)\n"
@@ -551,4 +570,4 @@ msgstr "Täynnä"
 
 #: views/user.py:23 views/user.py:34
 msgid "Success. Close this window."
-msgstr ""
+msgstr "Onnistui, sulje ikkuna."

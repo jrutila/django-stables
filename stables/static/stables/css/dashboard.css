@@ -170,3 +170,7 @@ white-space: nowrap;
 button.close {
     padding-left: 10px;
 }
+
+select.warning {
+    background-color: orange;
+}

@@ -9,7 +9,19 @@
 <script type='text/javascript' src="{% static 'stables/js/tooltipTextarea.js' %}"></script>
 <script type='text/javascript' src="{% static 'stables/js/modules/participation.js' %}"></script>
 <script type='text/javascript' src="{% static 'stables/js/modules/dashboard.js' %}"></script>
+<script type='text/javascript' src="{% static 'stables/js/plugins/msgGrowl/js/msgGrowl.js' %}"></script>
 <script type='text/javascript'>
+
+    var horseLimits = new DayLimits([
+        {% for h in horses %}
+            {% if h.day_limit %}
+            { 'horse': {{ h.id }}, 'limit': {{ h.day_limit }}, 'name': '{{ h.name }}' },
+            {% else %}
+            { 'horse': {{ h.id }}, 'limit': 999, 'name': '{{ h.name }}' },
+            {% endif %}
+        {% endfor %}
+    ])
+
     Backbone.Tastypie.csrfToken = $.cookie( 'csrftoken' )
 
     Date.prototype.addDays = function(days) {
@@ -81,6 +93,7 @@
 {% addtoblock "css" %}
 <link href="{% static 'stables/css/dashboard.css' %}" rel="stylesheet" type="text/css" />
 <link href="{% static 'stables/css/course.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'stables/js/plugins/msgGrowl/css/msgGrowl.css' %}" rel="stylesheet" type="text/css" />
 {% endaddtoblock %}
 
 <script type="text/html" id="ParticipationView">
@@ -167,6 +180,11 @@
 
 <script type="text/html" id="EventLoadingView">
     <img src="{% static 'stables/img/ajax-loader.gif' %}"/>
+</script>
+
+<script type="text/html" id="HorseLimitReachedMessage">
+    <h4>{% trans "Horse day limit reached" %}</h4>
+    <span>{% trans "Horse <%= name %> is riding over it's limit of <%= limit %>" %}</span>
 </script>
 
 <div class="wide widget">
