@@ -60,52 +60,34 @@ class CourseForm(forms.ModelForm):
           if last_event.end_recurring_period:
               self.initial['end'] = last_event.end_recurring_period.date()
 
-    def save(self, force_insert=False, force_update=False, commit=True):
-        instance = super(forms.ModelForm, self).save(commit=True)
-        last_event = CourseForm.get_course_last_event(instance)
-        if self.cleaned_data['starttime'] and self.cleaned_data['endtime'] and (not last_event or (self.cleaned_data['starttime'] != last_event.start.time() or self.cleaned_data['endtime'] != last_event.end.time())):
-            next_start = self.cleaned_data['start']
-            next_end = self.cleaned_data['start']
-            if last_event:
-              next_start = last_event.next_occurrence().start.date()
-              next_end = last_event.next_occurrence().end.date()
-            # Create a new event with starttime and endtime
-            e = Event()
-            e.start = datetime.datetime.combine(next_start, self.cleaned_data['starttime'])
-            e.end = datetime.datetime.combine(next_end, self.cleaned_data['endtime'])
-            e.save()
-            # End the last event
-            if last_event:
-              last_event.end_recurring_period=last_event.next_occurrence().end-datetime.timedelta(days=7)
-              last_event.save()
-            # Update event title
-            e.title = self.cleaned_data['name']
-            e.calendar = Calendar.objects.get(pk=1)
-            e.creator = self.user
-            e.created_on = datetime.datetime.now()
-            e.rule = Rule.objects.get(pk=1)
-            if self.cleaned_data['end']:
-              e.end_recurring_period = datetime.datetime.combine(self.cleaned_data['end'], self.cleaned_data['endtime'])
-            e.save()
-            instance.events.add(e)
-            instance.save()
-            for p in Participation.objects.filter(event=last_event, start__gte=next_start):
-              p.event=e
-              p.start=datetime.datetime.combine(p.start.date(), e.start.time())
-              p.end=datetime.datetime.combine(p.end.date(), e.end.time())
-              p.save()
-        elif last_event:
-            if not self.cleaned_data['end'] and last_event.end_recurring_period:
-                last_event.end_recurring_period = None
-                last_event.save()
-            elif self.cleaned_data['end'] and (not last_event.end_recurring_period or last_event.end_recurring_period.date() != self.cleaned_data['end']):
-                last_event.end_recurring_period = datetime.datetime.combine(self.cleaned_data['end'], self.cleaned_data['endtime'])
-                last_event.save()
-
+    def save(self):
+        instance = super(CourseForm, self).save(commit=False)
+        instance.save(
+                starttime=self.cleaned_data['starttime']
+               ,endtime=self.cleaned_data['endtime']
+               ,since=self.cleaned_data['take_into_account'])
         return instance
 
-    def save_m2m(self, *args, **kwargs):
-        pass
+    def clean_take_into_account(self):
+        data = self.cleaned_data['take_into_account']
+        if not self.instance.id:
+            return data
+        if data < datetime.datetime.now():
+            data = datetime.datetime.now()
+        events = self.instance.events.filter(rule__isnull=False)
+        if data < events.latest().start:
+            after = events.order_by('-id')[1].end_recurring_period
+            if data <= after:
+                raise forms.ValidationError(_("This time must be after %s") % after)
+        return data
+
+    def clean(self):
+        cleaned_data = super(CourseForm, self).clean()
+        if cleaned_data['end'] and cleaned_data['end'] <= datetime.datetime.now().date() and (
+                'starttime' in self.changed_data or
+                'endtime' in self.changed_data):
+            raise forms.ValidationError(_("You cannot change start time or end time on ended course"))
+        return cleaned_data
 
     @classmethod
     def get_course_last_event(csl, course):

@@ -119,7 +119,7 @@ def _get_customer_q(self):
     return Q(qrider | qcustomer)
 
 def _get_valid_q():
-    return Q(expires__gte=datetime.datetime.now())
+    return Q(Q(expires__gte=datetime.datetime.now()) | Q(expires__isnull=True))
 
 def _get_expired_q():
     return Q(expires__lt=datetime.datetime.now())
