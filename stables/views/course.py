@@ -35,6 +35,8 @@ class ViewCourse(DetailView):
     def get_context_data(self, **kwargs):
         context = super(ViewCourse, self).get_context_data(**kwargs)
         context['occurrences'] = context['object'].get_occurrences(start=date.today()-timedelta(days=7))
+        for c in context['occurrences']:
+            c.attending_amount = context['object'].get_attending_amount(c)
         return context
 
 class CourseCreate(CreateView):

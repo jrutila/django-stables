@@ -38,151 +38,8 @@ def setupCourse(name, start, end, starttime, endtime):
     course.name='course1'
     course.start=start
     course.end=end
-    course.save()
-    event = Event(calendar=cal, rule=rule, start=datetime.datetime.combine(course.start, starttime), end=datetime.datetime.combine(start, endtime))
-    if end:
-      event.end_recurring_period=datetime.datetime.combine(end, endtime)
-    event.save()
-    course.events.add(event)
-    course.save()
+    course.save(starttime=starttime, endtime=endtime)
     return course
-
-class CourseFormTest(unittest.TestCase):
-    def testFormInitWithNoInstance(self):
-        user = setupRider('user')
-        data = { 'start': datetime.datetime.today()-datetime.timedelta(days=14),
-                 'end': datetime.datetime.today()+datetime.timedelta(days=14),
-                 'max_participants': 2,
-                 'name': 'Test course',
-                 'creator': 0,
-                 'course_fee': 1200,
-                 'default_participation_fee': 0,
-                 'creator': user.id,
-                 'created_on': datetime.datetime.now(),
-                 'starttime': datetime.time(13, 00),
-                 'endtime': datetime.time(15, 00),
-               }
-        target = CourseForm(data)
-        target.user = user
-        target.save()
-      
-    def testFormInitWithInstanceNoEnd(self):
-        user = setupRider('user')
-        data = { 'name': 'course',
-                 'start': datetime.datetime.today()-datetime.timedelta(days=14),
-                 'end': None,
-                 'starttime': datetime.time(13, 00),
-                 'endtime': datetime.time(15, 00),
-               }
-        course = setupCourse(**data)
-        target = CourseForm(instance=course)
-        target.user = user
-
-        self.assertEqual(target.initial['starttime'], data['starttime'])
-        self.assertEqual(target.initial['endtime'], data['endtime'])
-
-    def testFormInitWithInstanceWithEnd(self):
-        user = setupRider('user')
-        data = { 'name': 'course',
-                 'start': datetime.datetime.today()-datetime.timedelta(days=14),
-                 'end': datetime.datetime.today()+datetime.timedelta(days=14),
-                 'starttime': datetime.time(13, 00),
-                 'endtime': datetime.time(15, 00),
-               }
-        course = setupCourse(**data)
-        target = CourseForm(instance=course)
-        target.user = user
-
-        self.assertEqual(target.initial['starttime'], data['starttime'])
-        self.assertEqual(target.initial['endtime'], data['endtime'])
-
-    def testFormInitWithInstanceMultipleEvents(self):
-        user = setupRider('user')
-        data = { 'name': 'course',
-                 'start': datetime.datetime.today()-datetime.timedelta(days=14),
-                 'end': datetime.datetime.today()+datetime.timedelta(days=14),
-                 'starttime': datetime.time(13, 00),
-                 'endtime': datetime.time(15, 00),
-               }
-        course = setupCourse(**data)
-        e0 = course.events.all()[0]
-        # New event with starttime + 1h
-        e = Event(calendar=e0.calendar, rule=e0.rule, start=datetime.datetime.combine(e0.end_recurring_period.date()+datetime.timedelta(days=7), (e0.start+datetime.timedelta(hours=1)).time()), end=datetime.datetime.combine(e0.end_recurring_period.date()+datetime.timedelta(days=7), (e0.end+datetime.timedelta(hours=1)).time()))
-        e.save()
-        course.events.add(e)
-        target = CourseForm(instance=course)
-        target.user = user
-
-        self.assertEqual(target.initial['starttime'], datetime.time(hour=data['starttime'].hour+1))
-        self.assertEqual(target.initial['endtime'], datetime.time(hour=data['endtime'].hour+1))
-
-    def testFormSaveNewTime(self):
-        user = setupRider('user')
-        starttime = datetime.datetime.now()+datetime.timedelta(hours=2)
-        data = { 'name': 'course',
-                 'max_participants': 2,
-                 'course_fee': 1200,
-                 'default_participation_fee': 0,
-                 'creator': user.id,
-                 'created_on': datetime.datetime.now(),
-                 'start': datetime.datetime.today()-datetime.timedelta(days=14),
-                 'end': datetime.datetime.today()+datetime.timedelta(days=14),
-                 'starttime': starttime.replace(second=0,microsecond=0).time(),
-                 'endtime': (starttime+datetime.timedelta(hours=3)).replace(second=0,microsecond=0).time(),
-               }
-        course = setupCourse(data['name'], data['start'], data['end'], data['starttime'], data['endtime'])
-
-        data['starttime'] = (starttime+datetime.timedelta(hours=1)).replace(second=0,microsecond=0).time()
-        data['endtime'] = (starttime+datetime.timedelta(hours=2)).replace(second=0,microsecond=0).time()
-        data['events'] = [course.events.all()[0].pk]
-        target = CourseForm(data, instance=course)
-        target.user = user
-        course = target.save()
-
-        self.assertEqual(course.events.count(), 2)
-        last_event = CourseForm.get_course_last_event(course)
-        self.assertEqual(last_event.start, (datetime.datetime.now()+datetime.timedelta(hours=3)).replace(second=0,microsecond=0))
-        self.assertEqual(last_event.end, (datetime.datetime.now()+datetime.timedelta(hours=4)).replace(second=0,microsecond=0))
-
-    def testFormEndEmpty(self):
-        user = setupRider('user')
-        data = { 'name': 'course',
-                 'max_participants': 2,
-                 'course_fee': 1200,
-                 'default_participation_fee': 0,
-                 'creator': user.id,
-                 'created_on': datetime.datetime.now(),
-                 'start': datetime.datetime.today()-datetime.timedelta(days=14),
-                 'end': datetime.datetime.today()+datetime.timedelta(days=14),
-                 'starttime': (datetime.datetime.now()+datetime.timedelta(hours=2)).replace(second=0,microsecond=0).time(),
-                 'endtime': (datetime.datetime.now()+datetime.timedelta(hours=3)).replace(second=0,microsecond=0).time(),
-               }
-        course = setupCourse(data['name'], data['start'], data['end'], data['starttime'], data['endtime'])
-
-        target = CourseForm(data, instance=course)
-        target.user = user
-
-        self.assertEqual(target.initial['end'], data['end'].date())
-
-        data['end'] = None
-        data['events'] = [course.events.all()[0].pk]
-
-        target = CourseForm(data, instance=course)
-
-        course = target.save()
-        last_event = CourseForm.get_course_last_event(course)
-
-        self.assertEqual(last_event.end_recurring_period, None)
-
-        data['end'] = (datetime.datetime.today()+datetime.timedelta(days=7)).date()
-        data['end'] = datetime.datetime.combine(data['end'], data['endtime'])
-
-        target = CourseForm(data, instance=course)
-
-        course = target.save()
-        last_event = CourseForm.get_course_last_event(course)
-
-        self.assertEqual(last_event.end_recurring_period, data['end'])
 
 class CourseOccurrenceTest(unittest.TestCase):
     def testCourseOccurrences(self):
@@ -582,14 +439,16 @@ class CourseEnrollTest(unittest.TestCase):
                  'creator': 0,
                  'course_fee': 1200,
                  'default_participation_fee': 0,
-                 'creator': user.id,
+                 'creator': user,
                  'created_on': datetime.datetime.now(),
+                 }
+        savedata = {
                  'starttime': datetime.time(13, 00),
                  'endtime': datetime.time(15, 00),
                }
-        course = CourseForm(data)
-        course.user = user
-        cls.course=course.save()
+        cls.course = Course(**data)
+        cls.course.user = user
+        cls.course.save(**savedata)
         cls.user = user
 
     def setUp(self):
@@ -740,17 +599,18 @@ class CourseParticipationTest(unittest.TestCase):
                  'end': datetime.datetime.today()+datetime.timedelta(days=14),
                  'max_participants': 2,
                  'name': 'Test course',
-                 'creator': 0,
                  'course_fee': 1200,
                  'default_participation_fee': 0,
-                 'creator': user.id,
+                 'creator': user,
                  'created_on': datetime.datetime.now(),
+                 }
+        savedata = {
                  'starttime': datetime.time(13, 00),
                  'endtime': datetime.time(15, 00),
                }
-        course = CourseForm(data)
-        course.user = user
-        cls.course=course.save()
+        cls.course = Course(**data)
+        cls.course.user = user
+        cls.course.save(**savedata)
         cls.user = user
 
     def setUp(self):
@@ -813,22 +673,6 @@ class CourseParticipationTest(unittest.TestCase):
         self.assertEqual(target.start.time(), datetime.time(13, 00))
         self.assertEqual(target.end.time(), datetime.time(15, 00))
         self.assertEqual(target.participant, pr)
-
-    def testNextParticipationParticipationBeforeEnroll(self):
-        pr = self.user.get_profile()
-        Enroll.objects.create(course=self.course, participant=pr, state=ATTENDING)
-        cocc = self.course.get_next_occurrence()
-        crs = setupCourse('crs2', cocc.start, cocc.end, datetime.time(12, 00), datetime.time(12, 30))
-        with reversion.create_revision():
-          crs.attend(pr, crs.get_next_occurrence())
-
-        target = Participation.objects.get_next_participation(pr, datetime.datetime.now())
-
-        self.assertEqual(target.id, 1)
-        self.assertEqual(target.start.time(), datetime.time(12, 00))
-        self.assertEqual(target.end.time(), datetime.time(12, 30))
-        self.assertEqual(target.participant, pr)
-        
 
     def testStatesEmpty(self):
         #        enroll    , part     , allowed

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-02-09 11:51+0200\n"
+"POT-Creation-Date: 2014-02-14 00:08+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -81,17 +81,26 @@ msgstr "Päättyy"
 
 #: forms/course.py:26
 msgid "Take changes into acccount on"
-msgstr "Muutosten voimaanastumishetki"
+msgstr "Säännöllisten muutosten voimaanastumishetki"
 
 #: forms/course.py:47
 msgid "Advanced settings"
 msgstr "Kehittyneet asetukset"
 
-#: forms/course.py:125
+#: forms/course.py:81
+#, python-format
+msgid "This time must be after %s"
+msgstr "Tämän ajan pitää olla %s jälkeen"
+
+#: forms/course.py:89
+msgid "You cannot change start time or end time on ended course"
+msgstr "Et voi muuttaa päättyneen tunnin aikoja"
+
+#: forms/course.py:107
 msgid "Event information"
 msgstr "Tapahtuman tiedot"
 
-#: forms/course.py:155
+#: forms/course.py:137
 msgid "Cancel event"
 msgstr "Peru tapahtuma"
 
@@ -229,54 +238,54 @@ msgstr "oletuskortti"
 msgid "Allowed rider levels"
 msgstr "sallitut ratsastajien tasot"
 
-#: models/participations.py:243 models/participations.py:252
+#: models/participations.py:306 models/participations.py:315
 msgid "Attending"
 msgstr "Osallistuu"
 
-#: models/participations.py:245 templatetags/stablestags.py:106
+#: models/participations.py:308 templatetags/stablestags.py:106
 msgid "Skipped"
 msgstr "Ei osallistunut"
 
-#: models/participations.py:246 models/participations.py:253
+#: models/participations.py:309 models/participations.py:316
 msgid "Canceled"
 msgstr "Peruttu"
 
-#: models/participations.py:247 models/participations.py:254
+#: models/participations.py:310 models/participations.py:317
 msgid "Rejected"
 msgstr "Hylätty"
 
-#: models/participations.py:248 models/participations.py:255
+#: models/participations.py:311 models/participations.py:318
 msgid "Reserved"
 msgstr "Varalla"
 
-#: models/participations.py:251
+#: models/participations.py:314
 msgid "Waiting for payment"
 msgstr "Odottaa maksua"
 
-#: models/participations.py:271 models/participations.py:467
+#: models/participations.py:334 models/participations.py:530
 #, python-format
 msgid "%(name)s %(state)s"
 msgstr ""
 
-#: models/participations.py:453
+#: models/participations.py:516
 msgid "DATE_FORMAT"
 msgstr "l d.m.Y"
 
-#: models/participations.py:454
+#: models/participations.py:517
 msgid "TIME_FORMAT"
 msgstr "h:i"
 
-#: models/participations.py:457
+#: models/participations.py:520
 #, python-format
 msgid "%(name)s %(state)s No Occurrence"
 msgstr "%(name)s %(state)s Ei tapahtumaa"
 
-#: models/participations.py:458
+#: models/participations.py:521
 #, python-format
 msgid "%(name)s %(state)s %(event)s: %(start)s %(starttime)s - %(endtime)s"
 msgstr ""
 
-#: models/participations.py:556
+#: models/participations.py:619
 #, python-format
 msgid "%(firstname)s %(lastname)s"
 msgstr ""
@@ -347,6 +356,7 @@ msgid "Horse day limit reached"
 msgstr "Hevosen päiväraja ylitetty"
 
 #: templates/stables/newboard.html:187
+#, python-format
 msgid "Horse <%%= name %%> is riding over it's limit of <%%= limit %%>"
 msgstr "<%%= name %%> on ylittänyt päivärajansa <%%= limit %%>"
 
@@ -372,10 +382,12 @@ msgstr "Muokkaa tuntia"
 
 #: templates/stables/course/course.html:15
 #: templates/stables/horsereport/report.html:5
+#, python-format
 msgid "From %(start)s to %(end)s"
 msgstr "%(start)s - %(end)s"
 
 #: templates/stables/course/course.html:18
+#, python-format
 msgid ""
 "\n"
 "Enrolled: %(attending)s/%(space)s\n"

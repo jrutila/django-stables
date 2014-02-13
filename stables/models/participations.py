@@ -5,7 +5,7 @@ from django.db.models import Count
 from django.db import IntegrityError, transaction
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
-from schedule.models import Event, Occurrence
+from schedule.models import Event, Occurrence, Rule
 from user import UserProfile, RiderLevel
 from financial import CurrencyField, TicketType
 import datetime
@@ -53,6 +53,69 @@ class Course(models.Model):
     allowed_levels = models.ManyToManyField(RiderLevel, verbose_name=_('Allowed rider levels'), blank=True)
 
     objects = CourseManager()
+    
+    def save(self, **kwargs):
+        since = kwargs.get('since', datetime.datetime.now())
+        le = self._getLastEvent()
+        starttime = kwargs.get('starttime', le.start.time() if le else None)
+        endtime = kwargs.get('endtime', le.end.time() if le else None)
+        hasNameChange = le and self.name != le.title
+        hasTimeChange = 'starttime' in kwargs and 'endtime' in kwargs and le and (
+             le.start.time() != kwargs['starttime'] or
+             le.end.time() != kwargs['endtime'])
+        if hasNameChange or hasTimeChange:
+            if self.id:
+                last_event, last_occ = self._endLastEvent(since)
+                if last_occ:
+                    ev = Event()
+                    self._updateEvent(ev, starttime, endtime, last_occ.start+datetime.timedelta(days=7), self.end)
+                    ev.save()
+                    self.events.add(ev)
+                    if last_event: last_event.save()
+                else:
+                    ev = self.events.latest()
+                    self._updateEvent(ev, starttime, endtime, last_event.start.date(), self.end)
+                    ev.save()
+            super(Course, self).save()
+        else:
+            ev = None
+            if not self.id and starttime and endtime:
+                ev = Event()
+                self._updateEvent(ev, starttime, endtime, self.start, self.end)
+                ev.save()
+            elif self.end:
+                last_event, last_occ = self._endLastEvent(self.end+datetime.timedelta(days=1))
+                if last_event: last_event.save()
+            super(Course, self).save()
+            if ev: self.events.add(ev)
+
+    def _updateEvent(self, ev, starttime, endtime, start, end=None):
+        ev.title = self.name
+        ev.start = datetime.datetime.combine(start, starttime)
+        ev.end = datetime.datetime.combine(start, endtime)
+        ev.rule = Rule.objects.get(name="Weekly")
+        if end:
+            ev.end_recurring_period = datetime.datetime.combine(end, endtime)
+
+    def _getLastEvent(self):
+        last_event = None
+        if self.id and self.events.filter(rule__isnull=False).count() > 0:
+            last_event = self.events.filter(rule__isnull=False).order_by('-start')[0]
+        return last_event
+
+
+    def _endLastEvent(self, since):
+        last_event = self._getLastEvent()
+        if last_event:
+            last_occ = last_event.get_occurrences(
+                      since-datetime.timedelta(days=7), since)
+            if last_occ:
+                last_occ = last_occ[0]
+                last_event.end_recurring_period = last_occ.end
+            else:
+                last_occ = None
+            return last_event,last_occ
+        return None, None
 
     def get_occurrences(self, delta=None, start=None):
         if not start:
