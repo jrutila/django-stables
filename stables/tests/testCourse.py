@@ -4,15 +4,8 @@ from schedule.models import Event
 from schedule.models import Rule
 from datetime import datetime
 from nose.tools import * #assert_equals, assert_is_not_none
-
-def d(date):
-    return datetime.strptime(date, '%Y-%m-%d')
-
-def t(t):
-    return datetime.strptime(t, '%H:%M').time()
-
-def dt(dtime):
-    return datetime.strptime(dtime, '%Y-%m-%d %H:%M')
+from . import *
+import reversion
 
 attrs = [ 'start', 'end', 'title', 'end_recurring_period', 'rule', 'name' ]
 def evToList(events):
@@ -30,7 +23,7 @@ def evToList(events):
     return ret
     
 
-class CourseTest(unittest.TestCase):
+class CourseTestBase(unittest.TestCase):
     def setUp(self):
         self.course = None
 
@@ -57,6 +50,7 @@ class CourseTest(unittest.TestCase):
         assert_equals.im_class.maxDiff = None
         assert_equals(ev, events)
 
+class CourseTest(CourseTestBase):
     def testNewCourse(self):
         self.events(
                 []
@@ -402,3 +396,7 @@ class CourseTest(unittest.TestCase):
                     'rule': 'w'}
                 ]
                 )
+
+    def testCourseChangeTimeFutureOccurrenceChangePrevails(self):
+        #TODO
+        pass
