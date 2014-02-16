@@ -17,6 +17,7 @@ from django.db.models.signals import post_save
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from horse import Horse
+import django.dispatch
 
 import logging
 
@@ -29,6 +30,8 @@ class CourseManager(models.Manager):
     def get_course_occurrences(self, start, end):
         events = Participation.objects._get_events(start, end)
         return events
+
+recurring_change = django.dispatch.Signal(providing_args=['prev', 'new'])
 
 class Course(models.Model):
     class Meta:
@@ -71,7 +74,9 @@ class Course(models.Model):
                     self._updateEvent(ev, starttime, endtime, last_occ.start+datetime.timedelta(days=7), self.end)
                     ev.save()
                     self.events.add(ev)
-                    if last_event: last_event.save()
+                    if last_event:
+                        last_event.save()
+                        recurring_change.send(sender=Course, prev=last_event, new=ev)
                 else:
                     ev = self.events.latest()
                     self._updateEvent(ev, starttime, endtime, last_event.start.date(), self.end)
@@ -384,10 +389,8 @@ def handle_Enroll_save(sender, **kwargs):
         # TODO: get the 24 from somewhere else
         CourseParticipationActivator.objects.create(enroll=enroll, activate_before_hours=24)
 
-def part_move(self, course, start, end):
-    # Let's get the original occurrence
-    occ = course.get_occurrence(start[0])
-    self.filter(event=occ.event, start=start[0], end=end[0]).update(start=start[1], end=end[1])
+def part_move(self, curr, prev):
+    self.filter(event=prev.event, start=prev.start, end=prev.end).update(start=curr.start, end=curr.end)
 
 def part_cancel(self, course, start, end):
     occ = course.get_occurrence(start)
@@ -570,6 +573,13 @@ class Participation(models.Model):
         reversion.set_comment("Canceled")
         self.save()
 
+    def move(self, occ):
+        self.event = occ.event
+        self.start = occ.start
+        self.end = occ.end
+        reversion.set_comment("Moved")
+        self.save()
+
     def get_occurrence(self):
         occ = self.event.get_occurrence(self.start)
         if occ:
@@ -579,22 +589,31 @@ class Participation(models.Model):
         except ObjectDoesNotExist:
           return None
 
+@receiver(recurring_change, sender=Course)
+def event_changes(sender, **kwargs):
+    prev = kwargs['prev']
+    new = kwargs['new']
+    for p in Participation.objects.filter(event=prev, start__gt=prev.end_recurring_period):
+        new_occ = new.get_occurrences(
+            datetime.datetime.combine(p.start.date(), datetime.time(0))
+          , datetime.datetime.combine(p.start.date(), datetime.time(23,59)))
+        p.move(new_occ[0])
+
 @receiver(pre_save, sender=Occurrence)
-def move_participations(sender, **kwargs):
-    occ = kwargs['instance']
-    course = occ.event.course_set.all()[0]
-    if occ.cancelled:
-        Participation.objects.cancel(course, occ.start, occ.end)
-    if occ.pk:
-        orig = Occurrence.objects.get(pk=occ.pk)
-        orig_start = orig.start
-        orig_end = orig.end
+def move_participations(sender, instance, **kwargs):
+    curr = instance
+    if curr.cancelled:
+        course = curr.event.course_set.all()[0]
+        Participation.objects.cancel(course, curr.start, curr.end)
+    orig = Occurrence(event=curr.event)
+    if curr.pk:
+        orig = Occurrence.objects.get(pk=curr.pk)
     else:
-        orig_start = occ.original_start
-        orig_end = occ.original_end
-    Participation.objects.move(course, (orig_start, occ.start), (orig_end, occ.end))
-    EventMetaData.objects.move(course, (orig_start, occ.start), (orig_end, occ.end))
-    InstructorParticipation.objects.move(course, (orig_start, occ.start), (orig_end, occ.end))
+        orig.start = curr.original_start
+        orig.end = curr.original_end
+    Participation.objects.move(curr, orig)
+    EventMetaData.objects.move(curr, orig)
+    InstructorParticipation.objects.move(curr, orig)
 
 
 class InstructorParticipationManager(models.Manager):
