@@ -4,12 +4,13 @@ from django.db.models.signals import post_save
 from django import forms
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
+from django.db.models import Q
 
 import datetime
 
 class UserManager(models.Manager):
     def get_query_set(self):
-        return super(UserManager, self).get_query_set().prefetch_related('user')
+        return super(UserManager, self).get_query_set().filter(Q(rider__isnull=False) | Q(customer__isnull=False)).prefetch_related('user')
 
     def participate(self, rider, occurrence):
         part = Participation()
