@@ -111,7 +111,10 @@ var DayView = Backbone.View.extend({
 
         var that = this
         for (var h in that.$timeslots)
+        {
             that.$timeslots[h].html($('#EventLoadingView').html())
+            that.$timeslots[h].addClass('unloaded')
+        }
         this.model.get('events').each(function(ev) {
             var hour = ev.getHour()
             if (!(ev.id in that.eventViews))
@@ -122,7 +125,7 @@ var DayView = Backbone.View.extend({
             evView.render()
         })
         for (var h in that.$timeslots)
-            that.$timeslots[h].addClass('loaded')
+            that.$timeslots[h].addClass('loaded').removeClass('unloaded')
         $('.timetable tbody tr:has(td.loaded:has(div))').show()
         $('.timetable tbody tr:not(:has(td.loaded:has(div)))').hide()
         return this
@@ -144,7 +147,7 @@ var WeekView = Backbone.View.extend({
     template: _.template($('#WeekView').html()),
     render: function() {
         this.$el.html(this.template(this.model.attributes))
-        var $thead = $('<tr><th></th></tr>')
+        var $thead = $('<tr><th class="ui-time"></th></tr>')
         var that = this
         var $tbody = this.$el.find('tbody')
         var hours = [4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]
@@ -156,7 +159,7 @@ var WeekView = Backbone.View.extend({
             if (!(day.get('date') in that.$timeslots)) {
                 var $timeslot = {}
                 _.each(hours, function(h) {
-                    $timeslot[h] = $('<td></td>').append($('#EventLoadingView').html())
+                    $timeslot[h] = $('<td class="unloaded"></td>').append($('#EventLoadingView').html())
                 })
                 that.$timeslots[day.get('date')] = $timeslot
                 var dayv = new DayView({ model: day })
@@ -169,10 +172,12 @@ var WeekView = Backbone.View.extend({
         })
         this.$el.find('thead').append($thead)
         _.each(hours, function(h) {
-            var $row = $('<tr><td>'+h+'</td></tr>').appendTo($tbody)
+            var $row = $('<tr><td class="ui-time">'+h+'</td></tr>').appendTo($tbody)
             that.model.get('days').each(function(day) {
                 $row.append(that.$timeslots[day.get('date')][h])
             })
+            if (!$row.is(':has(td.unloaded)') && $row.is(':not(:has(td.loaded:has(div)))'))
+                $row.hide()
         })
         return this
     },
