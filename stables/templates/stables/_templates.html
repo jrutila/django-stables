@@ -1,6 +1,14 @@
 {% load i18n staticfiles %}
 
 <script type="text/html" id="ParticipationView">
+    <div class="note" title="<%= note %>">
+    <% if (note != "" && note != null) { %>
+        <i class="fa fa-comment"
+    <% } else { %>
+        <i class="fa fa-comment-o"
+    <% } %>
+    ></i>
+    </div>
     <select name="horse">
         <option value="0">{% trans "--" %}</option>
         {% for h in horses %}
@@ -28,9 +36,6 @@
         <option value="{{ s.0 }}">{{ s.1 }}</option>
         {% endfor %}
     </select>
-    <div class="note">
-    <textarea name="note"><%= note %></textarea>
-    </div>
     <% if (typeof id !== 'undefined' && id != null) { %>
         <% if (state == 0 && enroll == null) { %>
         <button class='enroll btn'>E</button>
@@ -47,6 +52,9 @@
       <button value="<%= ticket_types[t] %>"><%= t %></button>
     <% } %>
     <div>
+    <div>
+    <textarea name="note"><%= note %></textarea>
+    </div>
     <a href="<%= participation_url %>">{% trans "details" %}</a>
     </div>
 </script>
@@ -66,7 +74,7 @@
 </script>
 
 <script type="text/html" id="CommentsView">
-   <i class="icon-comment"></i>
+   <i class="fa fa-comment"></i>
    <% if (last_comment != undefined) { %>
     <span class='comment'><%= last_comment.get('comment') %></span>
    <% } %>

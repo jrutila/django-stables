@@ -1,52 +1,6 @@
 div.note
 {
-  height: 24px;
-  width: 35px;
-  position: relative;
   display: inline-block;
-  background-color: black;
-  top: 6px;
-}
-
-div.note.has_text
-{
-  border: 6px solid green;
-  cursor: pointer;
-}
-
-.note:after
-{
-  background: rgba(0, 0, 0, 0.8);
-  border-radius: 8px 8px 8px 0px;
-  box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.5);
-  color: #FFF;
-  content: attr(data-tooltip); /* The main part of the code, determining the content of the pop-up prompt */
-  margin-top: -24px;
-  opacity: 0; /* Our element is transparent... */
-  padding: 3px 7px;
-  position: absolute;
-  bottom: 20px;
-  visibility: hidden; /* ...and hidden. */
-  white-space: pre;
-    
-  transition: all 0.4s ease-in-out; /* To add some smoothness */ 
-}
-
-.note:hover:after
-{
-  opacity: 1;
-  visibility: visible;
-}
-
-div.note textarea
-{
-  position: absolute;
-  width: 100px;
-  height: 100%;
-  left: 0px;
-  top: 0px;
-  z-index: 999;
-  display: none;
 }
 
 textarea[name$='notes']
@@ -127,11 +81,6 @@ white-space: nowrap;
 .dashboard-container .widget {
     margin-left: 10px;
     margin-right: 10px;
-}
-
-.icon-comment
-{
-    display: inline-block;
 }
 
 .comments

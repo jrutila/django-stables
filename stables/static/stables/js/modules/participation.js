@@ -84,6 +84,10 @@ var ParticipationView = Backbone.View.extend({
         'click button.enroll': 'enroll',
         'click button.denroll': 'denroll',
         'click .detail_url': 'detail_click',
+        'click .note': 'note_click',
+    },
+    note_click: function(ev) {
+        $('.detail_url', this.$el).popover('toggle')
     },
     detail_click: function(ev) {
         return false
@@ -160,10 +164,17 @@ var ParticipationView = Backbone.View.extend({
         this.model.save()
     },
     noteChange: function(ev) {
-        this.model.set('note', $(ev.target).val())
-        this.$el.find('textarea[name="note"]').parent('.note').addClass('changed')
+        var value = $(ev.target).val()
+        this.model.set('note', value, { silent: true })
+        //this.$el.find('textarea[name="note"]').parent('.note').addClass('changed')
         //TODO: to model
         this.model.save()
+        // This is little hackish
+        if (value != "")
+            this.$el.find('.note i').removeClass('fa-comment-o').addClass('fa-comment')
+        else
+            this.$el.find('.note i').removeClass('fa-comment').addClass('fa-comment-o')
+        this.$el.find('.note').attr('data-original-title', value).tooltip('fixTitle')
     },
     notifyChanged: function(ev) {
         changeHighlight(this.$el)
@@ -177,7 +188,7 @@ var ParticipationView = Backbone.View.extend({
         if (limit != null && limit.isTopped())
             $('select[name="horse"]', this.$el).addClass('warning')
 
-        $('.note', this.$el).tooltipTextarea()
+        $('.note', this.$el).tooltip()
         var that = this
         $('.detail_url', this.$el)
         .removeAttr("title")
@@ -185,7 +196,7 @@ var ParticipationView = Backbone.View.extend({
             trigger: 'click',
             placement: 'right',
             content: function() {
-                var fm = new Finance({ id: that.model.get('id') });
+                var fm = new Finance({ id: that.model.get('id'), note: that.model.get('note') });
                 var fv = new FinanceView({ model: fm });
                 fm.fetch({ success: function() {
                     fv.render();
@@ -236,7 +247,8 @@ var ParticipationAdderView = Backbone.View.extend({
 
         this.$el.find(".ui-stbl-db-user").html($userSelector)
         this.$el.find("select[name='state']").remove()
-        this.$el.append("<button><i class='icon-save' title='save'></i></button>")
+        this.$el.find(".note").remove()
+        this.$el.append("<button><i class='fa fa-save' title='save'></i></button>")
     },
     submit: function() {
         this.model.set("rider_name", this.$el.find(".userSelector").val())
