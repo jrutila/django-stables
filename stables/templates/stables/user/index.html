@@ -2,7 +2,9 @@
 {% load i18n stablestags %}
 {% block content %}
 <h1>
-    {{ object }}
+    <span
+        {% if object.inactive %}style="text-decoration:line-through"{% endif %}
+    >{{ object }}</span>
     {% ifnotequal object.customer object.rider.customer %}
     <small>
     (<a href="{{ object.rider.customer.user.get_absolute_url }}">{{ object.rider.customer.user }}</a>)

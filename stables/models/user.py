@@ -12,15 +12,10 @@ import datetime
 
 class UserManager(models.Manager):
     def get_query_set(self):
-        return super(UserManager, self).get_query_set().filter(Q(rider__isnull=False) | Q(customer__isnull=False)).prefetch_related('user')
+        return super(UserManager, self).get_query_set().prefetch_related('user')
 
-    def participate(self, rider, occurrence):
-        part = Participation()
-        part.participant = rider
-        part.event = occurrence.event
-        part.start = occurrence.start
-        part.end = occurrence.end
-        part.save()
+    def active(self):
+        return self.get_query_set().filter(inactive=False).filter(Q(rider__isnull=False) | Q(customer__isnull=False))
 
     def find(self, name):
         f = []
@@ -49,6 +44,8 @@ class UserProfile(models.Model):
 
     phone_number = PhoneNumberField(_('phone number'), null=True, blank=True)
     extra = models.TextField(null=True, blank=True)
+
+    inactive = models.BooleanField()
 
     def get_participations(self):
         from participations import Participation

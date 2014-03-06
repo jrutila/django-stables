@@ -26,6 +26,8 @@ class UserProfileForm(forms.ModelForm):
   email = forms.EmailField(label=_('email address').capitalize(), required=False)
   address = forms.CharField(max_length=500, widget=forms.Textarea, required=False)
 
+  inactive = forms.BooleanField(label=_('inactive'), required=False, help_text=_('Inactive rider is not shown in any lists. If you mark the rider as inactive you cannot edit it anymore!'))
+
   def __init__(self, *args, **kwargs):
     super(UserProfileForm, self).__init__(*args, **kwargs)
     instance = kwargs.pop('instance', None)
@@ -60,6 +62,9 @@ class UserProfileForm(forms.ModelForm):
               Submit('submit', 'Submit')
               )
           )
+
+    if instance:
+        self.helper.layout[2].append('inactive')
 
   class Meta:
     model = UserProfile

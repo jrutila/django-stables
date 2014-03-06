@@ -38,7 +38,7 @@ import json
 
 class UserResource(ModelResource):
     class Meta:
-        queryset  = UserProfile.objects.all().prefetch_related('user')
+        queryset = UserProfile.objects.active()
         cache = SimpleCache(timeout=30*60)
     name = fields.CharField()
 
