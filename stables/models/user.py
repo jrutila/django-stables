@@ -5,6 +5,7 @@ from django import forms
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.db.models import Q
+import operator
 
 import datetime
 
@@ -19,6 +20,12 @@ class UserManager(models.Manager):
         part.start = occurrence.start
         part.end = occurrence.end
         part.save()
+
+    def find(self, name):
+        f = []
+        for v in name.split(" "):
+            f.append((Q(user__first_name__icontains=v) | Q(user__last_name__icontains=v)))
+        return UserProfile.objects.get(reduce(operator.and_, f))
 
 class RiderLevel(models.Model):
     class Meta:

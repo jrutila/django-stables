@@ -333,11 +333,8 @@ class ParticipationResource(Resource):
         occ = event.get_occurrence(start)
         state = int(bundle.data['state'])
         if ('rider_id' not in bundle.data and bundle.data['rider_name'] != None):
-            f = []
-            for v in bundle.data['rider_name'].split(" "):
-                f.append((Q(user__first_name__icontains=v) | Q(user__last_name__icontains=v)))
             try:
-                participant = UserProfile.objects.get(reduce(operator.and_, f))
+                participant = UserProfile.objects.find(bundle.data['rider_name'])
             except UserProfile.DoesNotExist:
                 # TODO: Implement new user adding logic!
                 raise ImmediateHttpResponse(HttpBadRequest("Given user does not exist"))
