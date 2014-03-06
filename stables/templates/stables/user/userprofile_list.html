@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load i18n stablestags %}
 {% block content %}
-<a class="btn btn-default lightbox-type" href="{% url "add_user" %}?lightbox[width]=300&lightbox[height]=400">{% trans "Add user" %}</a>
+<a class="btn btn-default" href="{% url "add_user" %}">{% trans "Add user" %}</a>
 <ul class="list-group list-grid">
     {% for user in object_list %}
     <li class="list-group-item">

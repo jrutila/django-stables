@@ -1,37 +1,27 @@
-from django.views.generic.edit import FormView
 from django.views.generic.edit import UpdateView
+from django.views.generic.edit import CreateView
 from django.views.generic import ListView
 from django.views.generic import DetailView
-from django.http import HttpResponse
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
 from datetime import datetime
 from collections import defaultdict
 
-from stables.forms import UserProfileAddForm
 from stables.forms import UserProfileForm
 from stables.models import UserProfile
 from stables.models import Participation
 from stables.models import Transaction
 
 class EditUser(UpdateView):
-    template_name = 'stables/user/edit_user.html'
+    template_name = 'stables/generic_form.html'
     form_class = UserProfileForm
-
-    def form_valid(self, form):
-        super(EditUser, self).form_valid(form)
-        return HttpResponse(_('Success. Close this window.'))
 
     def get_object(self, **kwargs):
         return UserProfile.objects.filter(user__username=self.kwargs['username'])[0]
 
-class AddUser(FormView):
-    template_name = 'stables/user/add_user.html'
-    form_class = UserProfileAddForm
-
-    def form_valid(self, form):
-        form.save(commit = True)
-        return HttpResponse(_('Success. Close this window.'))
+class AddUser(CreateView):
+    template_name = 'stables/generic_form.html'
+    form_class = UserProfileForm
 
     def get_context_data(self, **kwargs):
         if self.request.GET.get('orig'):
@@ -93,4 +83,4 @@ class ListUser(ListView):
     template_name = 'stables/user/userprofile_list.html'
 
     def get_queryset(self):
-        return super(ListUser, self).get_queryset().order_by('user__last_name').select_related()
+        return UserProfile.objects.active().order_by('user__last_name')
