@@ -6,6 +6,7 @@ from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.db.models import Q
 import operator
+from phonenumber_field.modelfields import PhoneNumberField
 
 import datetime
 
@@ -46,7 +47,8 @@ class UserProfile(models.Model):
     customer = models.OneToOneField('CustomerInfo', null=True, blank=True, on_delete=models.SET_NULL, related_name='user')
     instructor = models.OneToOneField('InstructorInfo', null=True, blank=True, related_name='user')
 
-    phone_number = models.CharField(_('phone number'), max_length=30, null=True, blank=True)
+    phone_number = PhoneNumberField(_('phone number'), null=True, blank=True)
+    extra = models.TextField(null=True, blank=True)
 
     def get_participations(self):
         from participations import Participation
@@ -57,16 +59,6 @@ class UserProfile(models.Model):
 
     def get_absolute_url(self):
         return reverse('view_user', args=(self.user.username,))
-
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-      userprofile = UserProfile.objects.create(user=instance)
-      userprofile.customer = CustomerInfo.objects.create()
-      userprofile.rider = RiderInfo.objects.create(customer=userprofile.customer)
-      userprofile.rider.customer = userprofile.customer
-      userprofile.save()
-
-post_save.connect(create_user_profile, sender=User, dispatch_uid="users-profilecreation-signal")
 
 class CustomerInfo(models.Model):
     class Meta:

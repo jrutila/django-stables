@@ -54,6 +54,7 @@ setup(
       'backbone-tastypie',
       'mimeparse',
       'djangorestframework',
+      'django-phonenumber-field',
     ],
     zip_safe=False,
     dependency_links = [

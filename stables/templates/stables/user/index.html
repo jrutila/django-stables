@@ -2,7 +2,7 @@
 {% load i18n stablestags %}
 {% block content %}
 <h1>
-    <a href="{{ object.get_absolute_url }}">{{ object }}</a>
+    {{ object }}
     {% ifnotequal object.customer object.rider.customer %}
     <small>
     (<a href="{{ object.rider.customer.user.get_absolute_url }}">{{ object.rider.customer.user }}</a>)
@@ -16,10 +16,13 @@
 </p>
 {% endif %}
 
-<a class="btn btn-default lightbox-type" href="{% url "edit_user" username=object.user.username %}?lightbox[width]=300&lightbox[height]=400">{% trans "Edit" %}</a>
+<a class="btn btn-default" href="{% url "edit_user" username=object.user.username %}">{% trans "Edit" %}</a>
 
 <p>
-{% trans "E-mail" %}: {{ object.object.email }}
+{% trans "E-mail" %}: {{ object.user.email }}
+</p>
+<p>
+{% trans "phone number"|capfirst %}: {{ object.phone_number }}
 </p>
 
 {% if object.next and object.next.count > 0 %}

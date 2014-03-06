@@ -8,76 +8,90 @@ from django.contrib.auth.models import User
 from stables.models import UserProfile
 from stables.models import InstructorInfo
 
-class UserProfileAddForm(forms.Form):
-  first_name = forms.CharField(label=_('first name').capitalize(), max_length=500, required=True)
-  last_name = forms.CharField(label=_('last name').capitalize(), max_length=500, required=True)
-  phone_number = forms.CharField(label=_('phone number').capitalize(), max_length=500, required=False)
-  email = forms.EmailField(label=_('email address').capitalize(), required=False)
-  levels = forms.ModelMultipleChoiceField(label=_('levels').capitalize(), queryset=RiderLevel.objects.all(), required=False)
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Submit
+from crispy_forms.layout import HTML
+from crispy_forms.layout import Layout, Fieldset, ButtonHolder
 
-  def save(self, force_insert=False, force_update=False, commit=True):
-    import random
-    import string
-    username = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(6))
-    password = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(18))
-    user = User.objects.create_user(username, self.cleaned_data['email'], password)
-    user.first_name = self.cleaned_data['first_name']
-    user.last_name = self.cleaned_data['last_name']
-    user.save()
-
-    #instance = super(UserProfileAdminAddForm, self).save(commit=False)
-    instance = user.get_profile()
-
-    if not instance.customer:
-      c = CustomerInfo.objects.create()
-      instance.customer = c
-    if 'address' in self.cleaned_data and self.cleaned_data['address']:
-      instance.customer.address = self.cleaned_data['address']
-
-    if not instance.rider:
-      r = RiderInfo.objects.create(customer=c)
-      instance.rider = r
-      instance.rider.customer = instance.customer
-    if self.cleaned_data['levels']:
-      instance.rider.levels = self.cleaned_data['levels']
-    instance.phone_number = self.cleaned_data['phone_number']
-
-    instance.save()
-    instance.customer.save()
-    instance.rider.customer = instance.customer
-    instance.rider.save()
-    return instance
-
-  def save_m2m(self, *args, **kwargs):
-      pass
+class UserFormHelper(FormHelper):
+    form_class = 'blueForms'
+    form_method = 'post'
 
 class UserProfileForm(forms.ModelForm):
   first_name = forms.CharField(label=_('first name').capitalize(), max_length=500, required=True)
   last_name = forms.CharField(label=_('last name').capitalize(), max_length=500, required=True)
   levels = forms.ModelMultipleChoiceField(label=_('levels').capitalize(), queryset=RiderLevel.objects.all(), required=False)
-  rider_customer = forms.ModelChoiceField(queryset=CustomerInfo.objects.all().prefetch_related('user__user'), required=True, label=_('Customer'))
+  rider_customer = forms.ModelChoiceField(queryset=CustomerInfo.objects.all().prefetch_related('user__user'), required=False, label=_('Customer'), help_text=_('If you are adding new rider, you can leave this empty.'))
   is_instructor = forms.BooleanField(label=_('instructor'), required=False)
-  #address = forms.CharField(max_length=500, widget=forms.Textarea, required=False)
+  email = forms.EmailField(label=_('email address').capitalize(), required=False)
+  address = forms.CharField(max_length=500, widget=forms.Textarea, required=False)
 
   def __init__(self, *args, **kwargs):
     super(UserProfileForm, self).__init__(*args, **kwargs)
     instance = kwargs.pop('instance', None)
-    self.fields['levels'].initial=[x.id for x in instance.rider.levels.all()]
-    self.fields['rider_customer'].initial=instance.rider.customer
-    self.fields['phone_number'].initial=instance.phone_number
-    self.fields['first_name'].initial=instance.user.first_name
-    self.fields['last_name'].initial=instance.user.last_name
-    self.fields['is_instructor'].initial=instance.instructor != None
+    if instance:
+        self.fields['levels'].initial=[x.id for x in instance.rider.levels.all()]
+        self.fields['rider_customer'].initial=instance.rider.customer
+        self.fields['rider_customer'].required=True
+        self.fields['phone_number'].initial=instance.phone_number
+        self.fields['first_name'].initial=instance.user.first_name
+        self.fields['last_name'].initial=instance.user.last_name
+        self.fields['is_instructor'].initial=instance.instructor != None
+        self.fields['email'].initial=instance.user.email
+
+    self.helper = UserFormHelper()
+    self.helper.layout = Layout(
+            Fieldset(
+              _('Basic information'),
+              'first_name','last_name', 'email', 'phone_number'
+              ),
+            Fieldset(
+              _('Levels '),
+              'levels',
+              ),
+            Fieldset(
+              _('Extra'),
+              'is_instructor',
+              'rider_customer',
+              'address',
+              'extra',
+              ),
+            ButtonHolder(
+              Submit('submit', 'Submit')
+              )
+          )
 
   class Meta:
     model = UserProfile
     exclude = ('instructor', 'user', 'rider', 'customer')
 
+  def clean_first_name(self):
+      return " ".join(self.cleaned_data['first_name'].split()).title()
+  def clean_last_name(self):
+      return " ".join(self.cleaned_data['last_name'].split()).title()
+
   def save(self, force_insert=False, force_update=False, commit=True):
-    instance = super(UserProfileForm, self).save(commit)
+    instance = super(UserProfileForm, self).save(False)
+    if not hasattr(instance, 'user'):
+        import random
+        import string
+        username = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(6))
+        password = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(18))
+        user = User.objects.create_user(username, self.cleaned_data['email'], password)
+        instance.user = user
+    if not instance.customer:
+      c = CustomerInfo.objects.create()
+      instance.customer = c
+    if not instance.rider:
+      r = RiderInfo.objects.create(customer=instance.customer)
+      instance.rider = r
+      instance.rider.customer = instance.customer
     instance.user.first_name = self.cleaned_data['first_name']
     instance.user.last_name = self.cleaned_data['last_name']
+    instance.user.email = self.cleaned_data['email']
     instance.user.save()
+    instance.customer.address = self.cleaned_data['address']
+    instance.customer.save()
     if self.cleaned_data['levels']:
       instance.rider.levels = self.cleaned_data['levels']
     if self.cleaned_data['rider_customer']:
