@@ -40,6 +40,7 @@ class UserProfileForm(forms.ModelForm):
         self.fields['last_name'].initial=instance.user.last_name
         self.fields['is_instructor'].initial=instance.instructor != None
         self.fields['email'].initial=instance.user.email
+        self.fields['address'].initial=instance.customer.address
 
     self.helper = UserFormHelper()
     self.helper.layout = Layout(
