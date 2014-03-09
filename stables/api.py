@@ -71,6 +71,7 @@ class TimetableView(views.APIView):
                         else:
                             eh['instructor'] = None
                         if slots[o][0]:
+                            eh['free_amount'] = slots[o][0].max_participants - len([ p for p in slots[o][1] if p.state != CANCELED ])
                             eh['free_slots'] = slots[o][0].max_participants > len([ p for p in slots[o][1] if p.state != CANCELED ])
                         dates[str(d)].append(eh)
 
