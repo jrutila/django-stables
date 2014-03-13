@@ -61,7 +61,7 @@ var FinanceView = Backbone.View.extend({
     },
     buttonClick: function(ev) {
         trg = $(ev.target)
-        this.model.set('ticket_type', parseInt(trg.val()))
+        this.model.set('pay', trg.val())
         this.model.save()
     },
     render: function() {

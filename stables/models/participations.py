@@ -548,14 +548,14 @@ class Participation(models.Model):
 
     horse = models.ForeignKey(Horse, null=True, blank=True)
 
-    def save(self, omitstatechange=False):
+    def save(self, omitstatechange=False, **kwargs):
         if self.id and not omitstatechange:
             old = Participation.objects.get(pk=self.id)
             if old.state != self.state:
                 self.last_state_change_on = datetime.datetime.now()
         sid = transaction.savepoint()
         try:
-          ret = models.Model.save(self)
+          ret = models.Model.save(self, **kwargs)
           transaction.savepoint_commit(sid)
           return ret
         except IntegrityError:

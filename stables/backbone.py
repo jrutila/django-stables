@@ -97,6 +97,7 @@ class CommentResource(ModelResource):
         kwargs['site'] = Site.objects.get_current()
         return super(CommentResource, self).obj_create(bundle, **kwargs)
 
+from decimal import Decimal
 class ViewParticipation:
     def __init__(self, part=None):
         self.id = 0
@@ -118,24 +119,33 @@ class ViewParticipation:
 
             if part.horse:
                 self.horse_id = part.horse.id
-            self.finance = "ok"
-            self.finance_hint = unicode(saldo[1])
-            if (saldo[0] == 0 and saldo[1] == None):
-                self.finance_hint = _("Cash")
-            saldo = saldo[0]
-            if saldo != None and saldo != 0:
-                self.finance = saldo
+            if hasattr(part, 'warning'):
+                self.alert_level = 'warning'
+                self.warning = part.warning
+
+            if (saldo[1]):
+                self.finance_hint = unicode(saldo[1])
+            elif saldo[2] > Decimal('0.00'):
+                self.finance_hint = _('Cash') + ' ' + str(saldo[2])
+            elif saldo[2] == Decimal('0.00'):
+                self.finance_hint = str(saldo[2])
+            else:
+                self.finance_hint = '--'
+
+            if (saldo[0] == Decimal('0.00')):
+                self.finance = "ok"
+            elif (saldo[0] != None and saldo[0] < Decimal('0.00')):
+                self.finance = str(saldo[0])
                 self.alert_level = 'info'
-            if saldo == None and self.state == ATTENDING:
+                self.finance_hint = '--'
+            else:
+                self.finance = '--'
                 self.alert_level = 'info'
-                self.finance = "--"
+
             if part.id:
                 self.finance_url = part.get_absolute_url()
             if hasattr(part, 'accident'):
                 self.accident_url = part.accident.get_absolute_url
-            if hasattr(part, 'warning'):
-                self.alert_level = 'warning'
-                self.warning = part.warning
             if hasattr(part, 'enroll') and part.enroll.state == ATTENDING:
                 self.enroll = EnrollResource().get_resource_uri(part.enroll)
             else:
@@ -204,29 +214,32 @@ class ViewFinance:
         self.id = 0
         if part:
             self.id = part.id
-            saldo, ticket = part.get_saldo()
-            self.ticket_types = {}
+            saldo, ticket, value = part.get_saldo()
+            self.pay_types = {}
 
-            self.finance_hint = unicode(ticket)
-            if (saldo == 0 and ticket == None):
-                self.finance_hint = _("Cash")
-
-            if saldo != None and saldo != 0:
-                self.value = saldo*-1
-                self.ticket_types[_("Cash")] = 0
-            if ticket:
-                self.ticket_type = ticket.type.id
-                self.ticket_types[_("Cash")] = 0
-                self.value = ticket.transaction.amount*-1
-                self.ticket = ticket
             unused = part.participant.rider.unused_tickets
             for u in unused:
                 if (not ticket) or (ticket.type != u.type):
-                    self.ticket_types[u.type.name] = u.type.id
+                    self.pay_types[u.type.id] = u.type.name
             self.participation_url = part.get_absolute_url()
+            self.finance_hint = str(value)
+            if saldo < Decimal('0.00'):
+                self.finance_hint = str(saldo)
+
+            if ticket:
+                if value:
+                    self.pay_types[str(value)] = _('Cash') + ' ' + str(value)
+                self.pay_types[str(Decimal('0.00'))] = _('0.00')
+                self.finance_hint = unicode(ticket)
+            else:
+                if value == None or saldo < Decimal('0.00'):
+                    self.pay_types[str(value)] = _('Cash') + ' ' + str(value)
+                    self.pay_types[str(Decimal('0.00'))] = _('0.00')
+                elif value > Decimal('0.00'):
+                    self.pay_types[str(Decimal('0.00'))] = _('0.00')
 
             if part.state != ATTENDING:
-                self.ticket_types = []
+                self.pay_types = []
                 from stables.models import PARTICIPATION_STATES
                 self.finance_hint = PARTICIPATION_STATES[part.state][1]
 
@@ -237,10 +250,8 @@ class FinanceResource(Resource):
         object_class = ViewFinance
 
     id = fields.IntegerField(attribute='id')
-    ticket = fields.CharField(attribute='ticket', null=True)
-    ticket_type = fields.IntegerField(attribute='ticket_type', null=True)
-    ticket_types = fields.DictField(attribute='ticket_types', null=True)
-    value = fields.DecimalField(attribute='value', null=True)
+    pay_types = fields.DictField(attribute='pay_types', null=True)
+    pay = fields.CharField(attribute='pay', null=True)
     participation_url = fields.CharField(attribute='participation_url')
     finance_hint = fields.CharField(attribute='finance_hint', null=True)
 
@@ -250,11 +261,11 @@ class FinanceResource(Resource):
 
     def obj_update(self, bundle, request=None, **kwargs):
         part = Participation.objects.get(pk=kwargs['pk'])
-        if bundle.data['ticket_type'] == 0:
-            pay_participation(part)
+        pay = bundle.data['pay']
+        if '.' in pay:
+            pay_participation(part, value=Decimal(pay))
         else:
-            tt = TicketType.objects.get(pk=bundle.data['ticket_type'])
-            pay_participation(part, tt)
+            pay_participation(part, ticket=TicketType.objects.get(pk=pay))
         bundle.obj = ViewFinance(part)
         return bundle
 

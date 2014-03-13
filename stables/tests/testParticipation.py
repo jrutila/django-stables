@@ -1,10 +1,7 @@
-from django.utils import unittest
 from stables.models import Participation
 from stables.models import UserProfile
+from stables.models import CustomerInfo, RiderInfo
 from django.contrib.auth.models import User
-from schedule.models import Event
-from schedule.models import Rule
-from datetime import datetime
 from nose.tools import * #assert_equals, assert_is_not_none
 from . import *
 from testCourse import CourseTestBase
@@ -27,9 +24,11 @@ def pToList(parts):
 class CourseParticipationTest(CourseTestBase):
     @classmethod
     def setUpClass(cls):
-        user = User.objects.create(first_name='test', last_name='user')
-        #cls.rider = UserProfile.objects.create(user=user)
-        cls.rider = user.get_profile()
+        user = User.objects.get_or_create(username='test', first_name='test', last_name='user')[0]
+        cls.rider = UserProfile.objects.get_or_create(user=user)[0]
+        cls.rider.customer = CustomerInfo.objects.create()
+        cls.rider.rider = RiderInfo.objects.create(customer=cls.rider.customer)
+        cls.rider.save()
 
     def parts(self, parts):
         Participation.objects.all().delete()

@@ -5,7 +5,7 @@ from stables.models import CourseParticipationActivator
 from stables.models import Ticket, TicketType, Transaction
 from stables.models import RiderInfo, CustomerInfo
 from stables.models import Course
-from stables.models import Horse
+from stables.models import UserProfile
 from stables.models import pay_participation
 from stables.forms import CourseForm
 from schedule.models import Calendar, Event, Rule
@@ -21,7 +21,7 @@ def setupRider(name):
     user.last_name = name
     user.save()
     customer = CustomerInfo.objects.create()
-    profile = user.get_profile()
+    profile = UserProfile.objects.get_or_create(user=user)[0]
     rider = RiderInfo()
     rider.customer = customer
     rider.save()
@@ -250,34 +250,6 @@ class TicketTestCase(unittest.TestCase):
 
         self.assertEqual(self.participation.get_saldo()[0], Decimal('0'))
 
-    def testParticipationPayWithTicketAfterCashAdditive(self):
-        self.__activateFirstActivator__()
-        
-        t1 = Ticket.objects.create(type=self.ticket_type, owner=self.user.get_profile().rider, expires=datetime.datetime.now()+datetime.timedelta(days=10))
-
-        pay_participation(self.participation)
-
-        self.assertEqual(Transaction.objects.count(), 2)
-
-        t = Transaction.objects.latest('id')
-
-        self.assertEqual(t.amount, Decimal('45.17'))
-        self.assertEqual(Ticket.objects.get(pk=t1.pk).transaction, None)
-
-        pay_participation(self.participation, ticket=self.ticket_type, replace=False)
-
-        self.assertEqual(Transaction.objects.count(), 2)
-
-        t = Transaction.objects.latest('id')
-
-        self.assertEqual(t.amount, Decimal('45.17'))
-        self.assertEqual(Ticket.objects.get(pk=t1.pk).transaction, Transaction.objects.all()[0])
-
-        # Delete cash manually
-        t.delete()
-
-        self.assertEqual(self.participation.get_saldo()[0], Decimal('0'))
-
     def __activateFirstActivator__(self):
         pta = ParticipationTransactionActivator.objects.all()
         if pta:
@@ -293,7 +265,7 @@ class ActivatorTestCase(unittest.TestCase):
         event.save()
         user = User(username='user',first_name='Test', last_name='Guy')
         user.save()
-        prof = user.get_profile()
+        prof = UserProfile.objects.get_or_create(user=user)[0]
         customer = CustomerInfo()
         customer.address = 'Address'
         customer.save()
@@ -449,6 +421,7 @@ class CourseEnrollTest(unittest.TestCase):
         cls.course = Course(**data)
         cls.course.user = user
         cls.course.save(**savedata)
+        UserProfile.objects.get_or_create(user=user)
         cls.user = user
 
     def setUp(self):

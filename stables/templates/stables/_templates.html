@@ -20,7 +20,7 @@
         style="text-decoration: line-through;"
     <% } %>
     >
-    <% if (alert_level == 'warning') { %>
+    <% if (typeof(warning) != "undefined" && warning) { %>
         <span title="<%= warning %>">!</span>
     <% } %>
     <% if (finance_url != null) { %>
@@ -47,9 +47,8 @@
 
 <script type="text/html" id="FinancePopoverView">
     <div><%= finance_hint %></div>
-    <!--<input type="number" value="<%= value %>"/>-->
-    <% for (var t in ticket_types) { %>
-      <button value="<%= ticket_types[t] %>"><%= t %></button>
+    <% for (var t in pay_types) { %>
+      <button value="<%= t %>"><%= pay_types[t] %></button>
     <% } %>
     <div>
     <div>

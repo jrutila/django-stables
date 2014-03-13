@@ -90,14 +90,16 @@ def _use_ticket(ticket_query, transaction):
 def _count_saldo(transactions):
     saldo = None
     ticket_used = None
+    value = None
     if transactions:
-        saldo = 0
+        saldo = Decimal('0.00')
+        value = abs(transactions[0].amount)
     for t in transactions:
       if t.ticket_set.count() == 0:
         saldo = saldo + t.amount
       elif t.ticket_set.count() > 0:
         ticket_used=t.ticket_set.all()[0]
-    return (saldo, ticket_used)
+    return (saldo, ticket_used, value)
 
 def get_saldo(self):
     return _count_saldo(Transaction.objects.filter(active=True,
@@ -148,28 +150,31 @@ CustomerInfo.unused_tickets = property(_get_customer_valid_unused_tickets)
 CustomerInfo.expired_tickets = property(_get_customer_expired_unused_tickets)
 CustomerInfo.saldo = property(get_customer_saldo)
 
-def pay_participation(participation, ticket=None, replace=True):
+def pay_participation(participation, value=None, ticket=None):
     transactions = Transaction.objects.filter(
         active=True,
         content_type=ContentType.objects.get_for_model(participation),
         object_id=participation.id)
-    saldo, ticket_used = _count_saldo(transactions)
+    if value != None and value != abs(transactions[0].amount):
+        t = transactions[0]
+        t.amount = -1*value
+        t.save()
+
+    saldo, ticket_used, value = _count_saldo(transactions)
 
     if ticket_used:
       ticket_used.transaction=None
       ticket_used.save()
+      saldo, ticket_used, value = _count_saldo(transactions)
 
     if ticket:
-      ticket = participation.participant.rider.unused_tickets.filter(type=ticket).order_by('expires')[0]
-      ticket.transaction = transactions.filter(amount__lt=0)[0]
-      ticket.save()
-      if replace:
-          if transactions.count() > 1:
-              transactions.latest('id').delete()
-    
-    saldo = _count_saldo(transactions)[0]
+        ticket = participation.participant.rider.unused_tickets.filter(type=ticket).order_by('expires')[0]
+        ticket.transaction = transactions.filter(amount__lt=0)[0]
+        ticket.save()
+        for t in transactions[1:]:
+            t.delete()
 
-    if saldo < 0:
+    elif saldo < 0:
         customer = participation.participant.rider.customer
         Transaction.objects.create(
           active=True,
