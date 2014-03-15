@@ -226,7 +226,7 @@ jQuery.ui.autocomplete.prototype._resizeMenu = function () {
 }
 
 var userSelectorSource = []
-$.get(apiUrl+"user?limit=500&format=json", "", function(data) {
+$.get(apiUrl+"user?limit=1000&format=json", "", function(data) {
     userSelectorSource = _.map(data.objects, function(u) { return u.name; })
     $(".userSelector").autocomplete("option", "source", userSelectorSource)
 });

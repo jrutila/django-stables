@@ -13,6 +13,9 @@ from crispy_forms.layout import Submit
 from crispy_forms.layout import HTML
 from crispy_forms.layout import Layout, Fieldset, ButtonHolder
 
+from django.core.exceptions import ValidationError
+from django.utils.safestring import mark_safe
+
 class UserFormHelper(FormHelper):
     form_class = 'blueForms'
     form_method = 'post'
@@ -75,6 +78,19 @@ class UserProfileForm(forms.ModelForm):
       return " ".join(self.cleaned_data['first_name'].split()).title()
   def clean_last_name(self):
       return " ".join(self.cleaned_data['last_name'].split()).title()
+
+  def clean(self):
+      data = super(forms.ModelForm, self).clean()
+      if self.instance.id:
+          return data
+      try:
+          user = UserProfile.objects.get(
+                  user__first_name=self.cleaned_data['first_name'],
+                  user__last_name=self.cleaned_data['last_name']
+              )
+      except UserProfile.DoesNotExist:
+          return data
+      raise ValidationError(mark_safe(_("Existing user %s! Change first and last names") % ("<a href='%s'>%s</a>" % (user.get_absolute_url(), user))))
 
   def save(self, force_insert=False, force_update=False, commit=True):
     instance = super(UserProfileForm, self).save(False)

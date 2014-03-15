@@ -19,6 +19,13 @@ class UserManager(models.Manager):
 
     def find(self, name):
         f = []
+
+        user = UserProfile.objects.filter(
+                user__first_name=name.split(' ')[0],
+                user__last_name=' '.join(name.split(' ')[1:])
+                )
+        if user:
+            return user[0]
         for v in name.split(" "):
             f.append((Q(user__first_name__icontains=v) | Q(user__last_name__icontains=v)))
         return UserProfile.objects.get(reduce(operator.and_, f))
