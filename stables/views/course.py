@@ -8,10 +8,29 @@ from stables.models import Course
 from stables.forms import CourseForm
 from stables.forms import AddEventForm
 from stables.forms import ChangeEventForm
+from stables.views import LoginRequiredMixin
 from datetime import *
 import dateutil.parser
 
-class ListCourse(ListView):
+from django.contrib.auth.decorators import permission_required
+from django.utils.decorators import method_decorator
+
+class CourseEditorMixin(object):
+    @method_decorator(permission_required('stables.change_course'))
+    def dispatch(self, request, *args, **kwargs):
+        return super(CourseEditorMixin, self).dispatch(request, *args, **kwargs)
+
+class EventEditorMixin(object):
+    @method_decorator(permission_required('schedule.change_occurrence'))
+    def dispatch(self, request, *args, **kwargs):
+        return super(EventEditorMixin, self).dispatch(request, *args, **kwargs)
+
+class EventAdderMixin(object):
+    @method_decorator(permission_required('schedule.add_occurrence'))
+    def dispatch(self, request, *args, **kwargs):
+        return super(EventAdderMixin, self).dispatch(request, *args, **kwargs)
+
+class ListCourse(LoginRequiredMixin, ListView):
     model = Course
     template_name = 'stables/course/list.html'
     queryset = Course.objects.all().prefetch_related('events')
@@ -28,7 +47,7 @@ class ListCourse(ListView):
         context['course_list'] = sorted(newlist, key=lambda x: x.next_occ['start'].weekday if x.next_occ else None )
         return context
 
-class ViewCourse(DetailView):
+class ViewCourse(LoginRequiredMixin, DetailView):
     model = Course
     template_name = 'stables/course/course.html'
 
@@ -39,7 +58,7 @@ class ViewCourse(DetailView):
             c.attending_amount = context['object'].get_attending_amount(c)
         return context
 
-class CourseCreate(CreateView):
+class CourseCreate(CourseEditorMixin, CreateView):
     model = Course
     form_class = CourseForm
     template_name = 'stables/generic_form.html'
@@ -49,7 +68,7 @@ class CourseCreate(CreateView):
       form.user = self.request.user
       return form
 
-class CourseUpdate(UpdateView):
+class CourseUpdate(CourseEditorMixin, UpdateView):
     model = Course
     form_class = CourseForm
     template_name = 'stables/generic_form.html'
@@ -59,7 +78,7 @@ class CourseUpdate(UpdateView):
       form.user = self.request.user
       return form
 
-class CourseAddEvent(FormView):
+class CourseAddEvent(EventAdderMixin, FormView):
     template_name = 'stables/generic_form.html'
     form_class = AddEventForm
 
@@ -75,19 +94,27 @@ class CourseAddEvent(FormView):
         return kwargs
 
     def form_valid(self, form):
-        form.save_event()
+        form.save()
         return super(CourseAddEvent, self).form_valid(form)
 
-class CourseUpdateEvent(CourseAddEvent):
+class CourseUpdateEvent(EventEditorMixin, FormView):
+    template_name = 'stables/generic_form.html'
     form_class = ChangeEventForm
 
     def dispatch(self, request, *args, **kwargs):
         start = dateutil.parser.parse(kwargs.pop('start'))
         self.course = Course.objects.get(**kwargs)
         self.event = self.course.get_occurrence(start)
+        self.success_url = self.course.get_absolute_url()
         return super(CourseUpdateEvent, self).dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
         kwargs = super(CourseUpdateEvent, self).get_form_kwargs()
+        kwargs['user'] = self.request.user
+        kwargs['course'] = self.course
         kwargs['event'] = self.event
         return kwargs
+
+    def form_valid(self, form):
+        form.save()
+        return super(CourseUpdateEvent, self).form_valid(form)

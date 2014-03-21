@@ -3,7 +3,7 @@ from django.views.generic.edit import CreateView
 from django.views.generic import ListView
 from django.views.generic import DetailView
 from django.contrib.auth.models import User
-from django.utils.translation import ugettext_lazy as _
+#from django.utils.translation import ugettext_lazy as _
 from datetime import datetime
 from collections import defaultdict
 
@@ -12,14 +12,22 @@ from stables.models import UserProfile
 from stables.models import Participation
 from stables.models import Transaction
 
-class EditUser(UpdateView):
+from django.contrib.auth.decorators import permission_required
+from django.utils.decorators import method_decorator
+
+class UserEditorMixin(object):
+    @method_decorator(permission_required('stables.change_userprofile'))
+    def dispatch(self, request, *args, **kwargs):
+        return super(UserEditorMixin, self).dispatch(request, *args, **kwargs)
+
+class EditUser(UserEditorMixin, UpdateView):
     template_name = 'stables/generic_form.html'
     form_class = UserProfileForm
 
     def get_object(self, **kwargs):
         return UserProfile.objects.filter(user__username=self.kwargs['username'])[0]
 
-class AddUser(CreateView):
+class AddUser(UserEditorMixin, CreateView):
     template_name = 'stables/generic_form.html'
     form_class = UserProfileForm
 
@@ -32,7 +40,7 @@ class AddUser(CreateView):
                 form.fields[ff[i]].initial = orig[i]
         return super(AddUser, self).get_context_data(**kwargs)
 
-class ViewUser(DetailView):
+class ViewUser(UserEditorMixin, DetailView):
     template_name = 'stables/user/index.html'
     model = UserProfile
 
@@ -78,7 +86,7 @@ class ViewUser(DetailView):
 
         return user
 
-class ListUser(ListView):
+class ListUser(UserEditorMixin, ListView):
     model = UserProfile
     template_name = 'stables/user/userprofile_list.html'
 

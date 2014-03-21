@@ -115,7 +115,7 @@ class AddEventForm(forms.Form):
         self.course = kwargs.pop('course')
         super(AddEventForm, self).__init__(*args, **kwargs)
 
-    def save_event(self):
+    def save(self):
         event = Event()
         event.start = datetime.datetime.combine(self.cleaned_data['date'], self.cleaned_data['start'])
         event.end = datetime.datetime.combine(self.cleaned_data['date'], self.cleaned_data['end'])
@@ -144,7 +144,7 @@ class ChangeEventForm(AddEventForm):
         self.initial['end'] = self.event.end.time()
         self.initial['cancel'] = self.event.cancelled
 
-    def save_event(self):
+    def save(self):
         if self.cleaned_data['cancel'] and not self.event.cancelled:
             self.event.cancel()
         elif not self.cleaned_data['cancel'] and self.event.cancelled:

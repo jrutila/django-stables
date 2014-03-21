@@ -13,7 +13,15 @@ from stables.models import InstructorParticipation
 from stables.models import PARTICIPATION_STATES
 import datetime
 
-class Newboard(TemplateView):
+from django.contrib.auth.decorators import permission_required
+from django.utils.decorators import method_decorator
+
+class DashboardMixin(object):
+    @method_decorator(permission_required('stables.change_participation'))
+    def dispatch(self, request, *args, **kwargs):
+        return super(DashboardMixin, self).dispatch(request, *args, **kwargs)
+
+class Newboard(DashboardMixin, TemplateView):
     template_name = 'stables/newboard.html'
 
     def get_context_data(self, **kwargs):

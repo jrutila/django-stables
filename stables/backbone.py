@@ -35,11 +35,17 @@ from django.utils.translation import ugettext as _
 from django.db.models import Q
 import operator
 import json
+from tastypie.authentication import SessionAuthentication
+
+class ParticipationPermissionAuthentication(SessionAuthentication):
+    def is_authenticated(self, request, **kwargs):
+        return request.user.has_perm('stables.change_participation')
 
 class UserResource(ModelResource):
     class Meta:
         queryset = UserProfile.objects.active()
         cache = SimpleCache(timeout=30*60)
+        authentication = ParticipationPermissionAuthentication()
     name = fields.CharField()
 
     def dehydrate_name(self, bundle):
@@ -51,6 +57,7 @@ class EventMetaDataResource(ModelResource):
         object_class = EventMetaData
         authorization= Authorization()
         always_return_data = True
+        authentication = ParticipationPermissionAuthentication()
     event = fields.ForeignKey("stables.backbone.EventResource", attribute='event')
 
     def detail_uri_kwargs(self, bundle_or_obj):
@@ -71,6 +78,7 @@ class CommentResource(ModelResource):
             'content_object': [ 'exact', ]
         }
         always_return_data = True
+        authentication = ParticipationPermissionAuthentication()
 
     def detail_uri_kwargs(self, bundle_or_obj):
         if isinstance(bundle_or_obj, Bundle):
@@ -192,6 +200,7 @@ class EnrollResource(ModelResource):
         resource_name = 'enroll'
         object_class = Enroll
         list_allowed_methods = ['post', 'put']
+        authentication = ParticipationPermissionAuthentication()
 
     event = fields.IntegerField()
 
@@ -248,6 +257,7 @@ class FinanceResource(Resource):
         resource_name = "financials"
         always_return_data = True
         object_class = ViewFinance
+        authentication = ParticipationPermissionAuthentication()
 
     id = fields.IntegerField(attribute='id')
     pay_types = fields.DictField(attribute='pay_types', null=True)
@@ -292,6 +302,7 @@ class ParticipationResource(Resource):
         resource_name = 'participations'
         object_class = ViewParticipation
         always_return_data = True
+        authentication = ParticipationPermissionAuthentication()
 
     def obj_get(self, bundle, **kwargs):
         part = Participation.objects.get(pk=kwargs['pk'])
@@ -379,6 +390,7 @@ class EventResource(Resource):
         object_class = ViewEvent
         cache = ShortClientCache(timeout=30*60, private=True)
         list_allowed_methods = ['get', 'post']
+        authentication = ParticipationPermissionAuthentication()
 
     start = fields.DateField(attribute='start')
     end = fields.DateField(attribute='end')

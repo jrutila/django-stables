@@ -30,7 +30,9 @@ Enrolled: {{ attending }}/{{ space }}
         Participating: {{ attending }}/{{ space }}
         {% endblocktrans %}
 
+        {% if perms.schedule.change_occurrence %}
         <a href="{% url 'change_event' pk=object.id start=c.start.isoformat %}">{% trans "Change time" %}</a>
+        {% endif %}
 
         <ul>
         {% for instr in c.instructors %}
@@ -56,7 +58,7 @@ Enrolled: {{ attending }}/{{ space }}
     </li>
     {% endfor %}
 </ul>
-{% if perms.stables.change_course %}
+{% if perms.schedule.add_occurrence %}
 <a href="{% url "add_event" object.id %}">{% trans "Add one-time event" %}</a><br/>
 {% endif %}
 {% endblock content %}
