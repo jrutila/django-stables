@@ -6,7 +6,7 @@ from stables.models import InstructorParticipation
 from stables.models import InstructorInfo
 from stables.models import Horse
 from stables.models import Transaction
-from stables.models import ATTENDING
+from stables.models import ATTENDING, CANCELED
 from schedule.models import Event
 from schedule.models import Occurrence
 from stables.models import EventMetaData
@@ -149,6 +149,8 @@ class ViewParticipation:
             else:
                 self.finance = '--'
                 self.alert_level = 'info'
+            if part.state == CANCELED:
+                self.alert_level = ''
 
             if part.id:
                 self.finance_url = part.get_absolute_url()
