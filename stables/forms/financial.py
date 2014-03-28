@@ -11,6 +11,8 @@ from crispy_forms.layout import Layout, Fieldset, ButtonHolder
 from stables.models import Transaction
 from stables.models import Ticket
 
+import datetime
+
 class FinancialFormHelper(FormHelper):
     form_class = 'blueForms'
     form_method = 'post'
@@ -126,6 +128,10 @@ class TicketForm(forms.ModelForm):
 
     to_customer = forms.BooleanField(required=False, label=_('Family ticket'))
     amount = forms.IntegerField(required=True, initial=10, label=_('Amount'))
+    expires = forms.DateField()
+
+    def clean_expires(self):
+        return datetime.datetime.combine(self.cleaned_data['expires'], datetime.time(23,59,59))
 
     def __init__(self, *args, **kwargs):
       super(TicketForm, self).__init__(*args, **kwargs)
