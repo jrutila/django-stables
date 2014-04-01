@@ -5,7 +5,15 @@ from stables.models import Participation
 from stables.models import InstructorParticipation
 from stables.forms import AccidentForm
 
-class CreateAccident(CreateView):
+from django.contrib.auth.decorators import permission_required
+from django.utils.decorators import method_decorator
+
+class AccidentAdderMixin(object):
+    @method_decorator(permission_required('stables.add_accident'))
+    def dispatch(self, request, *args, **kwargs):
+        return super(AccidentAdderMixin, self).dispatch(request, *args, **kwargs)
+
+class CreateAccident(AccidentAdderMixin, CreateView):
     model = Accident
     form_class = AccidentForm
     template_name = 'stables/generic_form.html'
@@ -38,7 +46,7 @@ class CreateAccident(CreateView):
         form.user = self.request.user
         return form
 
-class EditAccident(UpdateView):
+class EditAccident(AccidentAdderMixin, UpdateView):
     model = Accident
     form_class = AccidentForm
     template_name = 'stables/generic_form.html'
