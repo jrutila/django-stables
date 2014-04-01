@@ -11,7 +11,15 @@ from stables.models import UserProfile
 from stables.models import RiderInfo
 from stables.models import CustomerInfo
 
-class EditTransactionsView(FormView):
+from django.contrib.auth.decorators import permission_required
+from django.utils.decorators import method_decorator
+
+class ParticipationMixin(object):
+    @method_decorator(permission_required('stables.change_participation'))
+    def dispatch(self, request, *args, **kwargs):
+        return super(ParticipationMixin, self).dispatch(request, *args, **kwargs)
+
+class EditTransactionsView(ParticipationMixin, FormView):
     form_class = TransactionsForm
     template_name = 'stables/participation/modify_transactions.html'
 
@@ -37,7 +45,7 @@ class EditTransactionsView(FormView):
         return super(FormView, self).form_valid(form)
 
 
-class AddTicketsView(FormView):
+class AddTicketsView(ParticipationMixin, FormView):
     form_class = TicketForm
     template_name = 'stables/generic_form.html'
 
