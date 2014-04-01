@@ -31,15 +31,15 @@ class Newboard(DashboardMixin, TemplateView):
         ctx['instructors'] = [ i.user for i in InstructorInfo.objects.all().prefetch_related('user', 'user__user')]
         return ctx
 
-class CreateEnroll(CreateView):
+class CreateEnroll(DashboardMixin, CreateView):
     model = Enroll
     template_name = 'stables/generic_form.html'
 
-class DeleteEnroll(DeleteView):
+class DeleteEnroll(DashboardMixin, DeleteView):
     model = Enroll
     template_name = 'stables/generic_form.html'
 
-class ParticipationView(DetailView): # widget_user(request, pid):
+class ParticipationView(DashboardMixin, DetailView): # widget_user(request, pid):
     model = Participation
     template_name = 'stables/participation/participation.html'
 
