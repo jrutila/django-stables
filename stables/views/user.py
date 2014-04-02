@@ -79,7 +79,7 @@ class ViewUser(UserEditorMixin, DetailView):
               ticketexp = dict()
               for t in getattr(user, attr):
                 ticketamount[t.type] = ticketamount[t.type] + 1
-                ticketexp[t.type] = t.expires if not t.type in ticketexp or ticketexp[t.type] > t.expires else ticketexp[t.type]
+                ticketexp[t.type] = t.expires if not t.type in ticketexp or (t.expires and ticketexp[t.type] > t.expires) else ticketexp[t.type]
               setattr(user, attr, dict())
               for tt in ticketexp.keys():
                 getattr(user, attr)[tt] = (ticketamount[tt], ticketexp[tt])
