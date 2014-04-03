@@ -121,8 +121,8 @@ from django.contrib.contenttypes.models import ContentType
 class EditTicketsForm(forms.Form):
     group = forms.ChoiceField(required=True)
     delete = forms.IntegerField(required=False, help_text=_("Amount of tickets to delete"))
-    expires = forms.DateField(required=False)
-    make_family = forms.BooleanField(required=False)
+    expires = forms.DateField(required=False, help_text=_("New expire date for selected tickets"))
+    make_family = forms.BooleanField(required=False, help_text=_("Turn selected tickets to family tickets"))
 
     def __init__(self, *args, **kwargs):
           groups = kwargs.pop('groups')
@@ -131,6 +131,9 @@ class EditTicketsForm(forms.Form):
           self.fields['group'].choices = groups
           self.helper = FinancialFormHelper()
           self.helper.layout = Layout(
+                HTML("""
+                Choose one of actions: delete, change expire date or convert to family tickets
+                    """),
                 'group', 'delete', 'expires', 'make_family',
                 ButtonHolder(
                   Submit('submit', 'Submit')
