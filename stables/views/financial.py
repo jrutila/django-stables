@@ -4,7 +4,8 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 
 from stables.forms import TransactionsForm
-from stables.forms import TicketForm
+from stables.forms import AddTicketsForm
+from stables.forms import EditTicketsForm
 from stables.models import Participation
 from stables.models import Transaction
 from stables.models import UserProfile
@@ -44,9 +45,44 @@ class EditTransactionsView(ParticipationMixin, FormView):
         form.save()
         return super(FormView, self).form_valid(form)
 
+from collections import defaultdict
+from django.contrib.auth.models import User
+
+class EditTicketsView(ParticipationMixin, FormView):
+    form_class = EditTicketsForm
+    template_name = 'stables/generic_form.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.success_url = reverse('view_user', args=(self.kwargs['username'],))
+        return super(EditTicketsView, self).dispatch(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super(FormView, self).get_form_kwargs()
+        user = User.objects.filter(username=self.kwargs['username'])[0].get_profile()
+        kwargs['owner'] = user
+
+        user = user.customer
+
+        ticketamount = defaultdict(int)
+        for attr in ['unused_tickets', 'expired_tickets']:
+            if hasattr(user, attr):
+              for t in getattr(user, attr):
+                key = (t.owner, t.type, t.expires or None)
+                ticketamount[key] = ticketamount[key] + 1
+        kwargs['groups'] = []
+        for ((owner, tt, exp), amnt) in ticketamount.items():
+            key = "%d:%d:%s" % (ContentType.objects.get_for_model(owner).id, tt.id, exp.isoformat())
+            kwargs['groups'].append(
+                (key, "%s (%s) -  %d kpl %s" % (tt, exp, amnt, "(F)" if isinstance(owner, CustomerInfo) else ""))
+                )
+        return kwargs
+
+    def form_valid(self, form):
+        form.save()
+        return super(FormView, self).form_valid(form)
 
 class AddTicketsView(ParticipationMixin, FormView):
-    form_class = TicketForm
+    form_class = AddTicketsForm
     template_name = 'stables/generic_form.html'
 
     def dispatch(self, request, *args, **kwargs):
@@ -66,7 +102,6 @@ class AddTicketsView(ParticipationMixin, FormView):
             'owner_type': ContentType.objects.get_for_model(CustomerInfo),
             'to_customer': True
             }
-
 
     def form_valid(self, form):
         form.save_all()

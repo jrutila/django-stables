@@ -117,7 +117,51 @@ class TransactionsForm(forms.Form):
       output.append('%s' % unicode(self[field]))
       output.append('</td>')
 
-class TicketForm(forms.ModelForm):
+from django.contrib.contenttypes.models import ContentType
+class EditTicketsForm(forms.Form):
+    group = forms.ChoiceField(required=True)
+    delete = forms.IntegerField(required=False, help_text=_("Amount of tickets to delete"))
+    expires = forms.DateField(required=False)
+    make_family = forms.BooleanField(required=False)
+
+    def __init__(self, *args, **kwargs):
+          groups = kwargs.pop('groups')
+          self.owner = kwargs.pop('owner')
+          super(forms.Form, self).__init__(*args, **kwargs)
+          self.fields['group'].choices = groups
+          self.helper = FinancialFormHelper()
+          self.helper.layout = Layout(
+                'group', 'delete', 'expires', 'make_family',
+                ButtonHolder(
+                  Submit('submit', 'Submit')
+                  )
+              )
+
+    def save(self, *args, **kwargs):
+        ot, tt, exp = self.cleaned_data['group'].split(':', 2)
+        ot=ContentType.objects.get(id=ot)
+        if ot.name == 'rider info':
+            oid = self.owner.rider.id
+        if ot.name == 'customer info':
+            oid = self.owner.customer.id
+        tickets = Ticket.objects.filter(
+                type__id=tt,
+                expires=exp,
+                owner_id=oid,
+                owner_type=ot).order_by('id').select_related('type')
+        if self.cleaned_data['expires']:
+            new_expires = datetime.datetime.combine(
+                    self.cleaned_data['expires'], datetime.time(23,59,59))
+            tickets.update(expires=new_expires)
+        if ot.name == 'rider info' and self.cleaned_data['make_family']:
+            for t in tickets:
+                t.owner = self.owner.rider.customer
+                t.save()
+        if self.cleaned_data['delete']:
+            for t in tickets[:self.cleaned_data['delete']]:
+                t.delete()
+
+class AddTicketsForm(forms.ModelForm):
     class Meta:
       model = Ticket
       exclude = ['transaction']
@@ -134,7 +178,7 @@ class TicketForm(forms.ModelForm):
         return datetime.datetime.combine(self.cleaned_data['expires'], datetime.time(23,59,59))
 
     def __init__(self, *args, **kwargs):
-      super(TicketForm, self).__init__(*args, **kwargs)
+      super(AddTicketsForm, self).__init__(*args, **kwargs)
       self.helper = FinancialFormHelper()
       self.helper.layout = Layout(
             'type', 'expires', 'to_customer', 'amount', 'owner_type', 'owner_id', 'value',
@@ -148,5 +192,5 @@ class TicketForm(forms.ModelForm):
       if (self.cleaned_data['to_customer']):
         self.instance.owner = self.instance.owner.customer
       for i in range(0, amnt):
-        super(TicketForm, self).save(commit=True)
+        super(AddTicketsForm, self).save(commit=True)
         self.instance.id = None

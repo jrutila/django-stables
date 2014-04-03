@@ -61,6 +61,7 @@
 <h3>{% trans "Saldo" %}</h3>
 {{ object.saldo }}
 <a href="{% url "add_tickets" username=object.user.username %}">{% trans "Add tickets" %}</a>
+<a href="{% url "edit_tickets" username=object.user.username %}">{% trans "Edit tickets" %}</a>
 <ul>
 {% for t, l in object.tickets.iteritems %}
 <li class="ticket_valid">
