@@ -60,12 +60,14 @@
 
 <script type="text/html" id="EventView">
 <a class="<% if (cancelled) { %>cancelled<% } %>" href="<%= course_url %>" title='<%= moment(start).format('l HH:mm') %>-<%= moment(end).format('HH:mm') %>'><%= moment(start).format('dd HH:mm') %> <%= title %></a>
+    {% if instructors %}
     <select name="instructor">
         <option value="0">{% trans "--" %}</option>
         {% for i in instructors %}
         <option value="{{ i.pk }}">{{ i }}</option>
         {% endfor %}
     </select>
+    {% endif %}
     <div class='comments'>
     </div>
     <ul class="rider-list">
