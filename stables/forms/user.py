@@ -81,16 +81,20 @@ class UserProfileForm(forms.ModelForm):
 
   def clean(self):
       data = super(forms.ModelForm, self).clean()
+      user = None
       if self.instance.id:
           return data
       try:
-          user = UserProfile.objects.get(
+          if 'first_name' in self.cleaned_data and 'last_name' in self.cleaned_data:
+              user = UserProfile.objects.get(
                   user__first_name=self.cleaned_data['first_name'],
                   user__last_name=self.cleaned_data['last_name']
-              )
+                  )
       except UserProfile.DoesNotExist:
           return data
-      raise ValidationError(mark_safe(_("Existing user %s! Change first and last names") % ("<a href='%s'>%s</a>" % (user.get_absolute_url(), user))))
+      if user:
+          raise ValidationError(mark_safe(_("Existing user %s! Change first and last names") % ("<a href='%s'>%s</a>" % (user.get_absolute_url(), unicode(user)))))
+      return data
 
   def save(self, force_insert=False, force_update=False, commit=True):
     instance = super(UserProfileForm, self).save(False)
