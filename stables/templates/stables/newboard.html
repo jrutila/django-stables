@@ -10,7 +10,10 @@
 <script type='text/javascript' src="{% static 'stables/js/modules/participation.js' %}"></script>
 <script type='text/javascript' src="{% static 'stables/js/modules/dashboard.js' %}"></script>
 <script type='text/javascript' src="{% static 'stables/js/plugins/msgGrowl/js/msgGrowl.js' %}"></script>
+<script type='text/javascript' src="{% static 'momentjs/moment.js' %}"></script>
+<script type='text/javascript' src="{% static 'momentjs/lang/fi.js' %}"></script>
 <script type='text/javascript'>
+    moment.lang('fi');
 
     var horseLimits = new DayLimits([
         {% for h in horses %}
