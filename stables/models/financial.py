@@ -150,11 +150,32 @@ CustomerInfo.unused_tickets = property(_get_customer_valid_unused_tickets)
 CustomerInfo.expired_tickets = property(_get_customer_expired_unused_tickets)
 CustomerInfo.saldo = property(get_customer_saldo)
 
+from schedule.models import Event
+def _get_default_fee(self):
+    if self.course_set.count() > 0:
+        return self.course_set.all()[0].default_participation_fee
+    return Decimal('0.00')
+
+Event.default_fee = property(_get_default_fee)
+
 def pay_participation(participation, value=None, ticket=None):
     transactions = Transaction.objects.filter(
         active=True,
         content_type=ContentType.objects.get_for_model(participation),
         object_id=participation.id)
+    customer = participation.participant.rider.customer
+
+    if transactions.count() == 0:
+        vval = value
+        if vval == None and participation.event.course_set.count() > 0:
+            vval = participation.event.default_fee
+        t = Transaction.objects.create(
+              active=True,
+              content_type=ContentType.objects.get_for_model(Participation),
+              object_id=participation.id,
+              amount=-1*vval,
+              customer=customer)
+
     if value != None and value != abs(transactions[0].amount):
         t = transactions[0]
         t.amount = -1*value
@@ -175,7 +196,6 @@ def pay_participation(participation, value=None, ticket=None):
             t.delete()
 
     elif saldo < 0:
-        customer = participation.participant.rider.customer
         Transaction.objects.create(
           active=True,
           content_type=ContentType.objects.get_for_model(Participation),
