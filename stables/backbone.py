@@ -226,6 +226,8 @@ class ViewFinance:
         if part:
             self.id = part.id
             saldo, ticket, value = part.get_saldo()
+            if value:
+                value = value.quantize(Decimal('0.01'))
             self.pay_types = {}
 
             unused = part.participant.rider.unused_tickets
