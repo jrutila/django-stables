@@ -106,6 +106,7 @@ class CommentResource(ModelResource):
         return super(CommentResource, self).obj_create(bundle, **kwargs)
 
 from decimal import Decimal
+import pytz, settings
 class ViewParticipation:
     def __init__(self, part=None):
         self.id = 0
@@ -353,10 +354,11 @@ class ParticipationResource(Resource):
         return bundle
 
     def obj_create(self, bundle, request=None, **kwargs):
+        from dateutil.parser import parse
         event = Event.objects.get(pk=bundle.data['event_id'])
-        start = datetime.datetime.strptime(bundle.data['start'], '%Y-%m-%dT%H:%M:%S')
-        end = datetime.datetime.strptime(bundle.data['end'], '%Y-%m-%dT%H:%M:%S')
-        occ = event.get_occurrence(start)
+        #start = datetime.datetime.strptime(bundle.data['start'], '%Y-%m-%dT%H:%M:%S')
+        start = pytz.timezone(settings.TIME_ZONE).localize(parse(bundle.data['start']))
+        occ = event.occurrences_after(start).next()
         state = int(bundle.data['state'])
         if ('rider_id' not in bundle.data and bundle.data['rider_name'] != None):
             try:
@@ -477,10 +479,13 @@ class EventResource(Resource):
         at = request.GET.get('at')
         occs = []
         if at:
+            import pytz, settings
             at = datetime.datetime.strptime(at, '%Y-%m-%d').date()
             start = datetime.datetime.combine(at, datetime.time.min)
             end = datetime.datetime.combine(at, datetime.time.max)
-            partids, parts = Participation.objects.generate_participations(start, end)
+            partids, parts = Participation.objects.generate_participations(
+                    start.replace(tzinfo=pytz.timezone(settings.TIME_ZONE)),
+                    end.replace(tzinfo=pytz.timezone(settings.TIME_ZONE)))
             instr = list(InstructorParticipation.objects.filter(start__gte=start, end__lte=end))
             instr = dict((i.event.pk, i) for i in instr)
             saldos = dict(Transaction.objects.get_saldos(partids))

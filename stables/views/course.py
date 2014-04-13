@@ -97,14 +97,16 @@ class CourseAddEvent(EventAdderMixin, FormView):
         form.save()
         return super(CourseAddEvent, self).form_valid(form)
 
+import pytz, settings
 class CourseUpdateEvent(EventEditorMixin, FormView):
     template_name = 'stables/generic_form.html'
     form_class = ChangeEventForm
 
     def dispatch(self, request, *args, **kwargs):
-        start = dateutil.parser.parse(kwargs.pop('start'))
+        start = dateutil.parser.parse(kwargs.pop('start')).astimezone(pytz.utc)
+        start = pytz.timezone(settings.TIME_ZONE).normalize(start)
         self.course = Course.objects.get(**kwargs)
-        self.event = self.course.get_occurrence(start)
+        self.event = self.course.get_next_occurrence_after(start)
         self.success_url = self.course.get_absolute_url()
         return super(CourseUpdateEvent, self).dispatch(request, *args, **kwargs)
 

@@ -203,6 +203,7 @@ def pay_participation(participation, value=None, ticket=None):
           amount=-1*saldo,
           customer=customer)
 
+from django.utils import timezone
 class ParticipationTransactionActivator(TransactionActivator):
     class Meta:
         app_label = 'stables'
@@ -215,7 +216,7 @@ class ParticipationTransactionActivator(TransactionActivator):
     ticket_type = models.ManyToManyField(TicketType, null=True, blank=True)
 
     def try_activate(self):
-        if self.participation.start-datetime.timedelta(hours=self.activate_before_hours) < datetime.datetime.now():
+        if self.participation.start-datetime.timedelta(hours=self.activate_before_hours) < timezone.now():
             return self.activate()
         return None
 

@@ -123,6 +123,7 @@ class Course(models.Model):
         return None, None
 
     def get_occurrences(self, delta=None, start=None):
+        import pytz, settings
         if not start:
           start = self.start
         occurrences = []
@@ -135,15 +136,28 @@ class Course(models.Model):
             if endd == None:
                 endd = start+datetime.timedelta(days=OCCURRENCE_LIST_WEEKS*7)
             occs = e.get_occurrences(
-                datetime.datetime.combine(start, datetime.time(0,0)),
-                datetime.datetime.combine(endd, datetime.time(23,59)))
+                datetime.datetime.combine(start, datetime.time(0,0)).replace(tzinfo=pytz.timezone(settings.TIME_ZONE)),
+                datetime.datetime.combine(endd, datetime.time(23,59).replace(tzinfo=pytz.timezone(settings.TIME_ZONE))))
             for c in occs:
                 occurrences.append(c)
         occurrences.sort(key=lambda occ: occ.start)
         return occurrences
 
+    # Obsolete
     def get_occurrence(self, start):
         return self.get_occurrences(start=start)[0]
+
+    def get_next_occurrence_after(self, start):
+        nexoc = None
+        for e in self.events.all():
+            en = e.occurrences_after(start).next()
+            if en:
+                if not nexoc:
+                    nexoc = en
+                if en.start < nexoc.start:
+                    nexoc = en
+
+        return nexoc
 
     def get_course_time_info(self):
         res = None

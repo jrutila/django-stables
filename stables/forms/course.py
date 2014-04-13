@@ -126,6 +126,7 @@ class AddEventForm(forms.Form):
         self.course.events.add(event)
         self.course.save()
 
+import pytz, settings
 class ChangeEventForm(AddEventForm):
     cancel = forms.BooleanField(required=False)
 
@@ -139,9 +140,11 @@ class ChangeEventForm(AddEventForm):
             )
         )
         self.helper.layout.fields.append(btn)
-        self.initial['date'] = self.event.start.date()
-        self.initial['start'] = self.event.start.time()
-        self.initial['end'] = self.event.end.time()
+        start = pytz.timezone(settings.TIME_ZONE).normalize(self.event.start)
+        end = pytz.timezone(settings.TIME_ZONE).normalize(self.event.end)
+        self.initial['date'] = start.date()
+        self.initial['start'] = start.timetz()
+        self.initial['end'] = end.timetz()
         self.initial['cancel'] = self.event.cancelled
 
     def save(self):

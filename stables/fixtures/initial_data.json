@@ -4,7 +4,8 @@
       "pk": 1,
       "fields": {
         "name": "Weekly",
-        "frequency": "WEEKLY"
+        "frequency": "WEEKLY",
+        "params": ""
       }
     },
     {

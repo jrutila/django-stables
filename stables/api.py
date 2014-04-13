@@ -46,8 +46,9 @@ class TimetableView(views.APIView):
         dates = {}
         d = start
         while d <= end:
-            starttime = datetime.combine(d, datetime.min.time())
-            endtime = datetime.combine(d, datetime.max.time())
+            import pytz, settings
+            starttime = datetime.combine(d, datetime.min.time()).replace(tzinfo=pytz.timezone(settings.TIME_ZONE))
+            endtime = datetime.combine(d, datetime.max.time()).replace(tzinfo=pytz.timezone(settings.TIME_ZONE))
             events = list(Course.objects.get_course_occurrences(starttime, endtime))
             instructors = InstructorParticipation.objects.filter(event__in=events, start__gte=starttime, end__lte=endtime).select_related()
             slots = Participation.objects.generate_participations(starttime, endtime)[1]
