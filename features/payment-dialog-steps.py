@@ -24,10 +24,9 @@ def then_i_can_move_with_link_to_certain_page(step, name):
 @step(u'Then ([^"]*) informs about ([^"]*)')
 def then_link_informs_about_what(step, link, what):
     #XXX: Firefox does not support mouse_over. too bad
-    pass
-    #from stables.models import Ticket
-    #TITLES = { 'cash': 'Cash', 'ticket': str(Ticket.objects.latest('id'))}
-    #world.browser.is_text_present(TITLES[what], wait_time=10)
+    from stables.models import Ticket
+    TITLES = { 'cash': 'Cash', 'ticket': str(Ticket.objects.latest('id'))}
+    world.browser.is_text_present(TITLES[what], wait_time=10)
     #el = world.find_element(link)
     #el.mouse_over()
     #tooltip = world.find_element(".tooltip")

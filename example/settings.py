@@ -83,7 +83,13 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    'djangobower.finders.BowerFinder',
 )
+
+BOWER_COMPONENTS_ROOT = 'components/'
+BOWER_INSTALLED_APPS = (
+        'momentjs',
+        )
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'av2r5@65z@zgvn=9-%e*v+)hmc06*&amp;$1r^*4r6skxl!7lm!m@+'
@@ -113,6 +119,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'example.middleware.LoginAutomatically',
     'django.contrib.messages.middleware.MessageMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -148,6 +155,7 @@ INSTALLED_APPS = (
     'backbone_tastypie',
     'reversion',
     'crispy_forms',
+    'djangobower',
 )
 
 if 'test' in sys.argv or 'harvest' in sys.argv:
@@ -185,11 +193,16 @@ LOGGING = {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler'
+        },
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': '/tmp/django.log',
         }
     },
     'loggers': {
         'django.request': {
-            'handlers': ['mail_admins'],
+            'handlers': ['mail_admins', 'file'],
             'level': 'ERROR',
             'propagate': True,
         },

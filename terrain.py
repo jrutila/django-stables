@@ -23,7 +23,7 @@ PAGES = {
 
 LINKS = {
         'the participation link': '.detail_url',
-        'the cash button': 'button[value="0"]',
+        'the cash button': 'button[value="10.00"]',
         'the ticket button': 'button[value="1"]',
         'valid tickets': 'li[class="ticket_valid"]',
         'expired tickets': 'li[class="ticket_expired"]',
@@ -58,6 +58,8 @@ def load_data(name):
 
 @world.absorb
 def login_admin(name='admin'):
+    #import pdb; pdb.set_trace()
+    #world.browser.visit(django_url(reverse('django.contrib.auth.views.login')))
     pass
 
 @world.absorb
