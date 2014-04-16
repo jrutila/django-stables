@@ -18,6 +18,7 @@ from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from horse import Horse
 import django.dispatch
+from django.utils import timezone
 
 import logging
 
@@ -169,7 +170,7 @@ class Course(models.Model):
     def get_next_occurrence(self):
         occurrences = []
         for e in self.events.all():
-            occ = e.next_occurrence()
+            occ = next(e.occurrences_after(timezone.localtime(timezone.now())), None)
             if occ:
               occurrences.append(occ)
         occurrences.sort(key=lambda occ: occ.start)
@@ -465,7 +466,7 @@ class ParticipationManager(models.Manager):
             next_occ = n 
         parts = Participation.objects.filter(participant=rider, start__gte=datetime.datetime.now()).select_related()
         for p in parts:
-          n = p.event.next_occurrence()
+          n = next(p.event.occurrences_after(timezone.localtime(timezone.now())), None)
           if not n:
             continue
           if not next_occ or next_occ.start >= n.start:
@@ -595,7 +596,7 @@ class Participation(models.Model):
         self.save()
 
     def get_occurrence(self):
-        occ = self.event.get_occurrence(self.start)
+        occ = self.event.get_occurrence(timezone.localtime(self.start))
         if occ:
             return occ
         try:
