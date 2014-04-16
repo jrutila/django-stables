@@ -35,9 +35,6 @@
   {% for p in object.next %}
     <li>
     {{ p }}
-    {% if p %}
-    {% participate_button p redirect=object.get_absolute_url %}
-    {% endif %}
     </li>
   {% endfor %}
 </ul>
