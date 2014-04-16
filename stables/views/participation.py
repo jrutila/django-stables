@@ -69,6 +69,7 @@ class ParticipationView(DashboardMixin, DetailView): # widget_user(request, pid)
 
         return part
 
+import pytz, settings
 class DailyView(TemplateView):
     template_name = 'stables/daily.html'
 
@@ -78,6 +79,9 @@ class DailyView(TemplateView):
         ctx['date'] = date
         start = datetime.datetime.combine(date, datetime.time.min)
         end = datetime.datetime.combine(date, datetime.time.max)
+        tz = pytz.timezone(settings.TIME_ZONE)
+        start = tz.localize(start)
+        end = tz.localize(end)
 
         partids, parts = Participation.objects.generate_participations(start, end)
         instr = list(InstructorParticipation.objects.filter(start__gte=start, end__lte=end))
