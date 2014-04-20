@@ -1,4 +1,5 @@
 from django.utils import unittest
+from django.test import TestCase, SimpleTestCase
 from stables.models import Participation, Enroll
 from stables.models import ParticipationTransactionActivator
 from stables.models import CourseParticipationActivator
@@ -15,6 +16,12 @@ import datetime
 from stables.models import ATTENDING, CANCELED, RESERVED
 from decimal import *
 import reversion
+from django.test.utils import override_settings
+
+from django.utils import timezone
+from django.conf import settings
+
+import pytz
 
 def setupRider(name):
     user, created = User.objects.get_or_create(username=name)
@@ -41,7 +48,8 @@ def setupCourse(name, start, end, starttime, endtime):
     course.save(starttime=starttime, endtime=endtime)
     return course
 
-class CourseOccurrenceTest(unittest.TestCase):
+@override_settings(USE_TZ=True)
+class CourseOccurrenceTest(TestCase):
     def testCourseOccurrences(self):
         # Four weeks course
         start=datetime.date.today()
@@ -72,7 +80,8 @@ class CourseOccurrenceTest(unittest.TestCase):
         occs = course.get_occurrences(delta=datetime.timedelta(days=14))
         self.assertEqual(len(occs), 3)
 
-class CourseOccurrenceTest(unittest.TestCase):
+@override_settings(USE_TZ=True)
+class CourseOccurrenceTest(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.user = setupRider('user')
@@ -103,7 +112,8 @@ class CourseOccurrenceTest(unittest.TestCase):
 
         self.assertEqual(p, None)
 
-class TicketTestCase(unittest.TestCase):
+@override_settings(USE_TZ=True)
+class TicketTestCase(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.user = setupRider('user')
@@ -255,13 +265,15 @@ class TicketTestCase(unittest.TestCase):
         if pta:
             pta[0].activate()
 
-class ActivatorTestCase(unittest.TestCase):
+@override_settings(USE_TZ=True)
+class ActivatorTestCase(TestCase):
     @classmethod
     def setUpClass(cls):
         from django.contrib.auth.models import User
         cal, created = Calendar.objects.get_or_create(pk=1)
         rule, created = Rule.objects.get_or_create(name="Weekly", frequency="WEEKLY")
-        event = Event(calendar=cal,rule=rule, start=datetime.datetime.now()+datetime.timedelta(hours=10), end=datetime.datetime.now()+datetime.timedelta(hours=12))
+        settings.USE_TZ = True
+        event = Event(calendar=cal,rule=rule, start=timezone.now()+datetime.timedelta(hours=10), end=timezone.now()+datetime.timedelta(hours=12))
         event.save()
         user = User(username='user',first_name='Test', last_name='Guy')
         user.save()
@@ -400,12 +412,14 @@ class ActivatorTestCase(unittest.TestCase):
         count = ParticipationTransactionActivator.objects.count()
         self.assertEqual(count, 0)
 
-class CourseEnrollTest(unittest.TestCase):
+@override_settings(USE_TZ=True)
+class CourseEnrollTest(TestCase):
     @classmethod
     def setUpClass(cls):
         user = setupRider('user')
-        data = { 'start': datetime.datetime.today()-datetime.timedelta(days=14),
-                 'end': datetime.datetime.today()+datetime.timedelta(days=14),
+        tz = pytz.timezone(settings.TIME_ZONE)
+        data = { 'start': tz.localize(datetime.datetime.today()-datetime.timedelta(days=14)),
+                 'end': tz.localize(datetime.datetime.today()+datetime.timedelta(days=14)),
                  'max_participants': 2,
                  'name': 'Test course',
                  'creator': 0,
@@ -563,13 +577,15 @@ class CourseEnrollTest(unittest.TestCase):
                ]
         self.runStates(data)
 
-class CourseParticipationTest(unittest.TestCase):
+@override_settings(USE_TZ=True)
+class CourseParticipationTest(TestCase):
     @classmethod
     def setUpClass(cls):
         rule, created = Rule.objects.get_or_create(name="Weekly", frequency="WEEKLY")
         user = setupRider('user')
-        data = { 'start': datetime.datetime.today()-datetime.timedelta(days=14),
-                 'end': datetime.datetime.today()+datetime.timedelta(days=14),
+        tz = pytz.timezone(settings.TIME_ZONE)
+        data = { 'start': tz.localize(datetime.datetime.today()-datetime.timedelta(days=14)),
+                 'end': tz.localize(datetime.datetime.today()+datetime.timedelta(days=14)),
                  'max_participants': 2,
                  'name': 'Test course',
                  'course_fee': 1200,
@@ -635,16 +651,16 @@ class CourseParticipationTest(unittest.TestCase):
 
     def testNextParticipations(self):
         pr = self.user.get_profile()
-        target = Participation.objects.get_next_participation(pr, datetime.datetime.now())
+        target = Participation.objects.get_next_participation(pr, timezone.now())
         self.assertEqual(target, None)
 
     def testNextParticipationEnroll(self):
         pr = self.user.get_profile()
         Enroll.objects.create(course=self.course, participant=pr, state=ATTENDING)
-        target = Participation.objects.get_next_participation(pr, datetime.datetime.now())
+        target = Participation.objects.get_next_participation(pr, timezone.now())
         self.assertEqual(target.id, None)
-        self.assertEqual(target.start.time(), datetime.time(13, 00))
-        self.assertEqual(target.end.time(), datetime.time(15, 00))
+        self.assertEqual(target.start.time(), target.event.start.time())
+        self.assertEqual(target.end.time(), target.event.end.time())
         self.assertEqual(target.participant, pr)
 
     def testStatesEmpty(self):

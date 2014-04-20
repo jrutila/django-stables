@@ -1,4 +1,4 @@
-from django.utils import unittest
+from django.test import TestCase
 from stables.models import Course
 from schedule.models import Event
 from schedule.models import Rule
@@ -6,6 +6,8 @@ from datetime import datetime
 from nose.tools import * #assert_equals, assert_is_not_none
 from . import *
 import reversion
+
+from django.test.utils import override_settings
 
 attrs = [ 'start', 'end', 'title', 'end_recurring_period', 'rule', 'name' ]
 def evToList(events):
@@ -22,8 +24,8 @@ def evToList(events):
         ret.append(r)
     return ret
     
-
-class CourseTestBase(unittest.TestCase):
+@override_settings(USE_TZ=True)
+class CourseTestBase(TestCase):
     def setUp(self):
         self.course = None
 
@@ -46,6 +48,11 @@ class CourseTestBase(unittest.TestCase):
             self.course.save()
 
     def check(self, events):
+        for e in events:
+            e['start'] = pytz.utc.normalize(e['start'])
+            e['end'] = pytz.utc.normalize(e['end'])
+            if 'end_recurring_period' in e:
+                e['end_recurring_period'] = pytz.utc.normalize(e['end_recurring_period'])
         ev = evToList(self.course.events.all())
         assert_equals.im_class.maxDiff = None
         assert_equals(ev, events)

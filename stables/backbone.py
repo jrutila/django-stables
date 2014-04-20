@@ -31,6 +31,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
 
 import datetime
+from django.utils import timezone
+
 from django.utils.translation import ugettext as _
 from django.db.models import Q
 import operator
@@ -106,7 +108,6 @@ class CommentResource(ModelResource):
         return super(CommentResource, self).obj_create(bundle, **kwargs)
 
 from decimal import Decimal
-import pytz, settings
 class ViewParticipation:
     def __init__(self, part=None):
         self.id = 0
@@ -357,7 +358,7 @@ class ParticipationResource(Resource):
         from dateutil.parser import parse
         event = Event.objects.get(pk=bundle.data['event_id'])
         #start = datetime.datetime.strptime(bundle.data['start'], '%Y-%m-%dT%H:%M:%S')
-        start = pytz.timezone(settings.TIME_ZONE).localize(parse(bundle.data['start']))
+        start = timezone.make_aware((parse(bundle.data['start'])), timezone.get_current_timezone())
         occ = event.occurrences_after(start).next()
         state = int(bundle.data['state'])
         if ('rider_id' not in bundle.data and bundle.data['rider_name'] != None):
@@ -479,13 +480,12 @@ class EventResource(Resource):
         at = request.GET.get('at')
         occs = []
         if at:
-            import pytz, settings
             at = datetime.datetime.strptime(at, '%Y-%m-%d').date()
             start = datetime.datetime.combine(at, datetime.time.min)
             end = datetime.datetime.combine(at, datetime.time.max)
             partids, parts = Participation.objects.generate_participations(
-                    start.replace(tzinfo=pytz.timezone(settings.TIME_ZONE)),
-                    end.replace(tzinfo=pytz.timezone(settings.TIME_ZONE)))
+                    start.replace(tzinfo=timezone.get_current_timezone()),
+                    end.replace(tzinfo=timezone.get_current_timezone()))
             instr = list(InstructorParticipation.objects.filter(start__gte=start, end__lte=end))
             instr = dict((i.event.pk, i) for i in instr)
             saldos = dict(Transaction.objects.get_saldos(partids))

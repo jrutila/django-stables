@@ -59,14 +59,14 @@ class Course(models.Model):
     objects = CourseManager()
     
     def save(self, **kwargs):
-        since = kwargs.get('since', datetime.datetime.now())
+        since = kwargs.get('since', timezone.now())
         le = self._getLastEvent()
-        starttime = kwargs.get('starttime', le.start.time() if le else None)
-        endtime = kwargs.get('endtime', le.end.time() if le else None)
+        starttime = kwargs.get('starttime', timezone.localtime(le.start).time() if le else None)
+        endtime = kwargs.get('endtime', timezone.localtime(le.end).time() if le else None)
         hasNameChange = le and self.name != le.title
         hasTimeChange = 'starttime' in kwargs and 'endtime' in kwargs and le and (
-             le.start.time() != kwargs['starttime'] or
-             le.end.time() != kwargs['endtime'])
+             timezone.localtime(le.start).time() != kwargs['starttime'] or
+             timezone.localtime(le.end).time() != kwargs['endtime'])
         if hasNameChange or hasTimeChange:
             if self.id:
                 last_event, last_occ = self._endLastEvent(since)
@@ -97,11 +97,11 @@ class Course(models.Model):
 
     def _updateEvent(self, ev, starttime, endtime, start, end=None):
         ev.title = self.name
-        ev.start = datetime.datetime.combine(start, starttime)
-        ev.end = datetime.datetime.combine(start, endtime)
+        ev.start = datetime.datetime.combine(start, starttime).replace(tzinfo=timezone.get_current_timezone())
+        ev.end = datetime.datetime.combine(start, endtime).replace(tzinfo=timezone.get_current_timezone())
         ev.rule = Rule.objects.get(name="Weekly")
         if end:
-            ev.end_recurring_period = datetime.datetime.combine(end, endtime)
+            ev.end_recurring_period = datetime.datetime.combine(end, endtime).replace(tzinfo=timezone.get_current_timezone())
 
     def _getLastEvent(self):
         last_event = None
@@ -112,9 +112,12 @@ class Course(models.Model):
 
     def _endLastEvent(self, since):
         last_event = self._getLastEvent()
+        if timezone.is_naive(since):
+            since = since.replace(tzinfo=timezone.get_current_timezone())
         if last_event:
             last_occ = last_event.get_occurrences(
-                      since-datetime.timedelta(days=7), since)
+                      timezone.localtime(since-datetime.timedelta(days=7)),
+                      timezone.localtime(since))
             if last_occ:
                 last_occ = last_occ[0]
                 last_event.end_recurring_period = last_occ.end
@@ -124,7 +127,6 @@ class Course(models.Model):
         return None, None
 
     def get_occurrences(self, delta=None, start=None):
-        import pytz, settings
         if not start:
           start = self.start
         occurrences = []
@@ -137,8 +139,8 @@ class Course(models.Model):
             if endd == None:
                 endd = start+datetime.timedelta(days=OCCURRENCE_LIST_WEEKS*7)
             occs = e.get_occurrences(
-                datetime.datetime.combine(start, datetime.time(0,0)).replace(tzinfo=pytz.timezone(settings.TIME_ZONE)),
-                datetime.datetime.combine(endd, datetime.time(23,59).replace(tzinfo=pytz.timezone(settings.TIME_ZONE))))
+                datetime.datetime.combine(start, datetime.time(0,0)).replace(tzinfo=timezone.get_current_timezone()),
+                datetime.datetime.combine(endd, datetime.time(23,59).replace(tzinfo=timezone.get_current_timezone())))
             for c in occs:
                 occurrences.append(c)
         occurrences.sort(key=lambda occ: occ.start)
@@ -223,7 +225,7 @@ class Course(models.Model):
     def get_possible_states(self, rider, occurrence=None, ignore_date_check=False):
       if occurrence:
         # If this course is in the past (end date gone), can't do anything
-        if not ignore_date_check and occurrence.end < datetime.datetime.now():
+        if not ignore_date_check and occurrence.end < timezone.now():
             return []
 
         enroll = self.enroll_set.filter(participant=rider)
@@ -392,7 +394,7 @@ class CourseParticipationActivator(models.Model):
             return None
         p = None
         occ = self.enroll.course.get_next_occurrence()
-        if occ and occ.start-datetime.timedelta(hours=self.activate_before_hours) < datetime.datetime.now() and not Participation.objects.filter(participant=self.enroll.participant, start=occ.start):
+        if occ and occ.start-datetime.timedelta(hours=self.activate_before_hours) < timezone.now() and not Participation.objects.filter(participant=self.enroll.participant, start=occ.start):
           p = Participation.objects.create_participation(self.enroll.participant, occ, self.enroll.state, force=True)
           reversion.set_comment('Automatically created by activator')
         return p
@@ -610,8 +612,8 @@ def event_changes(sender, **kwargs):
     new = kwargs['new']
     for p in Participation.objects.filter(event=prev, start__gt=prev.end_recurring_period):
         new_occ = new.get_occurrences(
-            datetime.datetime.combine(p.start.date(), datetime.time(0))
-          , datetime.datetime.combine(p.start.date(), datetime.time(23,59)))
+            datetime.datetime.combine(p.start.date(), datetime.time(0)).replace(tzinfo=timezone.get_current_timezone())
+          , datetime.datetime.combine(p.start.date(), datetime.time(23,59)).replace(tzinfo=timezone.get_current_timezone()))
         p.move(new_occ[0])
 
 @receiver(pre_save, sender=Occurrence)

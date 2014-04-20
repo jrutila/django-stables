@@ -11,6 +11,8 @@ from stables.forms import ChangeEventForm
 from stables.views import LoginRequiredMixin
 from datetime import *
 import dateutil.parser
+import pytz
+from django.conf import settings
 
 from django.contrib.auth.decorators import permission_required
 from django.utils.decorators import method_decorator
@@ -97,7 +99,6 @@ class CourseAddEvent(EventAdderMixin, FormView):
         form.save()
         return super(CourseAddEvent, self).form_valid(form)
 
-import pytz, settings
 class CourseUpdateEvent(EventEditorMixin, FormView):
     template_name = 'stables/generic_form.html'
     form_class = ChangeEventForm

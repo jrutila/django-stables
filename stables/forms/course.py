@@ -12,6 +12,8 @@ from crispy_forms.layout import Submit
 from crispy_forms.layout import HTML
 from crispy_forms.layout import Layout, Fieldset, ButtonHolder
 
+from django.utils import timezone
+
 class CourseFormHelper(FormHelper):
     form_class = 'blueForms'
     form_method = 'post'
@@ -72,10 +74,10 @@ class CourseForm(forms.ModelForm):
         data = self.cleaned_data['take_into_account']
         if not self.instance.id:
             return data
-        if data < datetime.datetime.now():
-            data = datetime.datetime.now()
+        if data < timezone.now():
+            data = timezone.now()
         events = self.instance.events.filter(rule__isnull=False)
-        if data < events.latest().start:
+        if data < events.latest('start').start:
             after = events.order_by('-id')[1].end_recurring_period
             if data <= after:
                 raise forms.ValidationError(_("This time must be after %s") % after)
@@ -126,7 +128,6 @@ class AddEventForm(forms.Form):
         self.course.events.add(event)
         self.course.save()
 
-import pytz, settings
 class ChangeEventForm(AddEventForm):
     cancel = forms.BooleanField(required=False)
 
@@ -140,8 +141,8 @@ class ChangeEventForm(AddEventForm):
             )
         )
         self.helper.layout.fields.append(btn)
-        start = pytz.timezone(settings.TIME_ZONE).normalize(self.event.start)
-        end = pytz.timezone(settings.TIME_ZONE).normalize(self.event.end)
+        start = timezone.localtime(self.event.start)
+        end = timezone.localtime(self.event.end)
         self.initial['date'] = start.date()
         self.initial['start'] = start.timetz()
         self.initial['end'] = end.timetz()

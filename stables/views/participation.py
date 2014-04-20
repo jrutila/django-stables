@@ -12,6 +12,7 @@ from stables.models import Accident
 from stables.models import InstructorParticipation
 from stables.models import PARTICIPATION_STATES
 import datetime
+from django.utils import timezone
 
 from django.contrib.auth.decorators import permission_required
 from django.utils.decorators import method_decorator
@@ -69,7 +70,6 @@ class ParticipationView(DashboardMixin, DetailView): # widget_user(request, pid)
 
         return part
 
-import pytz, settings
 class DailyView(TemplateView):
     template_name = 'stables/daily.html'
 
@@ -79,7 +79,7 @@ class DailyView(TemplateView):
         ctx['date'] = date
         start = datetime.datetime.combine(date, datetime.time.min)
         end = datetime.datetime.combine(date, datetime.time.max)
-        tz = pytz.timezone(settings.TIME_ZONE)
+        tz = timezone.get_current_timezone()
         start = tz.localize(start)
         end = tz.localize(end)
 
