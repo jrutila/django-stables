@@ -139,8 +139,8 @@ class Course(models.Model):
             if endd == None:
                 endd = start+datetime.timedelta(days=OCCURRENCE_LIST_WEEKS*7)
             occs = e.get_occurrences(
-                datetime.datetime.combine(start, datetime.time(0,0)).replace(tzinfo=timezone.get_current_timezone()),
-                datetime.datetime.combine(endd, datetime.time(23,59).replace(tzinfo=timezone.get_current_timezone())))
+                timezone.make_aware(datetime.datetime.combine(start, datetime.time(0,0)), timezone.get_current_timezone()),
+                timezone.make_aware(datetime.datetime.combine(endd, datetime.time(23,59)), timezone.get_current_timezone()))
             for c in occs:
                 occurrences.append(c)
         occurrences.sort(key=lambda occ: occ.start)
@@ -153,7 +153,7 @@ class Course(models.Model):
     def get_next_occurrence_after(self, start):
         nexoc = None
         for e in self.events.all():
-            en = e.occurrences_after(start).next()
+            en = next(e.occurrences_after(start), None)
             if en:
                 if not nexoc:
                     nexoc = en

@@ -126,7 +126,6 @@ class AddEventForm(forms.Form):
         event.calendar = Calendar.objects.get(pk=1)
         event.save()
         self.course.events.add(event)
-        self.course.save()
 
 class ChangeEventForm(AddEventForm):
     cancel = forms.BooleanField(required=False)
