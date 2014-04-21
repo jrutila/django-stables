@@ -97,11 +97,11 @@ class Course(models.Model):
 
     def _updateEvent(self, ev, starttime, endtime, start, end=None):
         ev.title = self.name
-        ev.start = datetime.datetime.combine(start, starttime).replace(tzinfo=timezone.get_current_timezone())
-        ev.end = datetime.datetime.combine(start, endtime).replace(tzinfo=timezone.get_current_timezone())
+        ev.start = timezone.get_current_timezone().localize(datetime.datetime.combine(start, starttime))
+        ev.end = timezone.get_current_timezone().localize(datetime.datetime.combine(start, endtime))
         ev.rule = Rule.objects.get(name="Weekly")
         if end:
-            ev.end_recurring_period = datetime.datetime.combine(end, endtime).replace(tzinfo=timezone.get_current_timezone())
+            ev.end_recurring_period = timezone.get_current_timezone().localize(datetime.datetime.combine(end, endtime))
 
     def _getLastEvent(self):
         last_event = None
@@ -113,7 +113,7 @@ class Course(models.Model):
     def _endLastEvent(self, since):
         last_event = self._getLastEvent()
         if timezone.is_naive(since):
-            since = since.replace(tzinfo=timezone.get_current_timezone())
+            since = timezone.get_current_timezone().localize(since)
         if last_event:
             last_occ = last_event.get_occurrences(
                       timezone.localtime(since-datetime.timedelta(days=7)),

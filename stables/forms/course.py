@@ -57,8 +57,8 @@ class CourseForm(forms.ModelForm):
       if self.instance.pk:
         last_event = CourseForm.get_course_last_event(self.instance)
         if last_event and last_event.rule:
-          self.initial['starttime'] = last_event.start.time()
-          self.initial['endtime'] = last_event.end.time()
+          self.initial['starttime'] = timezone.localtime(last_event.start).time()
+          self.initial['endtime'] = timezone.localtime(last_event.end).time()
           if last_event.end_recurring_period:
               self.initial['end'] = last_event.end_recurring_period.date()
 
