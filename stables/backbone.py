@@ -16,6 +16,7 @@ from stables.models import Ticket
 from stables.models import TicketType
 from stables.models import pay_participation
 from stables.models import Enroll
+from stables.models import Course
 from tastypie import fields
 from tastypie.bundle import Bundle
 from tastypie.cache import SimpleCache
@@ -400,6 +401,7 @@ class EventResource(Resource):
         cache = ShortClientCache(timeout=30*60, private=True)
         list_allowed_methods = ['get', 'post']
         authentication = ParticipationPermissionAuthentication()
+        always_return_data = True
 
     start = fields.DateField(attribute='start')
     end = fields.DateField(attribute='end')
@@ -483,11 +485,12 @@ class EventResource(Resource):
         occs = []
         if at:
             at = datetime.datetime.strptime(at, '%Y-%m-%d').date()
-            start = datetime.datetime.combine(at, datetime.time.min)
-            end = datetime.datetime.combine(at, datetime.time.max)
+            start = timezone.get_current_timezone().localize(
+                    datetime.datetime.combine(at, datetime.time.min))
+            end = timezone.get_current_timezone().localize(
+            datetime.datetime.combine(at, datetime.time.max))
             partids, parts = Participation.objects.generate_participations(
-                    start.replace(tzinfo=timezone.get_current_timezone()),
-                    end.replace(tzinfo=timezone.get_current_timezone()))
+                    start, end)
             instr = list(InstructorParticipation.objects.filter(start__gte=start, end__lte=end))
             instr = dict((i.event.pk, i) for i in instr)
             saldos = dict(Transaction.objects.get_saldos(partids))
@@ -521,7 +524,14 @@ class EventResource(Resource):
         data['calendar'] = Calendar.objects.get(slug='main')
         data['start'] = parser.parse(data['start'])
         data['end'] = parser.parse(data['end'])
+        course = None
+        if data['course']:
+            course = Course.objects.get(pk=data['course'])
+            data['title'] = course.name
+            del data['course']
         event = Event.objects.create(**data)
+        if course:
+            course.events.add(event)
         bundle.obj=ViewEvent(occ=event.get_occurrence(event.start))
         return bundle
 
@@ -550,4 +560,5 @@ post_save.connect(update_event_resource, sender=InstructorParticipation)
 post_save.connect(update_event_resource, sender=Transaction)
 post_save.connect(update_event_resource, sender=Comment)
 post_save.connect(update_event_resource, sender=Accident)
+post_save.connect(update_event_resource, sender=Event)
 post_save.connect(enroll_update_cache_clear, sender=Enroll)
