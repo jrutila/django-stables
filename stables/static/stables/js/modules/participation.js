@@ -71,11 +71,12 @@ var FinanceView = Backbone.View.extend({
 
 var ParticipationView = Backbone.View.extend({
     tagName: "li",
-    initialize: function(data) {
+    initialize: function(data, options) {
         this.listenTo(this.model, "change", this.render);
         this.listenTo(this.model, "sync", this.notifyChanged);
         this.listenTo(this.model.limits, "topped", this.limitTopped);
         this.listenTo(this.model.limits, "cleared", this.limitCleared);
+        this.options = options;
     },
     events: {
         'change select[name="state"]': 'stateChange',
@@ -286,18 +287,24 @@ var Event = Backbone.Model.extend({
             })
         })
         )
-        this.limits = options['limits']
-        this.get('participations').each(function (p) {
-            p.limits = options['limits']
-            p.handleHorseLimit()
-        })
+        if (options != undefined && 'limits' in options)
+        {
+            this.limits = options['limits']
+            this.get('participations').each(function (p) {
+                p.limits = options['limits']
+                p.handleHorseLimit()
+            })
+        }
     },
     idAttribute: function() {
         // Use this so that there can be multiple occurrences from the same event
         return this.get('event_id') + this.get('start')
     },
     url: function() {
-        return apiUrl+'events/set/'
+        return apiUrl+'events/';
+    },
+    setUrl: function() {
+        return this.url()+'set/';
     },
     parse: function(data) {
         if ('participations' in data)
@@ -332,11 +339,14 @@ var EventView = Backbone.View.extend({
         this.$el.html(this.template(this.model.attributes))
         $('select[name="instructor"]', this.$el).val(this.model.get('instructor_id'))
         var ul = this.$el.find('ul')
+        var that = this;
         this.model.get('participations')
           .each(function(p) {
             var view = undefined
             view = new ParticipationView({model: p})
             view.render()
+            if (that.model.get('course_url') == null)
+              view.$el.find('button').hide();
             ul.append(view.$el)
         }, this)
         if (!this.model.get('cancelled'))

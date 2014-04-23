@@ -100,3 +100,33 @@
     <span>{% trans "Horse <%= name %> is riding over it's limit of <%= limit %>" %}</span>
 </script>
 
+<div class="modal fade" id="AddEventView" role="dialog" aria-labelledby="ModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <a class="close" data-dismiss="modal">&times;</a>
+                <h3 class="modal-title" id="ModalLabel">{% trans "Add new event" %}</h3>
+            </div>
+            <div class="modal-body">
+                <form role="form" id="addeventForm">
+                    <div class="form-group">
+                        <label for="addeventDate">{% trans "Date" %}</label>
+                        <input name="date" id="addeventDate" type="text" class="form-control" placeholder="{% trans "2014-12-31" %}" />
+                        <label for="addeventStart">{% trans "Start" %}</label>
+                        <input name="start" id="addeventStart" type="text" class="form-control" placeholder="{% trans "00:00" %}" />
+                        <label for="addeventEnd">{% trans "End" %}</label>
+                        <input name="end" id="addeventEnd" type="text" class="form-control" placeholder="{% trans "00:00" %}" />
+                    </div>
+                    <div class="form-group">
+                        <label for="addeventTitle">{% trans "Title" %}</label>
+                        <input name="title" id="addeventTitle" type="text" class="form-control" />
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Cancel" %}</button>
+                <button type="submit" form="addeventForm" class="btn btn-primary">{% trans "Add event" %}</button>
+            </div>
+        </div>
+    </div>
+</div>

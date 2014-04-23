@@ -8,6 +8,7 @@ from stables.models import Horse
 from stables.models import Transaction
 from stables.models import ATTENDING, CANCELED
 from schedule.models import Event
+from schedule.models import Calendar
 from schedule.models import Occurrence
 from stables.models import EventMetaData
 from stables.models import Accident
@@ -32,6 +33,7 @@ from django.contrib.sites.models import Site
 
 import datetime
 from django.utils import timezone
+from dateutil import parser
 
 from django.utils.translation import ugettext as _
 from django.db.models import Q
@@ -513,6 +515,15 @@ class EventResource(Resource):
         ev = Event.objects.get(pk=kwargs['pk'])
         ev.event_id = ev.id
         return ev
+
+    def obj_create(self, bundle, **kwargs):
+        data = bundle.data
+        data['calendar'] = Calendar.objects.get(slug='main')
+        data['start'] = parser.parse(data['start'])
+        data['end'] = parser.parse(data['end'])
+        event = Event.objects.create(**data)
+        bundle.obj=ViewEvent(occ=event.get_occurrence(event.start))
+        return bundle
 
 def update_event_resource(sender, **kwargs):
     inst = kwargs['instance']
