@@ -142,13 +142,10 @@ var AddEventView = Backbone.View.extend({
         'click': 'addEvent',
     },
     addEvent: function(ev) {
+        $("#AddEventView input, #AddEventView select").val("");
         $("#AddEventView input[name='date']").val(this.model.get('date'));
         $("#AddEventView form").off("submit");
         $("#AddEventView form").on("submit", this.submitEvent.bind(this));
-        $("#AddEventView a[data-toggle='tab']").on("show.bs.tab", function(ev) {
-            console.log(ev.relatedTarget);
-            $(ev.relatedTarget).find('input').val(null);
-        });
     },
     submitEvent: function(ev) {
         var data = $(ev.target).serializeArray();
@@ -157,7 +154,8 @@ var AddEventView = Backbone.View.extend({
         d['title'] = data['title'];
         d['start'] = moment(data['date']+"T"+data['start']);
         d['end'] = moment(data['date']+"T"+data['end']);
-        d['course'] = data['course']
+        if  ( $(ev.target).has('.active input[name="course"]').length )
+            d['course'] = data['course']
         var e = new Event(d);
         e.unset('comments');
         var that = this;

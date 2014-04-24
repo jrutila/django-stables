@@ -525,7 +525,7 @@ class EventResource(Resource):
         data['start'] = parser.parse(data['start'])
         data['end'] = parser.parse(data['end'])
         course = None
-        if data['course']:
+        if 'course' in data and data['course']:
             course = Course.objects.get(pk=data['course'])
             data['title'] = course.name
             del data['course']
