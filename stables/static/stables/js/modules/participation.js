@@ -302,7 +302,9 @@ var Event = Backbone.Model.extend({
     },
     */
     url: function() {
-        return this.urlRoot()+this.id;
+        if (this.id != undefined)
+            return this.urlRoot()+this.id;
+        return this.urlRoot();
     },
     urlRoot: function() {
         return apiUrl+'events/';
