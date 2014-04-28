@@ -46,7 +46,7 @@ class Course(models.Model):
     def __unicode__(self):
         lastEvent = self._getLastEvent()
         if lastEvent:
-            return "%s %s" % (_date(lastEvent.start, 'D H:M'), self.name)
+            return "%s %s" % (_date(lastEvent.start, 'D H:i'), self.name)
         return self.name
     name = models.CharField(_('name'), max_length=500)
     start = models.DateField(_('start'))
@@ -108,11 +108,14 @@ class Course(models.Model):
             ev.end_recurring_period = timezone.get_current_timezone().localize(datetime.datetime.combine(end, endtime))
 
     def _getLastEvent(self):
-        last_event = None
+        if hasattr(self, '__lastEvent'):
+            return self.__lastEvent
+        self.__lastEvent = None
         if self.id and self.events.filter(rule__isnull=False).count() > 0:
-            last_event = self.events.filter(rule__isnull=False).order_by('-start')[0]
-        return last_event
+            self.__lastEvent = self.events.filter(rule__isnull=False).order_by('-start')[0]
+        return self.__lastEvent
 
+    lastEvent = property(_getLastEvent)
 
     def _endLastEvent(self, since):
         last_event = self._getLastEvent()
