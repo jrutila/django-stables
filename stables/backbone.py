@@ -177,12 +177,12 @@ class ViewEvent:
         self.participations = []
         if occ:
             self.pk = occ.start
-            self.start = occ.start
-            self.end = occ.end
+            self.start = timezone.utc.normalize(occ.start)
+            self.end = timezone.utc.normalize(occ.end)
             self.title = occ.event.title
             self.event_id = occ.event.id
             self.cancelled = occ.cancelled
-            self.id = str(occ.event.id) + "-" + occ.start.isoformat()
+            self.id = str(occ.event.id) + "-" + timezone.utc.normalize(occ.start).isoformat()
         if instr:
             self.instructor_id = instr.instructor_id
         if parts and not self.cancelled:
@@ -392,6 +392,7 @@ class ParticipationResource(Resource):
 
 class ShortClientCache(SimpleCache):
     def cache_control(self):
+
         control = super(ShortClientCache, self).cache_control()
         control['max-age'] = 10
         control['s-maxage'] = 10
@@ -434,7 +435,7 @@ class EventResource(Resource):
         import re
         m = re.search("(\d*)-(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}.*)", pk)
         eid = int(m.group(1))
-        date = parser.parse(m.group(2))
+        date = timezone.localtime(parser.parse(m.group(2)))
         return { 'id': eid, 'start': date }
 
     def detail_uri_kwargs(self, bundle_or_obj):
@@ -463,34 +464,6 @@ class EventResource(Resource):
         to_be_serialized[self._meta.collection_name] = bundles
         to_be_serialized = self.alter_list_data_to_serialize(request, to_be_serialized)
         return self.create_response(request, to_be_serialized)
-
-    def override_urls(self):
-        return [
-                url(r"^(?P<resource_name>%s)/set/$" %
-                    (self._meta.resource_name, ),
-                    self.wrap_view('setevent'), name='set_event'),
-                ]
-
-    def setevent(self, request, **kwargs):
-        obj = json.loads(request.body)
-        event_id = obj['event_id']
-        start = datetime.datetime.strptime(obj['start'], '%Y-%m-%dT%H:%M:%S')
-        end = datetime.datetime.strptime(obj['end'], '%Y-%m-%dT%H:%M:%S')
-        part = InstructorParticipation.objects.filter(event_id=event_id, start=start, end=end)
-        if obj['instructor_id'] == 0 or obj['instructor_id'] == None:
-            if part:
-                part.delete()
-        else:
-            if not part:
-                part = InstructorParticipation()
-                part.start = start
-                part.end = end
-                part.event_id = event_id
-            else:
-                part = part[0]
-            part.instructor = InstructorInfo.objects.get(user__id=obj['instructor_id']).user
-            part.save()
-        return self.create_response(request, {})
 
     def obj_get_list(self, request=None, **kwargs):
         bundle = kwargs['bundle']
@@ -551,7 +524,26 @@ class EventResource(Resource):
         return bundle
 
     def obj_update(self, bundle, request=None, **kwargs):
-        import pdb; pdb.set_trace()
+        data = bundle.data
+        id_data = self._get_id_data(kwargs['pk'])
+        ev = Event.objects.get(id=id_data['id'])
+        occ = ev.get_occurrence(id_data['start'])
+        part = InstructorParticipation.objects.filter(event=ev, start=occ.start, end=occ.end)
+        if data['instructor_id'] == 0 or data['instructor_id'] == None:
+            if part:
+                part.delete()
+        else:
+            if not part:
+                part = InstructorParticipation()
+                part.start = occ.start
+                part.end = occ.end
+                part.event = ev
+            else:
+                part = part[0]
+            part.instructor = InstructorInfo.objects.get(user__id=data['instructor_id']).user
+            part.save()
+        bundle.obj = ViewEvent(occ=occ)
+        return bundle
 
 def update_event_resource(sender, **kwargs):
     inst = kwargs['instance']
