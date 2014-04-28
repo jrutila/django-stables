@@ -154,7 +154,7 @@ var AddEventView = Backbone.View.extend({
         d['title'] = data['title'];
         d['start'] = moment(data['date']+"T"+data['start']);
         d['end'] = moment(data['date']+"T"+data['end']);
-        if  ( $(ev.target).has('.active input[name="course"]').length )
+        if  ( $(ev.target).has('.active *[name="course"]').length )
             d['course'] = data['course']
         var e = new Event(d);
         e.unset('comments');

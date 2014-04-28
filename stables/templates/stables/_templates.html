@@ -130,7 +130,7 @@
                             <label for="addeventCourse">{% trans "Course" %}</label>
                             <select name="course" id="addeventCourse" class="form-control">
                                 {% for c in courses %}
-                                <option value="{{ c.id }}">{{ c.name }}</option>
+                                <option value="{{ c.id }}">{{ c }}</option>
                                 {% endfor %}
                             </select>
                         </div>

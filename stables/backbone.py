@@ -24,6 +24,8 @@ from tastypie.authorization import Authorization
 from tastypie.contrib.contenttypes.fields import GenericForeignKeyField
 from tastypie.http import HttpBadRequest
 from tastypie.exceptions import ImmediateHttpResponse
+from tastypie.utils import trailing_slash
+
 
 from django.db.models.signals import post_save
 from django.conf.urls import url
@@ -180,6 +182,7 @@ class ViewEvent:
             self.title = occ.event.title
             self.event_id = occ.event.id
             self.cancelled = occ.cancelled
+            self.id = str(occ.event.id) + "-" + occ.start.isoformat()
         if instr:
             self.instructor_id = instr.instructor_id
         if parts and not self.cancelled:
@@ -399,10 +402,11 @@ class EventResource(Resource):
         resource_name = 'events'
         object_class = ViewEvent
         cache = ShortClientCache(timeout=30*60, private=True)
-        list_allowed_methods = ['get', 'post']
+        list_allowed_methods = ['get', 'post', 'put']
         authentication = ParticipationPermissionAuthentication()
         always_return_data = True
 
+    id = fields.CharField(attribute='id')
     start = fields.DateField(attribute='start')
     end = fields.DateField(attribute='end')
     cancelled = fields.BooleanField(attribute='cancelled', null=True)
@@ -416,17 +420,27 @@ class EventResource(Resource):
     last_comment = fields.CharField(attribute='last_comment', null=True)
     course_url = fields.CharField(attribute='course', null=True)
 
+    def prepend_urls(self):
+        return [
+                url(r"^(?P<resource_name>%s)/(?P<%s>\d*-\d{4}-\d{2}-\d{2}T\d{2}:\d{2}.*)%s$" % (self._meta.resource_name, self._meta.detail_uri_name, trailing_slash()), self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
+                ]
+
     def generate_cache_key(self, *args, **kwargs):
         if 'at' in kwargs:
             return "%s:%s:%s:%s" % (self._meta.api_name, self._meta.resource_name, 'at', kwargs['at'])
         return "%s:%s:%s" % (self._meta.api_name, self._meta.resource_name, kwargs['pk'])
 
+    def _get_id_data(self, pk):
+        import re
+        m = re.search("(\d*)-(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}.*)", pk)
+        eid = int(m.group(1))
+        date = parser.parse(m.group(2))
+        return { 'id': eid, 'start': date }
+
     def detail_uri_kwargs(self, bundle_or_obj):
         if isinstance(bundle_or_obj, Bundle):
             bundle_or_obj = bundle_or_obj.obj
-        if isinstance(bundle_or_obj, ViewEvent):
-            return { 'pk': bundle_or_obj.event_id }
-        return { 'pk': bundle_or_obj.id }
+        return {'pk': bundle_or_obj.id}
 
     def get_list(self, request, **kwargs):
         """
@@ -515,9 +529,10 @@ class EventResource(Resource):
         return occs
 
     def obj_get(self, bundle, **kwargs):
-        ev = Event.objects.get(pk=kwargs['pk'])
-        ev.event_id = ev.id
-        return ev
+        id_data = self._get_id_data(kwargs['pk'])
+        ev = Event.objects.get(id=id_data['id'])
+        occ = ev.get_occurrence(id_data['start'])
+        return ViewEvent(occ=occ)
 
     def obj_create(self, bundle, **kwargs):
         data = bundle.data
@@ -534,6 +549,9 @@ class EventResource(Resource):
             course.events.add(event)
         bundle.obj=ViewEvent(occ=event.get_occurrence(event.start))
         return bundle
+
+    def obj_update(self, bundle, request=None, **kwargs):
+        import pdb; pdb.set_trace()
 
 def update_event_resource(sender, **kwargs):
     inst = kwargs['instance']

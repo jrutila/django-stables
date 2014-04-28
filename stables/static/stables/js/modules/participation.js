@@ -296,15 +296,19 @@ var Event = Backbone.Model.extend({
             })
         }
     },
-    idAttribute: function() {
+    idAttribute: "id", /*function() {
         // Use this so that there can be multiple occurrences from the same event
         return this.get('event_id') + this.get('start')
     },
+    */
     url: function() {
+        return this.urlRoot()+this.id;
+    },
+    urlRoot: function() {
         return apiUrl+'events/';
     },
     setUrl: function() {
-        return this.url()+'set/';
+        return this.urlRoot()+ 'set/';
     },
     parse: function(data) {
         if ('participations' in data)
@@ -358,7 +362,7 @@ var EventView = Backbone.View.extend({
         this.model.set('instructor_id', parseInt($(ev.target).val()))
         this.$el.find('select[name="instructor"]').addClass('changed')
         // TODO: Okay, so we remove comments so that there is no recursion
-        this.model.set('comments', null)
+        this.model.unset('comments')
         //TODO: to model
         this.model.save()
     },

@@ -19,6 +19,7 @@ from django.dispatch import receiver
 from horse import Horse
 import django.dispatch
 from django.utils import timezone
+from django.template.defaultfilters import date as _date
 
 import logging
 
@@ -43,6 +44,9 @@ class Course(models.Model):
             ('view_participations', "Can see detailed participations"),
         )
     def __unicode__(self):
+        lastEvent = self._getLastEvent()
+        if lastEvent:
+            return "%s %s" % (_date(lastEvent.start, 'D H:M'), self.name)
         return self.name
     name = models.CharField(_('name'), max_length=500)
     start = models.DateField(_('start'))
