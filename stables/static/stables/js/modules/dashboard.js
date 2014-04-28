@@ -129,6 +129,46 @@ var DayView = Backbone.View.extend({
     },
 })
 
+var AddEventView = Backbone.View.extend({
+    tagName: 'a',
+    className: 'addevent',
+    render: function() {
+        this.$el.attr("href", "#")
+        this.$el.attr("data-target", "#AddEventView")
+        this.$el.attr("data-toggle", "modal")
+        this.$el.html("<i class='fa fa-plus'></i>")
+    },
+    events: {
+        'click': 'addEvent',
+    },
+    addEvent: function(ev) {
+        $("#AddEventView input, #AddEventView select").val("");
+        $("#AddEventView input[name='date']").val(this.model.get('date'));
+        $("#AddEventView form").off("submit");
+        $("#AddEventView form").on("submit", this.submitEvent.bind(this));
+    },
+    submitEvent: function(ev) {
+        var data = $(ev.target).serializeArray();
+        data = _.object(_.pluck(data, 'name'), _.pluck(data, 'value'));
+        var d = {};
+        d['title'] = data['title'];
+        d['start'] = moment(data['date']+"T"+data['start']);
+        d['end'] = moment(data['date']+"T"+data['end']);
+        if  ( $(ev.target).has('.active *[name="course"]').length )
+            d['course'] = data['course']
+        var e = new Event(d);
+        e.unset('comments');
+        var that = this;
+        e.save({}, { success: function(model, response) {
+            console.log("SAVE SUCCESS");
+            that.trigger("eventAdded");
+        }
+        });
+        $("#AddEventView").modal('hide');
+        return false;
+    },
+})
+
 function getHour(date) {
     return parseInt(date.split("T")[1].split(":")[0])
 }
@@ -147,11 +187,17 @@ var WeekView = Backbone.View.extend({
         var $thead = $('<tr><th class="ui-time"></th></tr>')
         var that = this
         var $tbody = this.$el.find('tbody')
-        var hours = [4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]
+        var hours = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]
         var daycount = 0
         this.model.get('days').each(function(day) {
             var $header = $("<th>"+moment(day.get('date')).format('l')+"</th>").appendTo($thead)
             $header.append("&nbsp;<a href='/p/daily/"+day.get('date')+"/'><i class='fa fa-print'></i></a>")
+            var ae = new AddEventView({ model: new Backbone.Model({ date: day.get('date') }) })
+            ae.render()
+            ae.on("eventAdded", function() {
+                day.fetch();
+            });
+            $header.append(ae.$el)
             daycount++
             if (!(day.get('date') in that.$timeslots)) {
                 var $timeslot = {}

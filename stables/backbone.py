@@ -8,6 +8,7 @@ from stables.models import Horse
 from stables.models import Transaction
 from stables.models import ATTENDING, CANCELED
 from schedule.models import Event
+from schedule.models import Calendar
 from schedule.models import Occurrence
 from stables.models import EventMetaData
 from stables.models import Accident
@@ -15,6 +16,7 @@ from stables.models import Ticket
 from stables.models import TicketType
 from stables.models import pay_participation
 from stables.models import Enroll
+from stables.models import Course
 from tastypie import fields
 from tastypie.bundle import Bundle
 from tastypie.cache import SimpleCache
@@ -22,6 +24,8 @@ from tastypie.authorization import Authorization
 from tastypie.contrib.contenttypes.fields import GenericForeignKeyField
 from tastypie.http import HttpBadRequest
 from tastypie.exceptions import ImmediateHttpResponse
+from tastypie.utils import trailing_slash
+
 
 from django.db.models.signals import post_save
 from django.conf.urls import url
@@ -32,6 +36,7 @@ from django.contrib.sites.models import Site
 
 import datetime
 from django.utils import timezone
+from dateutil import parser
 
 from django.utils.translation import ugettext as _
 from django.db.models import Q
@@ -177,6 +182,7 @@ class ViewEvent:
             self.title = occ.event.title
             self.event_id = occ.event.id
             self.cancelled = occ.cancelled
+            self.id = str(occ.event.id) + "-" + occ.start.isoformat()
         if instr:
             self.instructor_id = instr.instructor_id
         if parts and not self.cancelled:
@@ -396,9 +402,11 @@ class EventResource(Resource):
         resource_name = 'events'
         object_class = ViewEvent
         cache = ShortClientCache(timeout=30*60, private=True)
-        list_allowed_methods = ['get', 'post']
+        list_allowed_methods = ['get', 'post', 'put']
         authentication = ParticipationPermissionAuthentication()
+        always_return_data = True
 
+    id = fields.CharField(attribute='id')
     start = fields.DateField(attribute='start')
     end = fields.DateField(attribute='end')
     cancelled = fields.BooleanField(attribute='cancelled', null=True)
@@ -412,17 +420,27 @@ class EventResource(Resource):
     last_comment = fields.CharField(attribute='last_comment', null=True)
     course_url = fields.CharField(attribute='course', null=True)
 
+    def prepend_urls(self):
+        return [
+                url(r"^(?P<resource_name>%s)/(?P<%s>\d*-\d{4}-\d{2}-\d{2}T\d{2}:\d{2}.*)%s$" % (self._meta.resource_name, self._meta.detail_uri_name, trailing_slash()), self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
+                ]
+
     def generate_cache_key(self, *args, **kwargs):
         if 'at' in kwargs:
             return "%s:%s:%s:%s" % (self._meta.api_name, self._meta.resource_name, 'at', kwargs['at'])
         return "%s:%s:%s" % (self._meta.api_name, self._meta.resource_name, kwargs['pk'])
 
+    def _get_id_data(self, pk):
+        import re
+        m = re.search("(\d*)-(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}.*)", pk)
+        eid = int(m.group(1))
+        date = parser.parse(m.group(2))
+        return { 'id': eid, 'start': date }
+
     def detail_uri_kwargs(self, bundle_or_obj):
         if isinstance(bundle_or_obj, Bundle):
             bundle_or_obj = bundle_or_obj.obj
-        if isinstance(bundle_or_obj, ViewEvent):
-            return { 'pk': bundle_or_obj.event_id }
-        return { 'pk': bundle_or_obj.id }
+        return {'pk': bundle_or_obj.id}
 
     def get_list(self, request, **kwargs):
         """
@@ -481,11 +499,12 @@ class EventResource(Resource):
         occs = []
         if at:
             at = datetime.datetime.strptime(at, '%Y-%m-%d').date()
-            start = datetime.datetime.combine(at, datetime.time.min)
-            end = datetime.datetime.combine(at, datetime.time.max)
+            start = timezone.get_current_timezone().localize(
+                    datetime.datetime.combine(at, datetime.time.min))
+            end = timezone.get_current_timezone().localize(
+            datetime.datetime.combine(at, datetime.time.max))
             partids, parts = Participation.objects.generate_participations(
-                    start.replace(tzinfo=timezone.get_current_timezone()),
-                    end.replace(tzinfo=timezone.get_current_timezone()))
+                    start, end)
             instr = list(InstructorParticipation.objects.filter(start__gte=start, end__lte=end))
             instr = dict((i.event.pk, i) for i in instr)
             saldos = dict(Transaction.objects.get_saldos(partids))
@@ -510,9 +529,29 @@ class EventResource(Resource):
         return occs
 
     def obj_get(self, bundle, **kwargs):
-        ev = Event.objects.get(pk=kwargs['pk'])
-        ev.event_id = ev.id
-        return ev
+        id_data = self._get_id_data(kwargs['pk'])
+        ev = Event.objects.get(id=id_data['id'])
+        occ = ev.get_occurrence(id_data['start'])
+        return ViewEvent(occ=occ)
+
+    def obj_create(self, bundle, **kwargs):
+        data = bundle.data
+        data['calendar'] = Calendar.objects.get(slug='main')
+        data['start'] = parser.parse(data['start'])
+        data['end'] = parser.parse(data['end'])
+        course = None
+        if 'course' in data and data['course']:
+            course = Course.objects.get(pk=data['course'])
+            data['title'] = course.name
+            del data['course']
+        event = Event.objects.create(**data)
+        if course:
+            course.events.add(event)
+        bundle.obj=ViewEvent(occ=event.get_occurrence(event.start))
+        return bundle
+
+    def obj_update(self, bundle, request=None, **kwargs):
+        import pdb; pdb.set_trace()
 
 def update_event_resource(sender, **kwargs):
     inst = kwargs['instance']
@@ -539,4 +578,5 @@ post_save.connect(update_event_resource, sender=InstructorParticipation)
 post_save.connect(update_event_resource, sender=Transaction)
 post_save.connect(update_event_resource, sender=Comment)
 post_save.connect(update_event_resource, sender=Accident)
+post_save.connect(update_event_resource, sender=Event)
 post_save.connect(enroll_update_cache_clear, sender=Enroll)

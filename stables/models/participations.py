@@ -19,6 +19,7 @@ from django.dispatch import receiver
 from horse import Horse
 import django.dispatch
 from django.utils import timezone
+from django.template.defaultfilters import date as _date
 
 import logging
 
@@ -43,6 +44,9 @@ class Course(models.Model):
             ('view_participations', "Can see detailed participations"),
         )
     def __unicode__(self):
+        lastEvent = self._getLastEvent()
+        if lastEvent:
+            return "%s %s" % (_date(lastEvent.start, 'D H:i'), self.name)
         return self.name
     name = models.CharField(_('name'), max_length=500)
     start = models.DateField(_('start'))
@@ -104,11 +108,14 @@ class Course(models.Model):
             ev.end_recurring_period = timezone.get_current_timezone().localize(datetime.datetime.combine(end, endtime))
 
     def _getLastEvent(self):
-        last_event = None
+        if hasattr(self, '__lastEvent'):
+            return self.__lastEvent
+        self.__lastEvent = None
         if self.id and self.events.filter(rule__isnull=False).count() > 0:
-            last_event = self.events.filter(rule__isnull=False).order_by('-start')[0]
-        return last_event
+            self.__lastEvent = self.events.filter(rule__isnull=False).order_by('-start')[0]
+        return self.__lastEvent
 
+    lastEvent = property(_getLastEvent)
 
     def _endLastEvent(self, since):
         last_event = self._getLastEvent()
@@ -490,7 +497,11 @@ class ParticipationManager(models.Manager):
 
     def _get_events(self, start, end):
         weekday = (start.isoweekday()%7)+1
-        return Event.objects.exclude(end_recurring_period__lt=start).filter((Q(start__week_day=weekday) & Q(rule__frequency='WEEKLY')) | (Q(rule__frequency__isnull=True) & Q(start__gte=start) & Q(end__lte=end))).prefetch_related('course_set').prefetch_related('occurrence_set', 'rule').select_related()
+        return Event.objects.exclude(end_recurring_period__lt=start).filter(
+            (Q(start__week_day=weekday) & Q(rule__frequency='WEEKLY')) |
+            (Q(rule__frequency__isnull=True) & Q(start__gte=start) & Q(end__lte=end)) |
+            (Q(occurrence__in=Occurrence.objects.filter(start__gte=start, end__lte=end)))
+            ).prefetch_related('course_set').prefetch_related('occurrence_set', 'rule').select_related()
 
     def generate_warnings(self, start, end):
         return { }

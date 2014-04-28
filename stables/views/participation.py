@@ -11,6 +11,7 @@ from stables.models import Transaction
 from stables.models import Accident
 from stables.models import InstructorParticipation
 from stables.models import PARTICIPATION_STATES
+from stables.models import Course
 import datetime
 from django.utils import timezone
 
@@ -30,6 +31,8 @@ class Newboard(DashboardMixin, TemplateView):
         ctx['states'] = (PARTICIPATION_STATES[0], PARTICIPATION_STATES[2], PARTICIPATION_STATES[3])
         ctx['horses'] = Horse.objects.all()
         ctx['instructors'] = [ i.user for i in InstructorInfo.objects.all().prefetch_related('user', 'user__user')]
+        ctx['courses'] = Course.objects.exclude(end__lt=timezone.now()).prefetch_related('events')
+        ctx['courses'] = sorted(ctx['courses'], key=lambda c: (c.lastEvent.start.weekday(), c.lastEvent.start.time()) if c.lastEvent else (None, None))
         return ctx
 
 class CreateEnroll(DashboardMixin, CreateView):
