@@ -118,15 +118,15 @@ msgstr "Uusi"
 
 #: forms/financial.py:123
 msgid "Amount of tickets to delete"
-msgstr ""
+msgstr "Poistettavien kertojen määrä"
 
 #: forms/financial.py:124
 msgid "New expire date for selected tickets"
-msgstr ""
+msgstr "Uusi vanhenemispäivä valituille kerroille"
 
 #: forms/financial.py:125
 msgid "Turn selected tickets to family tickets"
-msgstr ""
+msgstr "Muuta valitut perhekorteiksi"
 
 #: forms/financial.py:176
 msgid "Family ticket"
@@ -154,7 +154,7 @@ msgstr "tasot"
 
 #: forms/user.py:27
 msgid "If you are adding new rider, you can leave this empty."
-msgstr ""
+msgstr "Jos lisäät uutta ratsastajaa, voit jättää tämän tyhjäksi"
 
 #: forms/user.py:28
 msgid "instructor"
@@ -173,9 +173,9 @@ msgid ""
 "Inactive rider is not shown in any lists. If you mark the rider as inactive "
 "you cannot edit it anymore!"
 msgstr ""
+"Passivoitu ratsastaja ei näy enää missään. Et pääse muokkaamaan tätä ratsastajaa enää!"
 
 #: forms/user.py:55
-#, fuzzy
 msgid "Levels "
 msgstr "tasot"
 
@@ -186,7 +186,7 @@ msgstr ""
 #: forms/user.py:96
 #, python-format
 msgid "Existing user %s! Change first and last names"
-msgstr ""
+msgstr "Olemassa oleva ratsastaja %s! Vaihda etu- tai sukunimi"
 
 #: models/accident.py:38
 msgid "Localizable String"
@@ -223,7 +223,7 @@ msgstr "Arvo"
 #: models/financial.py:63
 msgid "Sell value of one ticket. Can be used when calculating user revenue."
 msgstr ""
-"Kortin myyntiarvo. Myyntiarvoa voidaan käyttää asiakaskohtaisen tuoton "
+"Yksittäisen kerran myyntiarvo. Myyntiarvoa voidaan käyttää asiakaskohtaisen tuoton "
 "laskennassa."
 
 #: models/horse.py:11
@@ -357,7 +357,7 @@ msgstr "Lisää kertatapahtuma"
 
 #: templates/stables/_templates.html:113
 msgid "Date"
-msgstr ""
+msgstr "Pvm"
 
 #: templates/stables/_templates.html:114
 msgid "2014-12-31"
@@ -406,7 +406,7 @@ msgstr "Valitse viikko"
 
 #: templates/stables/daily.html:16
 msgid "Print"
-msgstr ""
+msgstr "Tulosta"
 
 #: templates/stables/daily.html:17
 msgid "You can type custom message below"
@@ -606,9 +606,8 @@ msgid "Add tickets"
 msgstr "Lisää kortteja"
 
 #: templates/stables/user/index.html:61
-#, fuzzy
 msgid "Edit tickets"
-msgstr "Lisää kortteja"
+msgstr "Muokkaa kortteja"
 
 #: templates/stables/user/index.html:65
 #, python-format
@@ -659,25 +658,3 @@ msgstr "Tilaa"
 #: views/oldviews.py:129
 msgid "Full"
 msgstr "Täynnä"
-
-#~ msgid "Show unattending"
-#~ msgstr "näytä kaikki"
-
-#~ msgid "Save Changes"
-#~ msgstr "Tallenna muutokset"
-
-#~ msgid ""
-#~ "\n"
-#~ "        <span class=\"summary\">%(summary)s</span> on <abbr class="
-#~ "\"dtstart\" title=\"%(dtstart)s\">%(weekday)s, %(day)s from %(start)s</"
-#~ "abbr> to <abbr class=\"dtend\" title=\"%(dtend)s\">%(end)s</abbr>\n"
-#~ "        "
-#~ msgstr ""
-#~ "\n"
-#~ "        <span class=\"summary\">%(summary)s</span>: <abbr class=\"dtstart"
-#~ "\" title=\"%(dtstart)s\">%(weekday)s, %(day)s %(start)s</abbr> - <abbr "
-#~ "class=\"dtend\" title=\"%(dtend)s\">%(end)s</abbr>\n"
-#~ "        "
-
-#~ msgid "Success. Close this window."
-#~ msgstr "Onnistui, sulje ikkuna."
