@@ -32,7 +32,7 @@ CRISPY_TEMPLATE_PACK = 'bootstrap3'
 # timezone as the operating system.
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
-TIME_ZONE = 'America/Chicago'
+TIME_ZONE = 'Europe/Helsinki'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -200,12 +200,15 @@ LOGGING = {
             'level': 'ERROR',
             'class': 'logging.FileHandler',
             'filename': '/tmp/django.log',
-        }
+        },
+        'console': {
+            'class': 'logging.StreamHandler',
+            }
     },
     'loggers': {
-        'django.request': {
-            'handlers': ['mail_admins', 'file'],
-            'level': 'ERROR',
+        'stables': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
             'propagate': True,
         },
     }

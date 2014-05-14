@@ -44,6 +44,10 @@ import operator
 import json
 from tastypie.authentication import SessionAuthentication
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 class ParticipationPermissionAuthentication(SessionAuthentication):
     def is_authenticated(self, request, **kwargs):
         return request.user.has_perm('stables.change_participation')
@@ -177,8 +181,8 @@ class ViewEvent:
         self.participations = []
         if occ:
             self.pk = occ.start
-            self.start = timezone.utc.normalize(occ.start)
-            self.end = timezone.utc.normalize(occ.end)
+            self.start = timezone.get_current_timezone().normalize(occ.start)
+            self.end = timezone.get_current_timezone().normalize(occ.end)
             self.title = occ.event.title
             self.event_id = occ.event.id
             self.cancelled = occ.cancelled
@@ -476,6 +480,7 @@ class EventResource(Resource):
                     datetime.datetime.combine(at, datetime.time.min))
             end = timezone.get_current_timezone().localize(
             datetime.datetime.combine(at, datetime.time.max))
+            logger.debug("Generating participations on %s to %s" % (start, end))
             partids, parts = Participation.objects.generate_participations(
                     start, end)
             instr = list(InstructorParticipation.objects.filter(start__gte=start, end__lte=end))
@@ -490,6 +495,7 @@ class EventResource(Resource):
                 comments[int(c.object_pk)] = c
 
             for (o, (c, p)) in parts.items():
+                logger.debug("Found occ: %s %s" % (o, o.event.title))
                 metadata = metadatas.get(o.event.pk, None)
                 occs.append(ViewEvent(o, c, p, saldos,
                     instr.get(o.event.pk, None),
