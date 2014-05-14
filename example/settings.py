@@ -49,7 +49,7 @@ USE_I18N = True
 USE_L10N = True
 
 # If you set this to False, Django will not use timezone-aware datetimes.
-USE_TZ = False
+USE_TZ = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
@@ -89,6 +89,8 @@ STATICFILES_FINDERS = (
 BOWER_COMPONENTS_ROOT = 'components/'
 BOWER_INSTALLED_APPS = (
         'momentjs',
+        'fontawesome',
+        'underscore',
         )
 
 # Make this unique, and don't share it with anybody.
@@ -119,7 +121,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'example.middleware.LoginAutomatically',
+    #'example.middleware.LoginAutomatically',
     'django.contrib.messages.middleware.MessageMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
