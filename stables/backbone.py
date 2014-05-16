@@ -370,6 +370,7 @@ class ParticipationResource(Resource):
         #start = datetime.datetime.strptime(bundle.data['start'], '%Y-%m-%dT%H:%M:%S')
         start = timezone.make_aware((parse(bundle.data['start'])), timezone.get_current_timezone())
         occ = event.occurrences_after(start).next()
+        assert occ.start == start, 'Start time mismatch %s and %s' % (start, occ.start)
         state = int(bundle.data['state'])
         if ('rider_id' not in bundle.data and bundle.data['rider_name'] != None):
             try:
