@@ -11,9 +11,9 @@
     </div>
     <select name="horse">
         <option value="0">{% trans "--" %}</option>
-        {% for h in horses %}
-        <option value="{{ h.pk }}">{{ h.name }}</option>
-        {% endfor %}
+        <% horses.each(function(h) { %>
+        <option value="<%= h.get("id") %>"><%= h.get("name") %></option>
+        <% }) %>
     </select>
     <span class="ui-stbl-db-user alert alert-<%= alert_level %>"
     <% if (state != 0 ) { %>

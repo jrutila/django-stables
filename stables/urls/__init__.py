@@ -11,6 +11,7 @@ v1_api.register(CommentResource())
 v1_api.register(EventMetaDataResource())
 v1_api.register(EnrollResource())
 v1_api.register(FinanceResource())
+v1_api.register(HorseResource())
 
 import reportengine
 reportengine.autodiscover()
