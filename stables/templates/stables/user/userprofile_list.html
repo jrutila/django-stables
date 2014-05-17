@@ -6,6 +6,9 @@
     {% for user in object_list %}
     <li class="list-group-item">
     <a href="{{ user.get_absolute_url }}">{{ user }}</a>
+    {% if user.customer.saldo %}
+        <span class="saldo">{{ user.customer.saldo }}</span>
+    {%  endif %}
     </li>
     {% endfor %}
 </ul>
