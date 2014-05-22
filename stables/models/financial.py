@@ -94,7 +94,7 @@ def _count_saldo(transactions):
     if transactions:
         saldo = Decimal('0.00')
         value = abs(transactions[0].amount)
-    for t in transactions:
+    for t in [t for t in transactions if t.active]:
       if t.ticket_set.count() == 0:
         saldo = saldo + t.amount
       elif t.ticket_set.count() > 0:
@@ -107,8 +107,7 @@ def get_saldo(self):
           object_id=self.id).prefetch_related('ticket_set'))
 
 def get_customer_saldo(self):
-    return _count_saldo(Transaction.objects.filter(active=True,
-          customer=self).prefetch_related('ticket_set'))[0]
+    return _count_saldo(self.transaction_set.all())[0]
 
 def _get_rider_q(self):
     qcustomer = Q(owner_type=ContentType.objects.get_for_model(self.customer), owner_id=self.customer.id)

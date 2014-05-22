@@ -3,3 +3,7 @@
 *.egg-info
 MANIFEST
 dist/*
+.idea/
+components/
+build/
+*.db
