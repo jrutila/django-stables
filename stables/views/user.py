@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 #from django.utils.translation import ugettext_lazy as _
 from datetime import datetime
 from collections import defaultdict
+from stables.models.user import CustomerInfo
 
 from stables.forms import UserProfileForm
 from stables.models import UserProfile
@@ -47,6 +48,7 @@ class ViewUser(UserEditorMixin, DetailView):
     def get_object(self, *args, **kwargs):
         user = User.objects.filter(username=self.kwargs['username'])[0]
         user = user.get_profile()
+        CustomerInfo.objects.filter(id=user.customer.id).prefetch_related('transaction_set', 'transaction_set__ticket_set')
         pmore = self.request.GET.get('pmore', 5)
         tmore = self.request.GET.get('tmore', 5)
 
@@ -91,4 +93,13 @@ class ListUser(UserEditorMixin, ListView):
     template_name = 'stables/user/userprofile_list.html'
 
     def get_queryset(self):
-        return UserProfile.objects.active().order_by('user__last_name')
+        query = """select p.*, SUM(CASE WHEN ti.id IS NULL THEN tr.amount ELSE 0.00 END) as saldo FROM
+                stables_userprofile p
+                LEFT OUTER JOIN stables_transaction tr ON tr.customer_id = p.customer_id AND tr.active = true
+                LEFT OUTER JOIN stables_ticket ti ON ti.transaction_id = tr.id
+                WHERE ti.id IS NULL GROUP BY tr.customer_id, p.id """
+        from django.db.models.query import prefetch_related_objects
+        raw_qs = UserProfile.objects.raw(query)
+        raw_qs = list(raw_qs)
+        prefetch_related_objects(raw_qs, ["user", ])
+        return raw_qs

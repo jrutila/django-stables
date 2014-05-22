@@ -1,0 +1,8 @@
+li.inactive {
+    display: none;
+}
+
+.saldo {
+    display: block;
+    color: red;
+}

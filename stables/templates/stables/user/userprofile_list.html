@@ -1,13 +1,44 @@
 {% extends "base.html" %}
-{% load i18n stablestags %}
+{% load i18n stablestags sekizai_tags static %}
 {% block content %}
+    {% addtoblock "css" %}
+        <link href="{% static 'stables/css/user.css' %}" rel="stylesheet" type="text/css" />
+    {% endaddtoblock %}
+    {% addtoblock "js" %}
+        <script type="text/javascript">
+        $("#hide_zero").click(function(el) {
+            if ($(el.currentTarget).is(":checked"))
+            {
+                $("#rider-list li:not(.inactive)").show();
+                $("#rider-list li:not(:has(.saldo))").hide();
+                $("#show_inactive").removeAttr("checked");
+            }
+            else
+                $("#rider-list li:not(.inactive)").show();
+        });
+        $("#show_inactive").click(function(el) {
+            if ($(el.currentTarget).is(":checked"))
+            {
+                $("#rider-list li").hide();
+                $("#rider-list li.inactive").show();
+                $("#hide_zero").removeAttr("checked");
+            } else {
+                $("#rider-list li").hide();
+                $("#rider-list li:not(.inactive)").show();
+            }
+        });
+        </script>
+    {% endaddtoblock %}
+
 <a class="btn btn-default" href="{% url "add_user" %}">{% trans "Add user" %}</a>
-<ul class="list-group list-grid">
+    <input type="checkbox" id="hide_zero" /><label for="hide_zero">{% trans "Show only riders with saldo" %}</label>
+    <input type="checkbox" id="show_inactive" /><label for="show_inactive">{% trans "Show only inactive riders" %}</label>
+<ul class="list-group list-grid" id="rider-list">
     {% for user in object_list %}
-    <li class="list-group-item">
+    <li class="list-group-item{% if user.inactive %} inactive{% endif %}">
     <a href="{{ user.get_absolute_url }}">{{ user }}</a>
-    {% if user.customer.saldo %}
-        <span class="saldo">{{ user.customer.saldo }}</span>
+    {% if user.saldo %}
+        <span class="saldo">{{ user.saldo }}</span>
     {%  endif %}
     </li>
     {% endfor %}
