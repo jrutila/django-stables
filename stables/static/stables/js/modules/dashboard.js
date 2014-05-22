@@ -35,15 +35,32 @@ var DayLimits = Backbone.Collection.extend({
     },
 })
 
+var Horse = Backbone.Model.extend({})
+
+var HorseCollection = Backbone.Collection.extend({
+    model: Horse,
+    initialize: function(models, options) {
+        this.date = options.date;
+    },
+    url: function() {
+        return apiUrl+'horse/?last_usage_date__gte='+this.date;
+    }
+})
+
 var Day = Backbone.Model.extend({
-    initialize: function() {
-        this.set('limits', new DayLimits(horseLimits.toJSON()))
+    initialize: function(opts) {
+        this.set('limits', new DayLimits(horseLimits.toJSON()));
+        this.set('horses', new HorseCollection([], opts));
+        this.get('horses').fetch({async: false});
     },
     url: function() {
         return apiUrl+'events/?at='+this.get('date')
     },
     parse: function(data) {
-        data['events'] = new EventCollection(EventCollection.prototype.parse(data.objects), { 'limits': this.get('limits')})
+        data['events'] = new EventCollection(EventCollection.prototype.parse(data.objects), {
+            'limits': this.get('limits'),
+            'horses': this.get('horses')
+        })
         delete data.objects
         return data
     },
@@ -76,8 +93,7 @@ var Week = Backbone.Model.extend({
         _.each(this.get('dates'), function(day, key) {
             if (day == undefined)
             {
-                day = new Day()
-                day.set('date', key)
+                day = new Day({'date': key})
                 day.fetch()
             }
             newColl.add(day)

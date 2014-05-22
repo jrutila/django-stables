@@ -1,7 +1,7 @@
 [
 {"pk": 1, "model": "schedule.calendar", "fields": {"name": "Main", "slug": "main"}},
 {"pk": 1, "model": "schedule.rule", "fields": {"frequency": "WEEKLY", "params": "", "name": "Weekly", "description": ""}},
-{"pk": 1, "model": "schedule.event", "fields": {"end": "2014-01-09T18:30:00", "description": "", "creator": 1, "title": "Test event", "rule": null, "priority": null, "start": "2014-01-09T17:30:00", "created_on": "2014-01-09T09:26:55", "end_recurring_period": null, "calendar": 1}},
+{"pk": 1, "model": "schedule.event", "fields": {"end": "2014-01-09T18:30:00", "description": "", "creator": 1, "title": "Test event", "rule": null, "start": "2014-01-09T17:30:00", "created_on": "2014-01-09T09:26:55", "updated_on": "2014-01-09T09:26:55", "end_recurring_period": null, "calendar": 1}},
 {"pk": 1, "model": "stables.customerinfo", "fields": {"address": ""}},
 {"pk": 1, "model": "stables.riderinfo", "fields": {"customer": 1, "levels": []}},
 {"pk": 1, "model": "stables.participation", "fields": {"horse": null, "end": "2014-01-09T18:30:00", "created_on": "2014-01-09T09:28:21.037", "note": "", "start": "2014-01-09T17:30:00", "state": 0, "participant": 1, "event": 1, "last_state_change_on": "2014-01-09T09:28:21.037"}},

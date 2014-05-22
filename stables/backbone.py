@@ -1,3 +1,4 @@
+from django.db.models.query import QuerySet
 from tastypie.resources import ModelResource
 from tastypie.resources import Resource
 from stables.models import UserProfile
@@ -25,7 +26,7 @@ from tastypie.contrib.contenttypes.fields import GenericForeignKeyField
 from tastypie.http import HttpBadRequest
 from tastypie.exceptions import ImmediateHttpResponse
 from tastypie.utils import trailing_slash
-
+from tastypie.constants import ALL, ALL_WITH_RELATIONS
 
 from django.db.models.signals import post_save
 from django.conf.urls import url
@@ -61,6 +62,22 @@ class UserResource(ModelResource):
 
     def dehydrate_name(self, bundle):
         return bundle.obj.user.first_name + " " + bundle.obj.user.last_name
+
+class HorseQuerySet(QuerySet):
+    def filter(self, *args, **kwargs):
+        return super(HorseQuerySet, self).complex_filter(Q(Q(**kwargs) | Q(last_usage_date__isnull=True)))
+
+class HorseResource(ModelResource):
+    class Meta:
+        queryset = HorseQuerySet(Horse, using=Horse.objects._db)
+        cache = SimpleCache(timeout=30*60)
+        authentication = ParticipationPermissionAuthentication()
+        filtering = {
+            'last_usage_date': ['gte'],
+        }
+    name = fields.CharField(attribute="name")
+    day_limit = fields.IntegerField(attribute="day_limit", null=True)
+    last_usage_date = fields.DateField(attribute="last_usage_date", null=True)
 
 class EventMetaDataResource(ModelResource):
     class Meta:
@@ -181,6 +198,8 @@ class ViewEvent:
         self.participations = []
         if occ:
             self.pk = occ.start
+            logger.debug("Current timezone: %s" % timezone.get_current_timezone())
+            logger.debug("occ: %s" % occ.start.tzinfo)
             self.start = timezone.get_current_timezone().normalize(occ.start)
             self.end = timezone.get_current_timezone().normalize(occ.end)
             self.title = occ.event.title
@@ -517,8 +536,9 @@ class EventResource(Resource):
     def obj_create(self, bundle, **kwargs):
         data = bundle.data
         data['calendar'] = Calendar.objects.get(slug='main')
-        data['start'] = parser.parse(data['start'])
-        data['end'] = parser.parse(data['end'])
+        import pytz
+        data['start'] = parser.parse(data['start'], tzinfos={'UTC': pytz.UTC})
+        data['end'] = parser.parse(data['end'], tzinfos={'UTC': pytz.UTC})
         course = None
         if 'course' in data and data['course']:
             course = Course.objects.get(pk=data['course'])

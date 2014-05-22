@@ -19,6 +19,10 @@ var Participation = Backbone.Model.extend({
             this.limits = options['limits']
             this.handleHorseLimit()
         }
+        if (options && 'horses' in options)
+        {
+            this.horses = options['horses'];
+        }
     },
     handleHorseLimit: function() {
         var myHorse = this.get('horse')
@@ -182,7 +186,7 @@ var ParticipationView = Backbone.View.extend({
     },
     template: _.template($('#ParticipationView').html()),
     render: function() {
-        this.$el.html(this.template(this.model.attributes))
+        this.$el.html(this.template(_.extend(this.model.attributes, { 'horses': this.model.horses })));
         $('select[name="state"]', this.$el).val(this.model.get('state'))
         $('select[name="horse"]', this.$el).val(this.model.get('horse'))
         var limit = this.model.limits.findLimit(parseInt(this.model.get('horse')))
@@ -243,7 +247,8 @@ var ParticipationAdderView = Backbone.View.extend({
         },
     },
     render: function() {
-        this.$el.html(this.template(this.model.attributes))
+        this.$el.html(this.template(_.extend(this.model.attributes, { 'horses': this.model.horses })));
+
         var $userSelector = $("<input class='userSelector' type='text'/>").autocomplete({ source: userSelectorSource })
 
         this.$el.find(".ui-stbl-db-user").html($userSelector)
@@ -287,13 +292,23 @@ var Event = Backbone.Model.extend({
             })
         })
         )
-        if (options != undefined && 'limits' in options)
+        if (options != undefined)
         {
-            this.limits = options['limits']
-            this.get('participations').each(function (p) {
-                p.limits = options['limits']
-                p.handleHorseLimit()
-            })
+            if ('limits' in options)
+            {
+                this.limits = options['limits'];
+                this.get('participations').each(function (p) {
+                    p.limits = options['limits'];
+                    p.handleHorseLimit();
+                });
+            }
+            if ('horses' in options)
+            {
+                this.horses = options['horses'];
+                this.get('participations').each(function (p) {
+                    p.horses = options['horses'];
+                });
+            }
         }
     },
     idAttribute: "id", /*function() {
@@ -380,7 +395,7 @@ var EventView = Backbone.View.extend({
                 event_id: this.model.get('event_id'),
                 start: this.model.get('start'),
                 end: this.model.get('end'),
-            }, { limits: this.model.limits })
+            }, { limits: this.model.limits, horses: this.model.horses })
         })
         adder.render()
         this.$el.find("ul").append(adder.$el)
