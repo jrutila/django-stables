@@ -85,10 +85,16 @@ class CourseForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(CourseForm, self).clean()
-        if cleaned_data['end'] and cleaned_data['end'] <= datetime.datetime.now().date() and (
-                'starttime' in self.changed_data or
-                'endtime' in self.changed_data):
+        end = cleaned_data.get("end")
+        start = cleaned_data.get("start")
+        starttime = cleaned_data.get("starttime")
+        endtime = cleaned_data.get("endtime")
+        if end and end <= datetime.datetime.now().date() and (
+                starttime or endtime):
             raise forms.ValidationError(_("You cannot change start time or end time on ended course"))
+        if end and start and end < start:
+            msg = _("Course end must be after course start")
+            self._errors["end"] = self.error_class([msg])
         return cleaned_data
 
     @classmethod

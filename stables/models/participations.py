@@ -93,7 +93,7 @@ class Course(models.Model):
                 ev = Event()
                 self._updateEvent(ev, starttime, endtime, self.start, self.end)
                 ev.save()
-            elif self.end:
+            elif self.id and self.end:
                 last_event, last_occ = self._endLastEvent(self.end+datetime.timedelta(days=1))
                 if last_event: last_event.save()
             super(Course, self).save()
