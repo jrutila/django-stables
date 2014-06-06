@@ -92,6 +92,7 @@ BOWER_INSTALLED_APPS = (
         'momentjs',
         'fontawesome',
         'underscore',
+        'bootstrap'
         )
 
 # Make this unique, and don't share it with anybody.

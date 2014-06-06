@@ -46,16 +46,33 @@
 </script>
 
 <script type="text/html" id="FinancePopoverView">
-    <div><%= finance_hint %></div>
+  <div class="row">
+    <div class="col-xs-12"><%= finance_hint %></div>
+
     <% for (var t in pay_types) { %>
-      <button value="<%= t %>"><%= pay_types[t] %></button>
+    <div class="input-group">
+      <span class="input-group-btn">
+          <button type="button" class="btn" value="<%= t %>">
+          <% if (t == 0) { %>
+          {% trans "Cash" %}
+          <% } else { %>
+          <%= pay_types[t] %>
+          <% } %>
+          </button>
+      </span>
+      <% if (t == 0) { %>
+      <input type="text" class="form-control" value="<%= pay_types[t] %>"/>
+      <% } %>
+    </div>
     <% } %>
+
     <div>
     <div>
     <textarea name="note"><%= note %></textarea>
     </div>
     <a href="<%= participation_url %>">{% trans "details" %}</a>
     </div>
+  </div>
 </script>
 
 <script type="text/html" id="EventView">

@@ -20,6 +20,7 @@
          Modernizr enables HTML5 elements & feature detects for optimal performance.
          Create your own custom Modernizr build: www.modernizr.com/download/ -->
      <link href="{%  static "fontawesome/css/font-awesome.css" %}" rel="stylesheet" />
+     <link href="{%  static "bootstrap/dist/css/bootstrap.css" %}" rel="stylesheet" />
     {% render_block "css" %}
  </head>
  <body>
@@ -36,7 +37,7 @@
   <!-- scripts concatenated and minified via build script -->
   <script src="{{ STATIC_URL }}theme/js/libs/jquery-1.9.1.min.js"></script>
   <script src="{{ STATIC_URL }}theme/js/libs/jquery-ui-1.10.3.custom.min.js"></script>
-  <script src="{{ STATIC_URL }}theme/js/libs/bootstrap.min.js"></script>
+  <script src="{% static "bootstrap/dist/js/bootstrap.min.js" %}"></script>
   <script src="{{ STATIC_URL }}theme/js/plugins/msgGrowl/js/msgGrowl.js"></script>
   <script src="{{ STATIC_URL }}theme/js/plugins/lightbox/jquery.lightbox.min.js"></script>
   <script src="{{ STATIC_URL }}theme/js/plugins/msgbox/jquery.msgbox.min.js"></script>

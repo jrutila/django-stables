@@ -64,8 +64,11 @@ var FinanceView = Backbone.View.extend({
         'click button': 'buttonClick',
     },
     buttonClick: function(ev) {
-        trg = $(ev.target)
-        this.model.set('pay', trg.val())
+        var trg = $(ev.target);
+        var val = trg.val();
+        if (val == 0)
+            val = trg.parent().next().val();
+        this.model.set('pay', val);
         this.model.save()
     },
     render: function() {

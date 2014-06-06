@@ -83,7 +83,7 @@ class Course(models.Model):
                         last_event.save()
                         recurring_change.send(sender=Course, prev=last_event, new=ev)
                 else:
-                    ev = self.events.latest()
+                    ev = self.events.latest('start')
                     self._updateEvent(ev, starttime, endtime, last_event.start.date(), self.end)
                     ev.save()
             super(Course, self).save()

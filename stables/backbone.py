@@ -260,6 +260,7 @@ class ViewFinance:
             if value:
                 value = value.quantize(Decimal('0.01'))
             self.pay_types = {}
+            self.pay_types[0] = Decimal('0.00')
 
             unused = part.participant.rider.unused_tickets
             for u in unused:
@@ -272,15 +273,11 @@ class ViewFinance:
 
             if ticket:
                 if value:
-                    self.pay_types[str(value)] = _('Cash') + ' ' + str(value)
-                self.pay_types[str(Decimal('0.00'))] = _('0.00')
+                    self.pay_types[0] = value
                 self.finance_hint = unicode(ticket)
             else:
                 if value == None or saldo < Decimal('0.00'):
-                    self.pay_types[str(value)] = _('Cash') + ' ' + str(value)
-                    self.pay_types[str(Decimal('0.00'))] = _('0.00')
-                elif value > Decimal('0.00'):
-                    self.pay_types[str(Decimal('0.00'))] = _('0.00')
+                    self.pay_types[0] = value
 
             if part.state != ATTENDING:
                 self.pay_types = []
