@@ -4,7 +4,7 @@ from schedule.models import Event
 from schedule.models import Rule
 from datetime import datetime
 from nose.tools import * #assert_equals, assert_is_not_none
-from . import *
+from helpers import *
 import reversion
 
 from django.test.utils import override_settings
@@ -268,7 +268,7 @@ class CourseTest(CourseTestBase):
         self.course.save(
                 starttime=t('12:30')
                ,endtime=t('13:30')
-               ,since=dt('2014-01-23 12:30'))
+               ,since=dt('2014-01-23 13:30'))
 
         self.check(
                 [

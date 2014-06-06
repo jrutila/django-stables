@@ -9,7 +9,7 @@ from schedule.models import Calendar
 from schedule.models import Event
 from django.contrib.auth.models import User
 from nose.tools import * #assert_equals, assert_is_not_none
-from . import *
+from helpers import *
 import datetime
 from decimal import Decimal
 

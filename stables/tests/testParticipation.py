@@ -3,7 +3,7 @@ from stables.models import UserProfile
 from stables.models import CustomerInfo, RiderInfo
 from django.contrib.auth.models import User
 from nose.tools import * #assert_equals, assert_is_not_none
-from . import *
+from helpers import *
 from testCourse import CourseTestBase
 import reversion
 

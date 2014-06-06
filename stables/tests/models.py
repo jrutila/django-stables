@@ -578,7 +578,7 @@ class CourseEnrollTest(TestCase):
         self.runStates(data)
 
 @override_settings(USE_TZ=True)
-class CourseParticipationTest(TestCase):
+class CourseEnrollStateTest(TestCase):
     @classmethod
     def setUpClass(cls):
         rule, created = Rule.objects.get_or_create(name="Weekly", frequency="WEEKLY")
