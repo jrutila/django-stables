@@ -76,7 +76,8 @@ class ParticipationTransactionActivatorManager(models.Manager):
             return
         # TODO: 24 to something right
         act = self.create(participation=participation, fee=fee, activate_before_hours=24)
-        act.ticket_type = ticket_type
+        if ticket_type:
+            act.ticket_type = ticket_type
         act.try_activate()
         return act
 
@@ -164,43 +165,45 @@ def pay_participation(participation, value=None, ticket=None):
         object_id=participation.id)
     customer = participation.participant.rider.customer
 
-    if transactions.count() == 0:
-        vval = value
-        if vval == None and participation.event.course_set.count() > 0:
-            vval = participation.event.default_fee
-        t = Transaction.objects.create(
-              active=True,
-              content_type=ContentType.objects.get_for_model(Participation),
-              object_id=participation.id,
-              amount=-1*vval,
-              customer=customer)
-
-    if value != None and value != abs(transactions[0].amount):
-        t = transactions[0]
-        t.amount = -1*value
-        t.save()
-
-    saldo, ticket_used, value = _count_saldo(transactions)
+    saldo, ticket_used, rvalue = _count_saldo(transactions)
 
     if ticket_used:
-      ticket_used.transaction=None
-      ticket_used.save()
-      saldo, ticket_used, value = _count_saldo(transactions)
+        ticket_used.transaction=None
+        ticket_used.save()
+        saldo, ticket_used, rvalue = _count_saldo(transactions)
 
-    if ticket:
-        ticket = participation.participant.rider.unused_tickets.filter(type=ticket).order_by('expires')[0]
-        ticket.transaction = transactions.filter(amount__lt=0)[0]
-        ticket.save()
+    dvalue = value
+    if dvalue == None and participation.event.course_set.count() > 0:
+        dvalue = participation.event.default_fee
+
+    if transactions.count() > 0:
+        if dvalue != None:
+            transactions[0].amount = -1*dvalue
+            transactions[0].save()
         for t in transactions[1:]:
             t.delete()
+    else:
+        t = Transaction.objects.create(
+            active=True,
+            content_type=ContentType.objects.get_for_model(Participation),
+            object_id=participation.id,
+            amount=-1*dvalue,
+            customer=customer)
 
-    elif saldo < 0:
-        Transaction.objects.create(
-          active=True,
-          content_type=ContentType.objects.get_for_model(Participation),
-          object_id=participation.id,
-          amount=-1*saldo,
-          customer=customer)
+    saldo, ticket_used, rvalue = _count_saldo(transactions.all())
+
+    if saldo != 0:
+        if value:
+            t = Transaction.objects.create(
+                active=True,
+                content_type=ContentType.objects.get_for_model(Participation),
+                object_id=participation.id,
+                amount=value,
+                customer=customer)
+        elif ticket:
+            ticket = participation.participant.rider.unused_tickets.filter(type=ticket).order_by('expires')[0]
+            ticket.transaction = transactions.filter(amount__lt=0)[0]
+            ticket.save()
 
 from django.utils import timezone
 class ParticipationTransactionActivator(TransactionActivator):
