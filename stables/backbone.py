@@ -508,8 +508,8 @@ class EventResource(Resource):
             accidents = dict([ (a.rider.pk, a) for a in Accident.objects.filter(at__gte=start, at__lte=end)])
             warnings = Participation.objects.generate_warnings(start, end)
             comments = {}
-            for c in Comment.objects.filter(object_pk__in=[m.pk for m in metadatas.values()], content_type=ContentType.objects.get_for_model(EventMetaData)):
-                comments[int(c.object_pk)] = c
+            #for c in Comment.objects.filter(object_pk__in=[m.pk for m in metadatas.values()], content_type=ContentType.objects.get_for_model(EventMetaData)):
+                #comments[int(c.object_pk)] = c
 
             for (o, (c, p)) in parts.items():
                 logger.debug("Found occ: %s %s" % (o, o.event.title))

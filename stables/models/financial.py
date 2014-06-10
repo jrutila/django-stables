@@ -247,6 +247,7 @@ def handle_Participation_save(sender, **kwargs):
         # If there is deactivated stuff
         trans = trans.filter(active=False)
         course = Course.objects.filter(events__in=[parti.event])
+        metadata = participations.EventMetaData.objects.filter(event=parti.event, start=parti.start, end=parti.end)
         if course:
             course = course[0]
             if trans:
@@ -258,6 +259,9 @@ def handle_Participation_save(sender, **kwargs):
                   _use_ticket(tickets, t)
             else:
               ParticipationTransactionActivator.objects.try_create(parti, course.default_participation_fee, course.ticket_type.all())
+        elif metadata:
+            metadata = metadata[0]
+            ParticipationTransactionActivator.objects.try_create(parti, metadata.default_participation_fee)
     elif parti.state == participations.CANCELED or parti.state == participations.RESERVED:
         ParticipationTransactionActivator.objects.filter(participation=parti).delete()
         trans.deactivate()
