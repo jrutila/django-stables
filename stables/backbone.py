@@ -7,7 +7,7 @@ from stables.models import InstructorParticipation
 from stables.models import InstructorInfo
 from stables.models import Horse
 from stables.models import Transaction
-from stables.models import ATTENDING, CANCELED
+from stables.models import ATTENDING, CANCELED, SKIPPED
 from schedule.models import Event
 from schedule.models import Calendar
 from schedule.models import Occurrence
@@ -282,7 +282,7 @@ class ViewFinance:
                 elif value > Decimal('0.00'):
                     self.pay_types[str(Decimal('0.00'))] = _('0.00')
 
-            if part.state != ATTENDING:
+            if part.state != ATTENDING and part.state != SKIPPED:
                 self.pay_types = []
                 from stables.models import PARTICIPATION_STATES
                 self.finance_hint = PARTICIPATION_STATES[part.state][1]
