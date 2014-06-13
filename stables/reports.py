@@ -1,10 +1,10 @@
 from stables.models import Participation, InstructorParticipation
 from stables.models import Transaction
 from stables.models import Accident
-from stables.models import ATTENDING
+from stables.models import ATTENDING, CANCELED, RESERVED
 from stables.forms.reports import DateFilterForm
 from django.db.models import Count
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext_lazy as _, ugettext
 from django.contrib.contenttypes.models import ContentType
 import datetime
 from collections import defaultdict
@@ -25,7 +25,6 @@ def get_daterange(start, end):
         end = datetime.datetime.max
     return start,end
 
-
 class FinanceReport(reportengine.Report):
     namespace = 'stables'
 
@@ -33,23 +32,41 @@ class FinanceReport(reportengine.Report):
         form = DateFilterForm(data=data)
         return form
 
-    def get_value(self, source):
-        return eval("source"+self.attr)
+    def get_value(self, trans):
+        return eval("trans.source"+self.attr)
 
     def get_rows(self, filter={}, order_by=None):
         start, end = get_daterange(filter['start'], filter['end'])
-        parts = Participation.objects.filter(state=ATTENDING, start__gte=start, end__lte=end).prefetch_related('participant')
+        parts = Participation.objects.filter(start__gte=start, end__lte=end).exclude(state__in=[CANCELED, RESERVED]).prefetch_related('participant')
         trans = Transaction.objects.filter(object_id__in=[ p.id for p in parts ], content_type=ContentType.objects.get_for_model(Participation)).prefetch_related('ticket_set', 'source__participant__user', 'source__event__course_set', 'source__horse')
         values = defaultdict(amountval_factory)
         rows = []
         for t in trans:
-            value = self.get_value(t.source)
+            value = self.get_value(t)
             if value:
                 values[value.__unicode__()]['amount'] = values[value.__unicode__()]['amount'] + 1
                 values[value.__unicode__()]['value'] = values[value.__unicode__()]['value'] + t.getIncomeValue()
         for h,av in values.items():
             rows.append([h, av.values()[0], av.values()[1]])
         return rows,(("total", len(rows)),)
+
+class FakeTicket():
+    def __unicode__(self):
+        return ugettext("Cash")
+
+class PaymentTypeReport(FinanceReport):
+    namespace = 'stables'
+    slug = "payment-report"
+    labels = ('payment type', 'amount', 'value')
+    verbose_name = 'Payment type report'
+
+    def get_value(self, trans):
+        tckts = trans.ticket_set.all()
+        if (tckts.count() == 0):
+            if trans.amount >= 0:
+                return FakeTicket()
+            return None
+        return tckts[0].type
 
 class HorseFinanceReport(FinanceReport):
     labels = ('horse', 'amount', 'value')
@@ -63,7 +80,8 @@ class CourseFinanceReport(FinanceReport):
     slug = 'course-report'
     verbose_name = 'Course report'
 
-    def get_value(self, source):
+    def get_value(self, trans):
+        source = trans.source
         cs = source.event.course_set.all()
         if cs:
             return cs[0]
@@ -75,6 +93,7 @@ class RiderFinanceReport(FinanceReport):
     slug = 'rider-report'
     verbose_name = 'Rider report'
 
+reportengine.register(PaymentTypeReport)
 reportengine.register(HorseFinanceReport)
 reportengine.register(CourseFinanceReport)
 reportengine.register(RiderFinanceReport)
