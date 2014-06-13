@@ -1,7 +1,7 @@
 from stables.models import Participation, InstructorParticipation
 from stables.models import Transaction
 from stables.models import Accident
-from stables.models import ATTENDING, CANCELED, RESERVED
+from stables.models import ATTENDING, CANCELED, RESERVED, SKIPPED
 from stables.forms.reports import DateFilterForm
 from django.db.models import Count
 from django.utils.translation import ugettext_lazy as _, ugettext
@@ -27,6 +27,7 @@ def get_daterange(start, end):
 
 class FinanceReport(reportengine.Report):
     namespace = 'stables'
+    states = [ATTENDING]
 
     def get_filter_form(self, data):
         form = DateFilterForm(data=data)
@@ -37,7 +38,7 @@ class FinanceReport(reportengine.Report):
 
     def get_rows(self, filter={}, order_by=None):
         start, end = get_daterange(filter['start'], filter['end'])
-        parts = Participation.objects.filter(start__gte=start, end__lte=end).exclude(state__in=[CANCELED, RESERVED]).prefetch_related('participant')
+        parts = Participation.objects.filter(start__gte=start, end__lte=end).filter(state__in=self.states).prefetch_related('participant')
         trans = Transaction.objects.filter(object_id__in=[ p.id for p in parts ], content_type=ContentType.objects.get_for_model(Participation)).prefetch_related('ticket_set', 'source__participant__user', 'source__event__course_set', 'source__horse')
         values = defaultdict(amountval_factory)
         rows = []
@@ -59,6 +60,7 @@ class PaymentTypeReport(FinanceReport):
     slug = "payment-report"
     labels = ('payment type', 'amount', 'value')
     verbose_name = 'Payment type report'
+    states = [ATTENDING, SKIPPED]
 
     def get_value(self, trans):
         tckts = trans.ticket_set.all()
