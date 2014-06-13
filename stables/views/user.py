@@ -95,9 +95,10 @@ class ListUser(UserEditorMixin, ListView):
     def get_queryset(self):
         query = """select p.*, SUM(CASE WHEN ti.id IS NULL THEN tr.amount ELSE 0.00 END) as saldo FROM
                 stables_userprofile p
+                INNER JOIN auth_user u ON u.id = p.user_id
                 LEFT OUTER JOIN stables_transaction tr ON tr.customer_id = p.customer_id AND tr.active = true
                 LEFT OUTER JOIN stables_ticket ti ON ti.transaction_id = tr.id
-                GROUP BY tr.customer_id, p.id """
+                GROUP BY tr.customer_id, p.id, u.last_name ORDER BY u.last_name """
         from django.db.models.query import prefetch_related_objects
         raw_qs = UserProfile.objects.raw(query)
         raw_qs = list(raw_qs)
