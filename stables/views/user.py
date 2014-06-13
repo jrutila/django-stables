@@ -97,7 +97,7 @@ class ListUser(UserEditorMixin, ListView):
                 stables_userprofile p
                 LEFT OUTER JOIN stables_transaction tr ON tr.customer_id = p.customer_id AND tr.active = true
                 LEFT OUTER JOIN stables_ticket ti ON ti.transaction_id = tr.id
-                WHERE ti.id IS NULL GROUP BY tr.customer_id, p.id """
+                GROUP BY tr.customer_id, p.id """
         from django.db.models.query import prefetch_related_objects
         raw_qs = UserProfile.objects.raw(query)
         raw_qs = list(raw_qs)
