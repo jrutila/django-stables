@@ -92,6 +92,7 @@ BOWER_INSTALLED_APPS = (
         'momentjs',
         'fontawesome',
         'underscore',
+        'bootstrap'
         )
 
 # Make this unique, and don't share it with anybody.
@@ -159,7 +160,7 @@ INSTALLED_APPS = (
     'reversion',
     'crispy_forms',
     'djangobower',
-    'debug_toolbar',
+    #'debug_toolbar',
 )
 
 if 'test' in sys.argv or 'harvest' in sys.argv:

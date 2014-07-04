@@ -5,6 +5,7 @@ from django.db.models import Count
 from django.db import IntegrityError, transaction
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
+import django_settings
 from schedule.models import Event, Occurrence, Rule
 from user import UserProfile, RiderLevel
 from financial import CurrencyField, TicketType
@@ -83,7 +84,7 @@ class Course(models.Model):
                         last_event.save()
                         recurring_change.send(sender=Course, prev=last_event, new=ev)
                 else:
-                    ev = self.events.latest()
+                    ev = self.events.latest('start')
                     self._updateEvent(ev, starttime, endtime, last_event.start.date(), self.end)
                     ev.save()
             super(Course, self).save()
@@ -693,4 +694,5 @@ class EventMetaData(models.Model):
     start = models.DateTimeField()
     end = models.DateTimeField()
 
-    notes = models.TextField()
+    max_participants = models.IntegerField(_('maximum participants'), blank=True, null=True) #, default=django_settings.get("default_max_participants", default=7))
+    default_participation_fee = CurrencyField(_('default participation fee'), blank=True, null=True)#, default=django_settings.get("default_participation_fee", default=0.00))

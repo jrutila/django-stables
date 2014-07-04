@@ -260,6 +260,7 @@ class ViewFinance:
             if value:
                 value = value.quantize(Decimal('0.01'))
             self.pay_types = {}
+            self.pay_types[0] = Decimal('0.00')
 
             unused = part.participant.rider.unused_tickets
             for u in unused:
@@ -272,15 +273,11 @@ class ViewFinance:
 
             if ticket:
                 if value:
-                    self.pay_types[str(value)] = _('Cash') + ' ' + str(value)
-                self.pay_types[str(Decimal('0.00'))] = _('0.00')
+                    self.pay_types[0] = value
                 self.finance_hint = unicode(ticket)
             else:
                 if value == None or saldo < Decimal('0.00'):
-                    self.pay_types[str(value)] = _('Cash') + ' ' + str(value)
-                    self.pay_types[str(Decimal('0.00'))] = _('0.00')
-                elif value > Decimal('0.00'):
-                    self.pay_types[str(Decimal('0.00'))] = _('0.00')
+                    self.pay_types[0] = value
 
             if part.state != ATTENDING and part.state != SKIPPED:
                 self.pay_types = []
@@ -511,8 +508,8 @@ class EventResource(Resource):
             accidents = dict([ (a.rider.pk, a) for a in Accident.objects.filter(at__gte=start, at__lte=end)])
             warnings = Participation.objects.generate_warnings(start, end)
             comments = {}
-            for c in Comment.objects.filter(object_pk__in=[m.pk for m in metadatas.values()], content_type=ContentType.objects.get_for_model(EventMetaData)):
-                comments[int(c.object_pk)] = c
+            #for c in Comment.objects.filter(object_pk__in=[m.pk for m in metadatas.values()], content_type=ContentType.objects.get_for_model(EventMetaData)):
+                #comments[int(c.object_pk)] = c
 
             for (o, (c, p)) in parts.items():
                 logger.debug("Found occ: %s %s" % (o, o.event.title))
