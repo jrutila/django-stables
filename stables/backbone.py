@@ -7,7 +7,7 @@ from stables.models import InstructorParticipation
 from stables.models import InstructorInfo
 from stables.models import Horse
 from stables.models import Transaction
-from stables.models import ATTENDING, CANCELED
+from stables.models import ATTENDING, CANCELED, SKIPPED
 from schedule.models import Event
 from schedule.models import Calendar
 from schedule.models import Occurrence
@@ -205,7 +205,7 @@ class ViewEvent:
             self.title = occ.event.title
             self.event_id = occ.event.id
             self.cancelled = occ.cancelled
-            self.id = str(occ.event.id) + "-" + timezone.utc.normalize(occ.start).isoformat()
+            self.id = str(occ.event.id) + "-" + timezone.utc.normalize(occ.start.astimezone(timezone.utc)).isoformat()
         if instr:
             self.instructor_id = instr.instructor_id
         if parts and not self.cancelled:
@@ -279,7 +279,7 @@ class ViewFinance:
                 if value == None or saldo < Decimal('0.00'):
                     self.pay_types[0] = value
 
-            if part.state != ATTENDING:
+            if part.state != ATTENDING and part.state != SKIPPED:
                 self.pay_types = []
                 from stables.models import PARTICIPATION_STATES
                 self.finance_hint = PARTICIPATION_STATES[part.state][1]
