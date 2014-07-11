@@ -40,11 +40,15 @@ class TransactionsForm(forms.Form):
             self.deleted_transactions.append(self.transactions[tid])
           continue
         if tvar == 'ticket':
-          if value != '' and int(value) not in self.tickets:
-            self._errors[k] = self.error_class([_('Invalid ticket id, choose from the list')])
-          if value != '':
-            used_tickets[int(value)] = self.transactions[tid]
-          continue
+            try:
+                ticketid = int(value)
+                if ticketid and ticketid not in self.tickets:
+                    self._errors[k] = self.error_class([_('Invalid ticket id, choose from the list')])
+                elif ticketid:
+                    used_tickets[ticketid] = self.transactions[tid]
+            except ValueError:
+                setattr(self.transactions[tid], 'method', value)
+            continue
         if tvar == 'created':
           tvar = 'created_on'
         setattr(self.transactions[tid], tvar, value)
@@ -81,11 +85,14 @@ class TransactionsForm(forms.Form):
         self.fields['delete_%s' % tid] = forms.BooleanField(required=False)
         self.fields['amount_%s' % tid] = forms.CharField(initial=t.amount, required=tid != 0)
         self.fields['created_%s' % tid] = forms.DateTimeField(initial=t.created_on)
+        self.fields['method_%s' % tid] = forms.CharField(initial=t.method, required=False)
         initial_ticket = None
         if tid != 0 and len(t.ticket_set.all()) > 0:
           initial_ticket = t.ticket_set.all()[0]
           self.tickets[initial_ticket.id] = initial_ticket
           initial_ticket = initial_ticket.id
+        if not initial_ticket:
+            initial_ticket = t.method
         self.fields['ticket_%s' % tid] = forms.CharField(initial=initial_ticket, required=False)
 
     def as_table(self):
@@ -94,7 +101,7 @@ class TransactionsForm(forms.Form):
       output.append('<tr>')
       output.append('<th>Id</th>')
       output.append('<th>Amount</th>')
-      output.append('<th>Ticket</th>')
+      output.append('<th>Ticket/Method</th>')
       output.append('<th>Time</th>')
       output.append('<th>Delete</th>')
       output.append('</thead>')
@@ -111,11 +118,11 @@ class TransactionsForm(forms.Form):
       return mark_safe(u'\n'.join(output))
 
     def _print_td(self, field, output):
-      output.append('<td>')
-      if self._errors and field in self._errors:
-        output.append(unicode(self._errors[field]))
-      output.append('%s' % unicode(self[field]))
-      output.append('</td>')
+        output.append('<td>')
+        if self._errors and field in self._errors:
+            output.append(unicode(self._errors[field]))
+        output.append('%s' % unicode(self[field]))
+        output.append('</td>')
 
 from django.contrib.contenttypes.models import ContentType
 class EditTicketsForm(forms.Form):

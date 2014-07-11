@@ -659,8 +659,10 @@ class CourseEnrollStateTest(TestCase):
         Enroll.objects.create(course=self.course, participant=pr, state=ATTENDING)
         target = Participation.objects.get_next_participation(pr, timezone.now())
         self.assertEqual(target.id, None)
-        self.assertEqual(target.start.time(), target.event.start.time())
-        self.assertEqual(target.end.time(), target.event.end.time())
+        evstart = timezone.get_current_timezone().normalize(target.event.start)
+        evend = timezone.get_current_timezone().normalize(target.event.end)
+        self.assertEqual(target.start.time(), evstart.time())
+        self.assertEqual(target.end.time(), evend.time())
         self.assertEqual(target.participant, pr)
 
     def testStatesEmpty(self):

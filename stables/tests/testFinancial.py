@@ -15,7 +15,8 @@ from decimal import Decimal
 
 TWO = Decimal(10) ** -2
 
-class FinanceTestBase(unittest.TestCase):
+import django
+class FinanceTestPay(django.test.TestCase):
     _ticket = None
 
     @classmethod
@@ -87,8 +88,6 @@ class FinanceTestBase(unittest.TestCase):
             self._ticket.save()
         return self._ticket
 
-
-class PayParticipationTest(FinanceTestBase):
     def testNull(self):
         self.trans([])
         self.saldo(None, None, None)
@@ -205,3 +204,16 @@ class PayParticipationTest(FinanceTestBase):
             ])
         self.unused(1)
         self.saldo('0.00', None, '15.00')
+
+    def testUpdateNegativeValue(self):
+        self.trans([
+            ( '-15.00', None ),
+            ])
+
+        self.saldo('-15.00', None, '15.00')
+
+        pay_participation(self.part, Decimal('-25.00'))
+
+        self.check([
+            ( '-25.00', None ),
+            ])

@@ -158,7 +158,7 @@ def _get_default_fee(self):
 
 Event.default_fee = property(_get_default_fee)
 
-def pay_participation(participation, value=None, ticket=None):
+def pay_participation(participation, value=None, ticket=None, method=None):
     transactions = Transaction.objects.filter(
         active=True,
         content_type=ContentType.objects.get_for_model(participation),
@@ -175,6 +175,10 @@ def pay_participation(participation, value=None, ticket=None):
     dvalue = value
     if dvalue == None and participation.event.course_set.count() > 0:
         dvalue = participation.event.default_fee
+    if value == None and ticket==None:
+        value = -1*saldo
+    if value != None and value < 0:
+        dvalue = -1*value
 
     if transactions.count() > 0:
         if dvalue != None:
@@ -188,18 +192,20 @@ def pay_participation(participation, value=None, ticket=None):
             content_type=ContentType.objects.get_for_model(Participation),
             object_id=participation.id,
             amount=-1*dvalue,
-            customer=customer)
+            customer=customer,
+            method=method)
 
     saldo, ticket_used, rvalue = _count_saldo(transactions.all())
 
     if saldo != 0:
-        if value:
+        if value > 0:
             t = Transaction.objects.create(
                 active=True,
                 content_type=ContentType.objects.get_for_model(Participation),
                 object_id=participation.id,
                 amount=value,
-                customer=customer)
+                customer=customer,
+                method=method)
         elif ticket:
             ticket = participation.participant.rider.unused_tickets.filter(type=ticket).order_by('expires')[0]
             ticket.transaction = transactions.filter(amount__lt=0)[0]
@@ -329,6 +335,8 @@ class Transaction(models.Model):
     content_type = models.ForeignKey(ContentType, null=True, blank=True)
     object_id = models.PositiveIntegerField(null=True, blank=True)
     source = generic.GenericForeignKey('content_type', 'object_id')
+    method = models.CharField(max_length=35, null=True, blank=True)
+
     def delete(self):
         self.ticket_set.clear()
         super(Transaction, self).delete()
