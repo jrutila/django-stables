@@ -21,6 +21,7 @@ from horse import Horse
 import django.dispatch
 from django.utils import timezone
 from django.template.defaultfilters import date as _date
+from django.template.defaultfilters import time as _time
 
 import logging
 
@@ -554,9 +555,9 @@ class Participation(models.Model):
             'name': self.participant,
             'state': PARTICIPATION_STATES[self.state][1],
             'event': self.event.title,
-            'start': date(occ.start.date(), date_format),
-            'starttime': time(occ.start.time(), time_format),
-            'endtime': time(self.get_occurrence().end.time(), time_format),
+            'start': _date(occ.start.date(), 'SHORT_DATE_FORMAT'),
+            'starttime': _time(occ.start.time(), time_format),
+            'endtime': _time(self.get_occurrence().end.time(), time_format)
         }
     def short(self):
         return ugettext('%(name)s %(state)s') % {

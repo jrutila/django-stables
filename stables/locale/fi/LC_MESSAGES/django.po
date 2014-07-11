@@ -313,7 +313,7 @@ msgstr "l d.m.Y"
 
 #: models/participations.py:548
 msgid "TIME_FORMAT"
-msgstr "h:i"
+msgstr "H:i"
 
 #: models/participations.py:551
 #, python-format
