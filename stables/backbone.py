@@ -162,7 +162,12 @@ class ViewParticipation:
             if (saldo[1]):
                 self.finance_hint = unicode(saldo[1])
             elif saldo[2] > Decimal('0.00'):
-                self.finance_hint = _('Cash') + ' ' + str(saldo[2])
+                try:
+                    method = part.get_pay_transaction().method or _('Cash')
+                    method = method.title()
+                except IndexError:
+                    method = _('Cash')
+                self.finance_hint = method + ' ' + str(saldo[2])
             elif saldo[2] == Decimal('0.00'):
                 self.finance_hint = str(saldo[2])
             else:

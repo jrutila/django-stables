@@ -107,6 +107,11 @@ def get_saldo(self):
           content_type=ContentType.objects.get_for_model(self),
           object_id=self.id).prefetch_related('ticket_set'))
 
+def get_pay_transaction(self):
+    return Transaction.objects.filter(active=True,
+                                                   content_type=ContentType.objects.get_for_model(self),
+                                                   object_id=self.id, amount__gt=0)[0]
+
 def get_customer_saldo(self):
     return _count_saldo(self.transaction_set.all())[0]
 
@@ -144,6 +149,7 @@ def _get_customer_expired_unused_tickets(self):
 import participations
 from participations import Course, Participation
 Participation.get_saldo = get_saldo
+Participation.get_pay_transaction = get_pay_transaction
 RiderInfo.unused_tickets = property(_get_rider_valid_unused_tickets)
 RiderInfo.expired_tickets = property(_get_rider_expired_unused_tickets)
 CustomerInfo.unused_tickets = property(_get_customer_valid_unused_tickets)
