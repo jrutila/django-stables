@@ -321,7 +321,7 @@ var Event = Backbone.Model.extend({
     */
     url: function() {
         if (this.id != undefined)
-            return this.urlRoot()+this.id;
+            return this.urlRoot()+this.id+'/';
         return this.urlRoot();
     },
     urlRoot: function() {
