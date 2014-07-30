@@ -1,4 +1,5 @@
 {% load i18n staticfiles %}
+{% load stablestags %}
 
 <script type="text/html" id="ParticipationView">
     <div class="note" title="<%= note %>">
@@ -47,14 +48,25 @@
 
 <script type="text/html" id="FinancePopoverView">
   <div class="">
-    <div class=""><%= finance_hint %></div>
+    <div class=""><%= finance_hint %>
+        {% gatekeeper merchant %}
+        <% if (finance_hint < 0) { %>
+            <a href="#" class="pay pay_email" title="{% trans "Send payment link with email" %}"><i class="fa fa-envelope"></i></a>
+            <a href="#" class="pay pay_mobile" title="{% trans "Send payment link with sms" %}"><i class="fa fa-mobile"></i></a>
+            <input name="phone_number" class="addinfo" type="text" style="display: none" />
+            <input name="email_address" class="addinfo" type="text" style="display: none" />
+            <div class="confirm_message" style="display: none">Oletko varma?</div>
+            <button class="confirm" style="display: none">Lähetä</button>
+        <% } %>
+        {% endgatekeeper %}
+    </div>
 
     <div role="form">
     <% for (var t in pay_types) { %>
     <div class="input-group">
 
       <span class="input-group-btn">
-          <button type="button" class="btn" value="<%= t %>">
+          <button type="button" class="btn pay-button" value="<%= t %>">
           <% if (t == 0) { %>
           {% trans "Cash" %}
           <% } else { %>

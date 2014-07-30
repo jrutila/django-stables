@@ -61,7 +61,9 @@ var FinanceView = Backbone.View.extend({
         this.listenTo(this.model, "sync", this.render);
     },
     events: {
-        'click button': 'buttonClick',
+        'click .pay-button': 'buttonClick',
+        'click .confirm': 'pay',
+        'click .pay': "startPay"
     },
     buttonClick: function(ev) {
         var trg = $(ev.target);
@@ -70,6 +72,67 @@ var FinanceView = Backbone.View.extend({
             val = trg.parent().next().val();
         this.model.set('pay', val);
         this.model.save()
+    },
+    startPay: function(ev) {
+        var $link = $(ev.currentTarget)
+        var justConfirm = true;
+        if ($link.is('.pay_mobile')) {
+            this.method = 'mobile'
+            if (this.model.get('methods').indexOf('mobile') == -1) {
+                justConfirm = false;
+                $link.parent().find('[name="phone_number"]').show().focus()
+            }
+        } else if ($link.is('.pay_email')) {
+            if (this.model.get('methods').indexOf('email') == -1) {
+                justConfirm = false;
+                $link.parent().find('[name="email_address"]').show().focus()
+            }
+            this.method = 'email'
+        }
+        if (justConfirm) {
+            this.$el.find('.confirm_message').show();
+            this.$el.find('.addinfo').hide();
+        } else {
+            this.$el.find('.confirm_message').hide();
+        }
+        this.$el.find('.confirm').show();
+
+    },
+    pay: function(ev) {
+        var $this = $(ev.currentTarget)
+        var sendFunc = this.sendPaymentLink;
+        var model = this.model;
+        if (this.method == 'mobile') {
+            console.log('Pay with mobile')
+            if (this.model.get('methods').indexOf('mobile') == -1)
+            {
+                var pn = $this.parent().find('[name="phone_number"]').val()
+                if (pn)
+                    sendFunc(model, 'mobile', pn)
+            } else {
+                sendFunc(model, 'mobile')
+            }
+        } else if (this.method == 'email') {
+            console.log('Pay with email')
+            if (this.model.get('methods').indexOf('email') == -1)
+            {
+                var pn = $this.parent().find('[name="email_address"]').val()
+                if (pn)
+                    sendFunc(model, 'email', pn)
+            } else {
+                sendFunc(model, 'email')
+            }
+        }
+        return false
+    },
+    sendPaymentLink: function(model, method, extra) {
+        $.ajax({ method: 'POST', url: apiUrl+'paymentlink/',
+            contentType: 'application/json',
+            data: JSON.stringify({ 'method': method, 'extra': extra, 'participation_id': model.get('id') }),
+            dataType: 'json',
+            success: function(data) {
+                alert('Onnistui!');
+            }})
     },
     render: function() {
         this.$el.html(_.template($('#FinancePopoverView').html())(this.model.attributes))

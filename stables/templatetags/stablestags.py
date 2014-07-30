@@ -170,3 +170,28 @@ def qstring_get(qstring, key):
     if key not in qdict:
         return None
     return qdict[key]
+
+
+from django.template import Node
+class GKNode(Node):
+    def __init__(self, content, test):
+        self.content = content
+        self.test = test
+
+    def render(self, context):
+        if self.test:
+            return self.content.render(context)
+        return ""
+
+@register.tag
+def gatekeeper(parser, token):
+    import django_settings
+    tag, feature = token.contents.split()
+    content = parser.parse(['gatekeeper', 'endgatekeeper'])
+    parser.next_token()
+    test = False
+
+    if feature == 'merchant':
+        test = django_settings.exists('merchant_id')
+
+    return GKNode(content, test)

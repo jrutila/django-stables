@@ -551,13 +551,15 @@ class Participation(models.Model):
         occ = self.get_occurrence()
         if not occ:
           return ugettext('%(name)s %(state)s No Occurrence')
+        start = timezone.localtime(occ.start)
+        end = timezone.localtime(occ.end)
         return ugettext('%(name)s %(state)s %(event)s: %(start)s %(starttime)s - %(endtime)s') % {
             'name': self.participant,
             'state': PARTICIPATION_STATES[self.state][1],
             'event': self.event.title,
-            'start': _date(occ.start.date(), 'SHORT_DATE_FORMAT'),
-            'starttime': _time(occ.start.time(), time_format),
-            'endtime': _time(self.get_occurrence().end.time(), time_format)
+            'start': _date(start.date(), 'SHORT_DATE_FORMAT'),
+            'starttime': _time(start.time(), time_format),
+            'endtime': _time(end.time(), time_format)
         }
     def short(self):
         return ugettext('%(name)s %(state)s') % {

@@ -18,6 +18,7 @@ from stables.models import TicketType
 from stables.models import pay_participation
 from stables.models import Enroll
 from stables.models import Course
+from stables.models import financial
 from tastypie import fields
 from tastypie.bundle import Bundle
 from tastypie.cache import SimpleCache
@@ -289,6 +290,12 @@ class ViewFinance:
                 from stables.models import PARTICIPATION_STATES
                 self.finance_hint = PARTICIPATION_STATES[part.state][1]
 
+            self.methods = []
+            if part.participant.phone_number:
+                self.methods.append('mobile')
+            if part.participant.user.email:
+                self.methods.append('email')
+
 class FinanceResource(Resource):
     class Meta:
         resource_name = "financials"
@@ -301,6 +308,7 @@ class FinanceResource(Resource):
     pay = fields.CharField(attribute='pay', null=True)
     participation_url = fields.CharField(attribute='participation_url')
     finance_hint = fields.CharField(attribute='finance_hint', null=True)
+    methods = fields.ListField(attribute='methods')
 
     def obj_get(self, bundle, **kwargs):
         part = Participation.objects.get(pk=kwargs['pk'])
@@ -314,6 +322,72 @@ class FinanceResource(Resource):
         else:
             pay_participation(part, ticket=TicketType.objects.get(pk=pay))
         bundle.obj = ViewFinance(part)
+        return bundle
+
+class PaymentLinkObject():
+    pass
+
+class PaymentLinkResource(Resource):
+    participation_id = fields.IntegerField(attribute="participation_id")
+    method = fields.CharField(attribute="method")
+    url = fields.CharField(attribute="url")
+    extra = fields.CharField(attribute="extra", null=True)
+
+    class Meta:
+        resource_name = 'paymentlink'
+        authentication = ParticipationPermissionAuthentication()
+        object_class = PaymentLinkObject
+        always_return_data = True
+
+    def detail_uri_kwargs(self, bundle_or_obj):
+        kwargs = {}
+
+        if isinstance(bundle_or_obj, Bundle):
+            kwargs['pk'] = bundle_or_obj.obj.participation_id
+        else:
+            kwargs['pk'] = bundle_or_obj.participation_id
+        return kwargs
+
+    def obj_create(self, bundle, **kwargs):
+        from django.conf import settings
+        from django.utils.importlib import import_module
+        getPaymentLink = settings.PAYMENTLINK_METHOD
+        func_module, func_name = getPaymentLink.rsplit('.', 1)
+        mod = import_module(func_module)
+        #klass = getattr(mod, class_name)
+        funk = getattr(mod, func_name)
+        bundle.obj = PaymentLinkObject()
+        bundle.obj.method = bundle.data['method']
+        bundle.obj.participation_id = bundle.data['participation_id']
+        shortUrl = funk(bundle.obj.participation_id)
+        from django.core.urlresolvers import reverse
+        url = bundle.request.build_absolute_uri(reverse('shop-pay', kwargs={'hash': shortUrl.hash }))
+        bundle.obj.url = url
+        #TODO: Change to use settings implementations!
+        part = Participation.objects.get(pk=bundle.obj.participation_id)
+        if (bundle.obj.method == 'email'):
+            message = 'Go pay your participation %s at url: %s' % (part, url)
+            from django.core.mail import send_mail
+            if ('extra' in bundle.data):
+                part.participant.user.email = bundle.data['extra']
+                part.participant.user.save()
+            addr = part.participant.user.email
+            if addr:
+                send_mail('Subject', message, 'noreply@stables.fi', [addr])
+        elif (bundle.obj.method == "mobile"):
+            import django_settings
+            message = u'Go pay your participation %s using code "%s" (%s)' % (part, shortUrl.hash, url) #django_settings.get('part_pay_info'))
+            from django_twilio.client import twilio_client
+            if ('extra' in bundle.data):
+                part.participant.phone_number = bundle.data['extra']
+                part.participant.save()
+            nmbr = part.participant.phone_number
+            msg = twilio_client.messages.create(
+                body=message,
+                to=settings.TEST_SMS or nmbr,
+                from_='+358 45 73963377'
+            )
+            bundle.obj.extra = msg.sid
         return bundle
 
 class ParticipationResource(Resource):

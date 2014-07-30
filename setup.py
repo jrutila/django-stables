@@ -55,6 +55,7 @@ setup(
       'mimeparse',
       'djangorestframework',
       'django-phonenumber-field',
+      'django-twilio==0.7',
     ],
     zip_safe=False,
     dependency_links = [
