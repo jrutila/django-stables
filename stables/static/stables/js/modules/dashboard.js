@@ -65,7 +65,6 @@ var Day = Backbone.Model.extend({
         return data
     },
     defaults: {
-        events: new EventCollection(),
         limits: new DayLimits(),
     },
     getEventsInHour: function(hour) {
@@ -198,13 +197,15 @@ var WeekView = Backbone.View.extend({
         this.dayViews = {}
     },
     template: _.template($('#WeekView').html()),
+    createDayViews: function() {
+
+    },
     render: function() {
         this.$el.html(this.template(this.model.attributes))
         var $thead = $('<tr><th class="ui-time"></th></tr>')
         var that = this
         var $tbody = this.$el.find('tbody')
         var hours = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]
-        var daycount = 0
         this.model.get('days').each(function(day) {
             var $header = $("<th>"+moment(day.get('date')).format('l')+"</th>").appendTo($thead)
             $header.append("&nbsp;<a href='/p/daily/"+day.get('date')+"/'><i class='fa fa-print'></i></a>")
@@ -214,7 +215,6 @@ var WeekView = Backbone.View.extend({
                 day.fetch();
             });
             $header.append(ae.$el)
-            daycount++
             if (!(day.get('date') in that.$timeslots)) {
                 var $timeslot = {}
                 _.each(hours, function(h) {
@@ -225,10 +225,12 @@ var WeekView = Backbone.View.extend({
                 dayv.$timeslots = $timeslot
                 dayv.$header = $header
                 that.dayViews[day.get('date')] = dayv
+                if (dayv.model.has('events'))
+                    dayv.render()
             } else {
                 that.dayViews[day.get('date')].render()
             }
-        })
+        });
         this.$el.find('thead').append($thead)
         _.each(hours, function(h) {
             var $row = $('<tr><td class="ui-time">'+h+'</td></tr>').appendTo($tbody)
