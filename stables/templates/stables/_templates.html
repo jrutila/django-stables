@@ -51,8 +51,9 @@
     <div class=""><%= finance_hint %>
         {% gatekeeper merchant %}
         <% if (finance_hint < 0) { %>
-            <a href="#" class="pay pay_email" title="{% trans "Send payment link with email" %}"><i class="fa fa-envelope"></i></a>
-            <a href="#" class="pay pay_mobile" title="{% trans "Send payment link with sms" %}"><i class="fa fa-mobile"></i></a>
+            <a class="pay pay_email" title="{% trans "Send payment link with email" %}"><i class="fa fa-envelope"></i></a>
+            <a class="pay pay_mobile" title="{% trans "Send payment link with sms" %}"><i class="fa fa-mobile"></i></a>
+            <a class="pay pay_manual" title="{% trans "Copy payment link manually" %}"><i class="fa fa-link"></i></a>
             <input name="phone_number" class="addinfo" type="text" style="display: none" />
             <input name="email_address" class="addinfo" type="text" style="display: none" />
             <div class="confirm_message" style="display: none">Oletko varma?</div>

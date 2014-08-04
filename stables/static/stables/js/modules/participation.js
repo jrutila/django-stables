@@ -76,6 +76,7 @@ var FinanceView = Backbone.View.extend({
     startPay: function(ev) {
         var $link = $(ev.currentTarget)
         var justConfirm = true;
+        var noConfirm = false;
         if ($link.is('.pay_mobile')) {
             this.method = 'mobile'
             if (this.model.get('methods').indexOf('mobile') == -1) {
@@ -88,6 +89,12 @@ var FinanceView = Backbone.View.extend({
                 $link.parent().find('[name="email_address"]').show().focus()
             }
             this.method = 'email'
+        } else if ($link.is('.pay_manual')) {
+            justConfirm = false;
+            noConfirm = true;
+            this.sendPaymentLink(this.model, 'manual', {}, function(data) {
+                $link.after("<a href='"+data.url+"'>"+data.url+"</a>")
+            });
         }
         if (justConfirm) {
             this.$el.find('.confirm_message').show();
@@ -95,12 +102,16 @@ var FinanceView = Backbone.View.extend({
         } else {
             this.$el.find('.confirm_message').hide();
         }
-        this.$el.find('.confirm').show();
+        !noConfirm && this.$el.find('.confirm').show();
 
     },
     pay: function(ev) {
         var $this = $(ev.currentTarget)
         var sendFunc = this.sendPaymentLink;
+        var successFunc = function(data) {
+            alert('Lähetetty!');
+            $('.confirm_message, .confirm, .addinfo').hide();
+        }
         var model = this.model;
         if (this.method == 'mobile') {
             console.log('Pay with mobile')
@@ -108,9 +119,9 @@ var FinanceView = Backbone.View.extend({
             {
                 var pn = $this.parent().find('[name="phone_number"]').val()
                 if (pn)
-                    sendFunc(model, 'mobile', pn)
+                    sendFunc(model, 'mobile', pn, successFunc)
             } else {
-                sendFunc(model, 'mobile')
+                sendFunc(model, 'mobile', undefined, successFunc)
             }
         } else if (this.method == 'email') {
             console.log('Pay with email')
@@ -118,20 +129,20 @@ var FinanceView = Backbone.View.extend({
             {
                 var pn = $this.parent().find('[name="email_address"]').val()
                 if (pn)
-                    sendFunc(model, 'email', pn)
+                    sendFunc(model, 'email', pn, successFunc)
             } else {
-                sendFunc(model, 'email')
+                sendFunc(model, 'email', undefined, successFunc)
             }
         }
         return false
     },
-    sendPaymentLink: function(model, method, extra) {
+    sendPaymentLink: function(model, method, extra, done) {
         $.ajax({ method: 'POST', url: apiUrl+'paymentlink/',
             contentType: 'application/json',
             data: JSON.stringify({ 'method': method, 'extra': extra, 'participation_id': model.get('id') }),
             dataType: 'json',
             success: function(data) {
-                alert('Onnistui!');
+                done && done(data);
             }})
     },
     render: function() {
