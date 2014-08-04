@@ -123,3 +123,9 @@ button.close {
 select.warning {
     background-color: orange;
 }
+
+a.pay {
+    cursor: pointer;
+    margin-right: 7px;
+    font-size: large;
+}
