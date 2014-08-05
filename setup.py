@@ -45,7 +45,7 @@ setup(
     install_requires=[
       "Babel",
       "isoweek>=1.2.0",
-      'django-scheduler==0.7.1-1',
+      'django-scheduler==0.7.1-2',
       'django-reversion==1.7.1',
       'django-sekizai',
       'django-crispy-forms',
