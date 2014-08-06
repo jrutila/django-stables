@@ -56,6 +56,7 @@ setup(
       'djangorestframework',
       'django-phonenumber-field',
       'django-twilio==0.7',
+      'South==1.0',
     ],
     zip_safe=False,
     dependency_links = [
