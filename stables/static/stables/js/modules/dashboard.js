@@ -144,23 +144,41 @@ var DayView = Backbone.View.extend({
     },
 })
 
-var AddEventView = Backbone.View.extend({
+var AddEventButtonView = Backbone.View.extend({
     tagName: 'a',
     className: 'addevent',
-    render: function() {
-        this.$el.attr("href", "#")
-        this.$el.attr("data-target", "#AddEventView")
-        this.$el.attr("data-toggle", "modal")
-        this.$el.html("<i class='fa fa-plus'></i>")
-    },
     events: {
         'click': 'addEvent',
     },
+    render: function() {
+        this.$el.html("<i class='fa fa-plus'></i>")
+        this.$el.css('cursor', 'pointer');
+    },
     addEvent: function(ev) {
-        $("#AddEventView input, #AddEventView select").val("");
-        $("#AddEventView input[name='date']").val(this.model.get('date'));
-        $("#AddEventView form").off("submit");
-        $("#AddEventView form").on("submit", this.submitEvent.bind(this));
+        var v = new AddEventView({ 'model': this.model });
+        v.render();
+        var that = this;
+        v.on('eventAdded', function() {
+            that.trigger('eventAdded');
+        });
+    }
+})
+
+var AddEventView = Backbone.View.extend({
+    events: {
+        "submit": 'submitEvent'
+    },
+    render: function() {
+        var html, $oldel=this.$el, $newel;
+        html = _.template($('#AddEventView').html(), this.model.attributes)
+        $newel = $(html.trim());
+        this.setElement($newel);
+        $oldel.replaceWith($newel);
+        this.$el.modal('show');
+        var that = this;
+        this.$el.on('hidden.bs.modal', function() {
+            that.$el.remove();
+        });
     },
     submitEvent: function(ev) {
         var data = $(ev.target).serializeArray();
@@ -177,9 +195,9 @@ var AddEventView = Backbone.View.extend({
         e.save({}, { success: function(model, response) {
             console.log("SAVE SUCCESS");
             that.trigger("eventAdded");
+            that.$el.modal('hide');
         }
         });
-        $("#AddEventView").modal('hide');
         return false;
     },
 })
@@ -209,7 +227,7 @@ var WeekView = Backbone.View.extend({
         this.model.get('days').each(function(day) {
             var $header = $("<th>"+moment(day.get('date')).format('l')+"</th>").appendTo($thead)
             $header.append("&nbsp;<a href='/p/daily/"+day.get('date')+"/'><i class='fa fa-print'></i></a>")
-            var ae = new AddEventView({ model: new Backbone.Model({ date: day.get('date') }) })
+            var ae = new AddEventButtonView({ model: new Backbone.Model({ date: day.get('date') }) })
             ae.render()
             ae.on("eventAdded", function() {
                 day.fetch();

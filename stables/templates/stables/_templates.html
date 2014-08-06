@@ -133,7 +133,8 @@
     <span>{% trans "Horse <%= name %> is riding over it's limit of <%= limit %>" %}</span>
 </script>
 
-<div class="modal fade" id="AddEventView" role="dialog" aria-labelledby="ModalLabel" aria-hidden="true">
+<script type="text/html" id="AddEventView" >
+<div class="modal fade" role="dialog" aria-labelledby="ModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -144,7 +145,7 @@
                 <form role="form" id="addeventForm">
                     <div class="form-group">
                         <label for="addeventDate">{% trans "Date" %}</label>
-                        <input name="date" id="addeventDate" type="text" class="form-control" placeholder="{% trans "2014-12-31" %}" />
+                        <input name="date" id="addeventDate" type="text" class="form-control" placeholder="{% trans "2014-12-31" %}" value="<%= date %>"/>
                         <label for="addeventStart">{% trans "Start" %}</label>
                         <input name="start" id="addeventStart" type="text" class="form-control" placeholder="{% trans "00:00" %}" />
                         <label for="addeventEnd">{% trans "End" %}</label>
@@ -156,6 +157,10 @@
                     </ul>
                     <div class="tab-content">
                         <div class="tab-pane form-group active" id="event-tab">
+                            <!--
+                            <label for="addeventCost">{% trans "Cost" %}</label>
+                            <input name="cost" id="addeventCost" type="text" class="form-control" placeholder="{% trans "0.00" %}" />
+                            -->
                             <label for="addeventTitle">{% trans "Title" %}</label>
                             <input name="title" id="addeventTitle" type="text" class="form-control" />
                         </div>
@@ -177,3 +182,4 @@
         </div>
     </div>
 </div>
+</script>
