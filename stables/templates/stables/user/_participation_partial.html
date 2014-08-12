@@ -1,0 +1,12 @@
+{% load i18n stablestags %}
+{{ p }}
+{% if p.horse %}{{ p.horse }}{% endif %}
+{% with p.get_saldo as s %}
+    {% if s.0 %}
+        (<span class="alert">{{ s.0 }}</span> <a href="{% short_pay p %}">{% trans "Pay participation" %}</a>)
+    {% elif s.1 %}
+        ({{ s.1.type }})
+    {%  elif s.0 == None %}
+        {% participate_button p %}
+    {% endif %}
+{% endwith %}

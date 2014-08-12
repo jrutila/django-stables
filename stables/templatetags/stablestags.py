@@ -14,6 +14,8 @@ from stables.models import PARTICIPATION_STATES
 from stables.models import ATTENDING, CANCELED, RESERVED, SKIPPED
 
 import stables.models as enum
+from stables.utils import getPaymentLink
+
 register = template.Library()
 
 @register.inclusion_tag('stables/render_field.html')
@@ -58,9 +60,9 @@ def pay_button(context, participation, ticket_type=None):
     return { 'button': button }
 
 @register.inclusion_tag('stables/participate_button.html', takes_context=True)
-def participate_button(context, user, course=None, occurrence=None, redirect=None):
+def participate_button(context, participation, redirect=None):
     buttons = []
-    has_change_perm=context['request'].user.has_perm('stables.change_participation')
+    #has_change_perm=context['request'].user.has_perm('stables.change_participation')
 
     if redirect:
       try:
@@ -70,75 +72,38 @@ def participate_button(context, user, course=None, occurrence=None, redirect=Non
     else:
       redirect = context['request'].META.get('HTTP_REFERER', reverse('newboard'))
 
-    if not course and not occurrence:
-      # We have a participation on user
-      p = user
-      user = p.participant
-      course = p.event
-      occurrence = p.event.get_occurrences(p.start, p.end)[0]
+    states = participation.get_possible_states()
 
-    if isinstance(course, Event):
-      course = course.course_set.all()[0]
-
-    # If occurrence is none, this is participate button for course enroll
-    if occurrence:
-      occ = occurrence
-      states = course.get_possible_states(user, occ, has_change_perm)
-
-
-      participation_id = 0
-      start = None
-      end = None
-      p = Participation.objects.get_participation(user, occ)
-
-      if p:
-          participation_id = p.id
-          start = p.start
-          end = p.end
-          if p.state != SKIPPED and has_change_perm:
-            states.append(SKIPPED)
-
-      for s in states:
-          if s == ATTENDING:
-              btn_text = _('Attend')
-              action = reverse('stables.views.attend_course', args=[course.id])
-          elif s == SKIPPED:
-              btn_text = _('Skipped')
-              action = reverse('stables.views.skip', args=[course.id])
-          elif s == CANCELED:
-              btn_text = _('Cancel')
-              action = reverse('stables.views.cancel', args=[course.id])
-              if p and not has_change_perm:
-                  if Transaction.objects.filter(
-                      content_type=ContentType.objects.get_for_model(p),
-                      object_id=p.id).exists():
-                      action = reverse('stables.views.confirm', kwargs={'action':action})+"?"+urlencode({'title': ugettext('You still have to pay. Are you sure you want to cancel?').encode('utf-8')})
-          elif s == RESERVED:
-              btn_text = _('Reserve')
-              action = reverse('stables.views.attend_course', args=[course.id])
-          btn = { 'start': occ.start, 'end': occ.end, 'action': action, 'button_text': btn_text, 'participation_id': participation_id, 'username': user.user.username}
-          if redirect:
-              btn['redirect'] = redirect
-          buttons.append(btn)
-    else:
-      states = course.get_possible_states(user)
-      for s in states:
+    for s in states:
         if s == ATTENDING:
-          btn_text = _('Enroll')
-          action = reverse('stables.views.enroll_course', args=[course.id])
+          btn_text = _('Attend')
+          action = reverse('participation_attend', args=[participation.id])
         elif s == CANCELED:
           btn_text = _('Cancel')
-          action = reverse('stables.views.cancel', args=[course.id])
+          action = reverse('participation_cancel', args=[participation.id])
         elif s == RESERVED:
           btn_text = _('Reserve')
-          action = reverse('stables.views.enroll_course', args=[course.id])
-        buttons.append({'action': action, 'button_text': btn_text, 'username': user.user.username })
+          action = reverse('participation_attend', args=[participation.id])
+        btn = {
+            'start': participation.start,
+            'end': participation.end,
+            'action': action,
+            'button_text': btn_text,
+            'participation_id': participation.id,
+            'username': participation.participant.user.username}
+        if redirect:
+          btn['redirect'] = redirect
+        buttons.append(btn)
 
     return { 'buttons': buttons }
 
 @register.filter()
 def state(state):
   return PARTICIPATION_STATES[state][1]
+
+@register.simple_tag()
+def short_pay(participation):
+    return reverse('shop-pay', kwargs={ 'hash': getPaymentLink(participation.id).hash })
 
 from isoweek import Week
 @register.filter()

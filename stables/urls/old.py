@@ -1,6 +1,7 @@
 from django.conf.urls import *
 from django.views.generic import RedirectView
 from django.core.urlresolvers import reverse_lazy
+from stables.views import DefaultRedirectView
 
 urlpatterns = patterns('',
     url(r'^(?P<course_id>\d+)/enrolls/$', 'stables.views.modify_enrolls'),
@@ -14,6 +15,6 @@ urlpatterns = patterns('',
     url(r'^daily/$', 'stables.views.daily'),
     url(r'^daily/(?P<date>\d{4}-\d{2}-\d{2})/$', 'stables.views.daily'),
     url(r'^week/(?P<week>\d+)/$', 'stables.views.list_course'),
-    url(r'^$', RedirectView.as_view(url=reverse_lazy('newboard'))),
+    #url(r'^$', DefaultRedirectView.as_view()),
     url(r'^confirm/(?P<action>.*)/$', 'stables.views.confirm'),
 )

@@ -1,6 +1,6 @@
 from django.views.generic.edit import UpdateView
 from django.views.generic.edit import CreateView
-from django.views.generic import ListView
+from django.views.generic import ListView, RedirectView, View
 from django.views.generic import DetailView
 from django.contrib.auth.models import User
 #from django.utils.translation import ugettext_lazy as _
@@ -13,13 +13,22 @@ from stables.models import UserProfile
 from stables.models import Participation
 from stables.models import Transaction
 
-from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.decorators import permission_required, login_required
 from django.utils.decorators import method_decorator
 
 class UserEditorMixin(object):
     @method_decorator(permission_required('stables.change_userprofile'))
     def dispatch(self, request, *args, **kwargs):
         return super(UserEditorMixin, self).dispatch(request, *args, **kwargs)
+
+class HybridView(View):
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        if (request.user.is_staff):
+            return ListUser.as_view()(request, *args, **kwargs)
+        else:
+            kwargs["username"] = request.user.username;
+            return PlainViewUser.as_view()(request, *args, **kwargs)
 
 class EditUser(UserEditorMixin, UpdateView):
     template_name = 'stables/generic_form.html'
@@ -41,7 +50,7 @@ class AddUser(UserEditorMixin, CreateView):
                 form.fields[ff[i]].initial = orig[i]
         return super(AddUser, self).get_context_data(**kwargs)
 
-class ViewUser(UserEditorMixin, DetailView):
+class PlainViewUser(DetailView):
     template_name = 'stables/user/index.html'
     model = UserProfile
 
@@ -88,6 +97,10 @@ class ViewUser(UserEditorMixin, DetailView):
 
         return user
 
+class ViewUser(UserEditorMixin, PlainViewUser):
+    template_name = 'stables/user/index.html'
+    model = UserProfile
+
 class ListUser(UserEditorMixin, ListView):
     model = UserProfile
     template_name = 'stables/user/userprofile_list.html'
@@ -96,7 +109,7 @@ class ListUser(UserEditorMixin, ListView):
         query = """select p.*, SUM(CASE WHEN ti.id IS NULL THEN tr.amount ELSE 0.00 END) as saldo FROM
                 stables_userprofile p
                 INNER JOIN auth_user u ON u.id = p.user_id
-                LEFT OUTER JOIN stables_transaction tr ON tr.customer_id = p.customer_id AND tr.active = true
+                LEFT OUTER JOIN stables_transaction tr ON tr.customer_id = p.customer_id AND tr.active = 1
                 LEFT OUTER JOIN stables_ticket ti ON ti.transaction_id = tr.id
                 GROUP BY tr.customer_id, p.id, u.last_name ORDER BY u.last_name """
         from django.db.models.query import prefetch_related_objects

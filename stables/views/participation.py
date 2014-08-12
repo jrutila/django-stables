@@ -1,4 +1,7 @@
-from django.views.generic import DetailView
+# coding=utf-8
+from django.shortcuts import redirect, get_object_or_404
+from django.template import RequestContext
+from django.views.generic import DetailView, FormView, View
 from django.views.generic import TemplateView
 from django.views.generic import CreateView, DeleteView
 from django.contrib.contenttypes.models import ContentType
@@ -11,7 +14,9 @@ from stables.models import Transaction
 from stables.models import Accident
 from stables.models import InstructorParticipation
 from stables.models import PARTICIPATION_STATES
+from stables.models import CANCELED, ATTENDING, RESERVED
 from stables.models import Course
+from stables.views import LoginRequiredMixin, confirm_required
 import datetime
 from django.utils import timezone
 
@@ -34,6 +39,37 @@ class Newboard(DashboardMixin, TemplateView):
         ctx['courses'] = Course.objects.exclude(end__lt=timezone.now()).prefetch_related('events')
         ctx['courses'] = sorted(ctx['courses'], key=lambda c: (c.lastEvent.start.weekday(), c.lastEvent.start.time()) if c.lastEvent else (None, None))
         return ctx
+
+def cancel_ctx(request, id):
+    part = get_object_or_404(Participation, pk=id, participant__user=request.user)
+    return RequestContext(request, { 'msg': u"Oletko varma, että haluat peruuttaa tapahtuman "+part.__unicode__(), 'return_url': '/' })
+
+class CancelView(View):
+    @confirm_required('stables/confirm/confirm.html', cancel_ctx)
+    def dispatch(self, request, *args, **kwargs):
+        kwargs['participant__user'] = request.user
+        part = get_object_or_404(Participation, **kwargs)
+        if (CANCELED in part.get_possible_states()):
+            part.cancel()
+        else:
+            raise AttributeError
+        return redirect('/u/') # TODO: Fix me
+
+def attend_ctx(request, id):
+    part = get_object_or_404(Participation, pk=id, participant__user=request.user)
+    return RequestContext(request, { 'msg': u"Oletko varma, että haluat osallistua tapahtumaan "+part.get_occurrence().__unicode__(), 'return_url': '/' })
+
+class AttendView(View):
+    @confirm_required('stables/confirm/confirm.html', attend_ctx)
+    def dispatch(self, request, *args, **kwargs):
+        kwargs['participant__user'] = request.user
+        part = get_object_or_404(Participation, **kwargs)
+        states = part.get_possible_states()
+        if ATTENDING in states or RESERVED in states:
+            part.attend()
+        else:
+            raise AttributeError
+        return redirect('/u/') # TODO: Fix me
 
 class CreateEnroll(DashboardMixin, CreateView):
     model = Enroll

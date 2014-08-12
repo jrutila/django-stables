@@ -231,68 +231,6 @@ class Course(models.Model):
       else:
         return Enroll.objects.filter(Q(state=ATTENDING), course=self).count()
 
-    def get_possible_states(self, rider, occurrence=None, ignore_date_check=False):
-      if occurrence:
-        # If this course is in the past (end date gone), can't do anything
-        if not ignore_date_check and occurrence.end < timezone.now():
-            return []
-
-        enroll = self.enroll_set.filter(participant=rider)
-        isfull = self.is_full(occurrence)
-        riders = self.full_rider(occurrence)
-        p = Participation.objects.get_participation(rider, occurrence)
-        me = None
-
-        # If user is attending, can cancel
-        if p and p.state == ATTENDING:
-            return [CANCELED]
-
-        # If user has reserved and is in the list, can confirm or cancel
-        if p and p.state == RESERVED and rider in riders:
-            return [ATTENDING, CANCELED]
-        elif p and p.state == RESERVED:
-            return [CANCELED]
-
-        if p and p.state == CANCELED and isfull:
-            return [RESERVED]
-
-        if not enroll:
-            # If user is not enrolled and is not in the list
-            if isfull and rider not in riders:
-                return [RESERVED]
-            elif not isfull:
-                return [ATTENDING]
-        else:
-            enroll = enroll[0]
-            if not p:
-                if enroll.actual_state == ATTENDING:
-                    return [CANCELED]
-                elif enroll.actual_state == RESERVED:
-                    if rider not in riders:
-                        return [CANCELED]
-                    else:
-                        return [ATTENDING, CANCELED]
-
-        if not isfull:
-            return [ATTENDING]
-        else:
-            return [RESERVED]
-      else:
-        enroll = self.enroll_set.filter(participant=rider)
-        isfull = self.is_full()
-        c_attnd = Enroll.objects.filter(Q(state=ATTENDING) | Q(state=RESERVED), course=self)
-        if enroll:
-          enroll = enroll[0]
-          if enroll.state == ATTENDING:
-            return [CANCELED]
-          full = list(c_attnd.order_by('last_state_change_on')[0:self.max_participants])
-          if enroll.state == RESERVED:
-            if enroll in full:
-              return [ATTENDING, CANCELED]
-            return [CANCELED]
-        if isfull:
-          return [RESERVED]
-        return [ATTENDING]
 
     def attend(self, rider, occurrence):
         return Participation.objects.create_participation(rider, occurrence, ATTENDING)
@@ -605,6 +543,16 @@ class Participation(models.Model):
         reversion.set_comment("Canceled")
         self.save()
 
+    def attend(self):
+        if ATTENDING in self.get_possible_states():
+            self.state = ATTENDING
+        elif RESERVED in self.get_possible_states():
+            self.state = RESERVED
+        else:
+            raise AttributeError
+        reversion.set_comment("Attending")
+        self.save()
+
     def move(self, occ):
         self.event = occ.event
         self.start = occ.start
@@ -612,8 +560,23 @@ class Participation(models.Model):
         reversion.set_comment("Moved")
         self.save()
 
+    def get_possible_states(self):
+        course = self.event.course_set
+        course = course.all()[0] if course.exists() else None
+
+        # No possible states for old occurrences
+        if self.end < timezone.now():
+            return []
+
+        # If user is attending, can cancel
+        if self.state == ATTENDING:
+            return [CANCELED]
+
+        if self.state == CANCELED:
+            return [ATTENDING]
+
     def get_occurrence(self):
-        occ = self.event.get_occurrence(timezone.localtime(self.start))
+        occ = self.event.get_occurrence(self.start)
         if occ:
             return occ
         try:

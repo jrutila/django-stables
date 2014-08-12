@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load i18n sekizai_tags %}
+{% load stablestags %}
+{% block content %}
+    {{ msg }}
+
+    <form method="POST" action="">
+        {% csrf_token %}
+        <input type="hidden" name="__confirm__" value="1" />
+        <input type="submit" value="ok"/> <a href="{{ return_url }}">cancel</a>
+    </form>
+{% endblock content %}

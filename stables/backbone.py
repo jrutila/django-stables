@@ -47,6 +47,7 @@ import json
 from tastypie.authentication import SessionAuthentication
 
 import logging
+from stables.utils import getPaymentLink
 
 logger = logging.getLogger(__name__)
 
@@ -349,17 +350,10 @@ class PaymentLinkResource(Resource):
         return kwargs
 
     def obj_create(self, bundle, **kwargs):
-        from django.conf import settings
-        from django.utils.importlib import import_module
-        getPaymentLink = settings.PAYMENTLINK_METHOD
-        func_module, func_name = getPaymentLink.rsplit('.', 1)
-        mod = import_module(func_module)
-        #klass = getattr(mod, class_name)
-        funk = getattr(mod, func_name)
         bundle.obj = PaymentLinkObject()
         bundle.obj.method = bundle.data['method']
         bundle.obj.participation_id = bundle.data['participation_id']
-        shortUrl = funk(bundle.obj.participation_id)
+        shortUrl = getPaymentLink(bundle.obj.participation_id)
         from django.core.urlresolvers import reverse
         url = bundle.request.build_absolute_uri(reverse('shop-pay', kwargs={'hash': shortUrl.hash }))
         bundle.obj.url = url

@@ -118,6 +118,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.common.CommonMiddleware',
     'reversion.middleware.RevisionMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -160,7 +161,8 @@ INSTALLED_APPS = (
     'reversion',
     'crispy_forms',
     'djangobower',
-    #'debug_toolbar',
+    'django_settings',
+    'debug_toolbar',
 )
 
 if 'test' in sys.argv or 'harvest' in sys.argv:
@@ -179,6 +181,7 @@ NOSE_ARGS = [
         ]
 SOUTH_TESTS_MIGRATE = False
 
+PAYMENTLINK_METHOD = 'example.utils.getPaymentLink'
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to

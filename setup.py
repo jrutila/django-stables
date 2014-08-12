@@ -57,6 +57,7 @@ setup(
       'django-phonenumber-field',
       'django-twilio==0.7',
       'South==1.0',
+      'django_settings',
     ],
     zip_safe=False,
     dependency_links = [

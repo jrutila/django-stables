@@ -8,6 +8,7 @@ urlpatterns = patterns('',
     # Examples:
     # url(r'^$', 'example.views.home', name='home'),
     url(r'^', include('stables.urls')),
+    url(r'^pay/(?P<hash>\w+)$', 'example.payview.view', name='shop-pay'),
 
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),

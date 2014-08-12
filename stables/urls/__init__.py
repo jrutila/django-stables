@@ -29,3 +29,10 @@ urlpatterns = patterns('',
     url(r'^backbone/', include(v1_api.urls)),
     url(r'^api/', include('stables.urls.api')),
 )
+
+from django.conf import settings
+if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns += patterns('',
+        url(r'^__debug__/', include(debug_toolbar.urls)),
+    )
