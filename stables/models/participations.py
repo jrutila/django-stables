@@ -236,20 +236,7 @@ class Course(models.Model):
         return Participation.objects.create_participation(rider, occurrence, ATTENDING)
 
     def get_participation(self, rider, occurrence):
-        enroll = Enroll.objects.filter(participant=rider, course=self)
-        parti = Participation.objects.get_participation(rider, occurrence)
-        if (not enroll.exists() or enroll[0].state != ATTENDING) and not parti:
-          return None
-        if not parti and enroll[0].last_state_change_on > occurrence.start:
-          return None
-        if not parti:
-            parti = Participation()
-            parti.participant = rider
-            parti.event = occurrence.event
-            parti.start = occurrence.start
-            parti.end = occurrence.end
-            parti.note = ""
-        return parti
+        return Participation.objects.get_participation(rider, occurrence)
 
     def enroll(self, rider):
         (enroll, created) = Enroll.objects.get_or_create(participant=rider, course=self)
@@ -369,13 +356,6 @@ class ParticipationManager(models.Manager):
         # TODO: check out the possible states when user can attend himself
         pstates = [ATTENDING, CANCELED, SKIPPED] #self.get_possible_states(rider, occurrence)
         parti = Participation.objects.get_participation(rider, occurrence)
-        if not parti:
-            parti = Participation()
-            parti.participant = rider
-            parti.event = occurrence.event
-            parti.start = occurrence.start
-            parti.end = occurrence.end
-            parti.note = ""
 
         if state in pstates or force:
             reversion.set_comment("State change")
@@ -395,10 +375,28 @@ class ParticipationManager(models.Manager):
         return parti
 
     def get_participation(self, rider, occurrence):
-        parts = self.filter(participant=rider, start=occurrence.start, end=occurrence.end)
-        if not parts:
+        course = occurrence.event.course_set.all()
+        if course:
+            course = course[0]
+        enroll = Enroll.objects.filter(participant=rider, course=course)
+        parts = self.filter(participant=rider,
+                            event=occurrence.event,
+                            start=occurrence.start,
+                            end=occurrence.end)
+        if (not enroll.exists() or enroll[0].state != ATTENDING) and not parts:
             return None
-        return parts[0]
+        if not parts and enroll[0].last_state_change_on > occurrence.start:
+            return None
+        if not parts:
+            parti = Participation()
+            parti.participant = rider
+            parti.event = occurrence.event
+            parti.start = occurrence.start
+            parti.end = occurrence.end
+            parti.note = ""
+        else:
+            parti = parts[0]
+        return parti
 
     def get_participations(self, occurrence):
         return self.filter(start=occurrence.start, end=occurrence.end, ).order_by('last_state_change_on')
@@ -576,7 +574,7 @@ class Participation(models.Model):
             return [ATTENDING]
 
     def get_occurrence(self):
-        occ = self.event.get_occurrence(self.start)
+        occ = self.event.get_occurrence(timezone.get_current_timezone().normalize(self.start))
         if occ:
             return occ
         try:

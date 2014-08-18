@@ -15,6 +15,7 @@ from stables.models import ATTENDING, CANCELED, RESERVED, SKIPPED
 
 import stables.models as enum
 from stables.utils import getPaymentLink
+from django.utils import timezone
 
 register = template.Library()
 
@@ -79,8 +80,14 @@ def participate_button(context, participation, redirect=None):
           btn_text = _('Attend')
           action = reverse('participation_attend', args=[participation.id])
         elif s == CANCELED:
-          btn_text = _('Cancel')
-          action = reverse('participation_cancel', args=[participation.id])
+            btn_text = _('Cancel')
+            if participation.id:
+                action = reverse('participation_cancel', args=[participation.id])
+            else:
+                action = reverse('participation_cancel', kwargs={
+                    'event': participation.event.id,
+                    'start': timezone.make_naive(participation.start, timezone.get_current_timezone()).isoformat()
+                })
         elif s == RESERVED:
           btn_text = _('Reserve')
           action = reverse('participation_attend', args=[participation.id])

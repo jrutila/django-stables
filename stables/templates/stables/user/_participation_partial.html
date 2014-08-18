@@ -6,7 +6,10 @@
         (<span class="alert">{{ s.0 }}</span> <a href="{% short_pay p %}">{% trans "Pay participation" %}</a>)
     {% elif s.1 %}
         ({{ s.1.type }})
-    {%  elif s.0 == None %}
+    {%  elif s.0 == None and not request.user.is_staff %}
         {% participate_button p %}
+    {% endif %}
+    {% if perm.stables.change_participation %}
+        <a href="">edit</a>
     {% endif %}
 {% endwith %}

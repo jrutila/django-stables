@@ -1,4 +1,5 @@
 # coding=utf-8
+from django.http import Http404
 from django.shortcuts import redirect, get_object_or_404
 from django.template import RequestContext
 from django.views.generic import DetailView, FormView, View
@@ -19,6 +20,8 @@ from stables.models import Course
 from stables.views import LoginRequiredMixin, confirm_required
 import datetime
 from django.utils import timezone
+from dateutil import parser
+from schedule.models import Event
 
 from django.contrib.auth.decorators import permission_required
 from django.utils.decorators import method_decorator
@@ -40,24 +43,44 @@ class Newboard(DashboardMixin, TemplateView):
         ctx['courses'] = sorted(ctx['courses'], key=lambda c: (c.lastEvent.start.weekday(), c.lastEvent.start.time()) if c.lastEvent else (None, None))
         return ctx
 
-def cancel_ctx(request, id):
-    part = get_object_or_404(Participation, pk=id, participant__user=request.user)
+def get_participation(request, **kwargs):
+    if 'event' in kwargs:
+        d = parser.parse(kwargs['start'])
+        d = timezone.get_current_timezone().localize(d)
+        ev = Event.objects.get(pk=kwargs['event'])
+        occ = ev.get_occurrence(d)
+
+        try:
+            return Participation.objects.get_participation(request.user.get_profile(), occ)
+        except Participation.DoesNotExist:
+            raise Http404('No %s matches the given query.' % Participation._meta.object_name)
+    elif 'pk' in kwargs:
+        return get_object_or_404(Participation, pk=kwargs['pk'], participant__user=request.user)
+
+def cancel_ctx(request, **kwargs):
+    part = get_participation(request, **kwargs)
     return RequestContext(request, { 'msg': u"Oletko varma, että haluat peruuttaa tapahtuman "+part.__unicode__(), 'return_url': '/' })
 
 class CancelView(View):
     @confirm_required('stables/confirm/confirm.html', cancel_ctx)
     def dispatch(self, request, *args, **kwargs):
-        kwargs['participant__user'] = request.user
-        part = get_object_or_404(Participation, **kwargs)
+        part = get_participation(request, **kwargs)
+
         if (CANCELED in part.get_possible_states()):
             part.cancel()
         else:
             raise AttributeError
         return redirect('/u/') # TODO: Fix me
 
-def attend_ctx(request, id):
-    part = get_object_or_404(Participation, pk=id, participant__user=request.user)
-    return RequestContext(request, { 'msg': u"Oletko varma, että haluat osallistua tapahtumaan "+part.get_occurrence().__unicode__(), 'return_url': '/' })
+from django.utils import formats
+def attend_ctx(request, pk):
+    part = get_object_or_404(Participation, pk=pk, participant__user=request.user)
+    return RequestContext(request, { 'msg':
+                                         u"Oletko varma, että haluat osallistua tapahtumaan %s %s %s"
+                                         % (part.event.title,
+                                            formats.date_format(part.get_occurrence().start),
+                                            formats.time_format(part.get_occurrence().start)),
+                                     'return_url': '/' })
 
 class AttendView(View):
     @confirm_required('stables/confirm/confirm.html', attend_ctx)

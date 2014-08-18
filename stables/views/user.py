@@ -101,6 +101,9 @@ class ViewUser(UserEditorMixin, PlainViewUser):
     template_name = 'stables/user/index.html'
     model = UserProfile
 
+    def get_object(self, *args, **kwargs):
+        return super(ViewUser, self).get_object(*args, **self.kwargs)
+
 class ListUser(UserEditorMixin, ListView):
     model = UserProfile
     template_name = 'stables/user/userprofile_list.html'
@@ -109,7 +112,7 @@ class ListUser(UserEditorMixin, ListView):
         query = """select p.*, SUM(CASE WHEN ti.id IS NULL THEN tr.amount ELSE 0.00 END) as saldo FROM
                 stables_userprofile p
                 INNER JOIN auth_user u ON u.id = p.user_id
-                LEFT OUTER JOIN stables_transaction tr ON tr.customer_id = p.customer_id AND tr.active = 1
+                LEFT OUTER JOIN stables_transaction tr ON tr.customer_id = p.customer_id AND tr.active = true
                 LEFT OUTER JOIN stables_ticket ti ON ti.transaction_id = tr.id
                 GROUP BY tr.customer_id, p.id, u.last_name ORDER BY u.last_name """
         from django.db.models.query import prefetch_related_objects
