@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% load i18n stablestags %}
 {% block content %}
+<div class="widget">
+    <div class="widget-content">
+
 <h1>
     <span
         {% if object.inactive %}style="text-decoration:line-through"{% endif %}
@@ -79,4 +82,6 @@ Expired {{ name }}: {{ amount }} pcs (first expired: {{ expire_date }})
 {% endfor %}
 </ul>
 
+</div> <!-- widget-content -->
+</div>
 {% endblock %}
