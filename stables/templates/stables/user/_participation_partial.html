@@ -9,7 +9,7 @@
     {%  elif s.0 == None and not request.user.is_staff %}
         {% participate_button p %}
     {% endif %}
-    {% if perm.stables.change_participation %}
-        <a href="">edit</a>
+    {% if perms.stables.change_participation and p.id %}
+        <a href="{% url "view_participation" p.id %}">edit</a>
     {% endif %}
 {% endwith %}

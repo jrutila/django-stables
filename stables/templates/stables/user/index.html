@@ -4,7 +4,11 @@
 <h1>
     <span
         {% if object.inactive %}style="text-decoration:line-through"{% endif %}
-    >{{ object }}</span>
+    >{{ object }}
+        {% if perms.auth.edit_user %}
+        &nbsp;<a href="{% url "edit_user" object.user %}"><i class="fa fa-edit"></i></a>
+        {% endif %}
+    </span>
     {% ifnotequal object.customer object.rider.customer %}
     <small>
     (<a href="{{ object.rider.customer.user.get_absolute_url }}">{{ object.rider.customer.user }}</a>)
@@ -53,8 +57,10 @@
 {% endif %}
 
 <h3>{% trans "Saldo and tickets" %}</h3>
+{% if perms.stables.add_ticket %}
 <a href="{% url "add_tickets" username=object.user.username %}">{% trans "Add tickets" %}</a>
 <a href="{% url "edit_tickets" username=object.user.username %}">{% trans "Edit tickets" %}</a>
+{% endif %}
 {{ object.saldo }}
 <ul>
 {% for t, l in object.tickets.iteritems %}
