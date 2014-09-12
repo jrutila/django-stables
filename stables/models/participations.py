@@ -357,6 +357,15 @@ class ParticipationManager(models.Manager):
         pstates = [ATTENDING, CANCELED, SKIPPED] #self.get_possible_states(rider, occurrence)
         parti = Participation.objects.get_participation(rider, occurrence)
 
+        #TODO: To common function with get_participation
+        if not parti and force:
+            parti = Participation()
+            parti.participant = rider
+            parti.event = occurrence.event
+            parti.start = occurrence.start
+            parti.end = occurrence.end
+            parti.note = ""
+
         if state in pstates or force:
             reversion.set_comment("State change")
             parti.state = state
