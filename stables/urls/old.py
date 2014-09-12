@@ -15,6 +15,7 @@ urlpatterns = patterns('',
     url(r'^daily/$', 'stables.views.daily'),
     url(r'^daily/(?P<date>\d{4}-\d{2}-\d{2})/$', 'stables.views.daily'),
     url(r'^week/(?P<week>\d+)/$', 'stables.views.list_course'),
+    url(r'^$', RedirectView.as_view(url=reverse_lazy('newboard'))),
     #url(r'^$', DefaultRedirectView.as_view()),
     url(r'^confirm/(?P<action>.*)/$', 'stables.views.confirm'),
 )
