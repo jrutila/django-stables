@@ -64,6 +64,9 @@ class PlainViewUser(DetailView):
         setattr(user, 'next', [])
         if user.rider:
             user.next.append(Participation.objects.get_next_participation(user))
+            from stables_shop.models import TicketProductActivator
+            ordrs = TicketProductActivator.objects.filter(rider=user.rider).prefetch_related('order')
+            setattr(user, 'orders', ordrs)
 
         if user.customer:
             setattr(user, 'transactions', Transaction.objects.filter(
