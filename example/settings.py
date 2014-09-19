@@ -171,14 +171,16 @@ if 'test' in sys.argv or 'harvest' in sys.argv:
 if 'harvest' in sys.argv:
     INSTALLED_APPS += ('lettuce.django',)
 
-TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+#TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
+"""
 NOSE_ARGS = [
             '--with-doctest',
             '--nocapture',
             '--with-coverage',
             '--cover-package=stables',
         ]
+"""
 SOUTH_TESTS_MIGRATE = False
 
 PAYMENTLINK_METHOD = 'example.utils.getPaymentLink'
