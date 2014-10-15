@@ -7,7 +7,7 @@ from stables.models import InstructorParticipation
 from stables.models import InstructorInfo
 from stables.models import Horse
 from stables.models import Transaction
-from stables.models import ATTENDING, CANCELED, SKIPPED
+from stables.models import ATTENDING, CANCELED, SKIPPED, RESERVED
 from schedule.models import Event
 from schedule.models import Calendar
 from schedule.models import Occurrence
@@ -184,7 +184,7 @@ class ViewParticipation:
             else:
                 self.finance = '--'
                 self.alert_level = 'info'
-            if part.state == CANCELED:
+            if part.state == CANCELED or part.state == RESERVED:
                 self.alert_level = ''
 
             if part.id:

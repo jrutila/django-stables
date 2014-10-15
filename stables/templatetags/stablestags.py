@@ -65,6 +65,9 @@ def participate_button(context, participation, redirect=None):
     buttons = []
     #has_change_perm=context['request'].user.has_perm('stables.change_participation')
 
+    if not participation:
+        return { 'buttons': buttons }
+
     if redirect:
       try:
         redirect = reverse(redirect)

@@ -646,7 +646,7 @@ class CourseEnrollStateTest(TestCase):
     def runStates(self, table):
         (occ, users) = self.runHelper(table)
         for (i, u) in enumerate(users):
-            result = self.course.get_possible_states(u, occ)
+            result = Participation.objects.get_participation(u, occ).get_possible_states()
             self.assertEqual(set(result), set(table[i][2]), "user%d: %s %s" % (i, str(result), str(table[i][2])) )
 
     def testNextParticipations(self):
@@ -708,10 +708,10 @@ class CourseEnrollStateTest(TestCase):
     def testStates001(self):
         #        enroll    , part     , allowed
         data = [
-                [ ATTENDING, CANCELED , [ATTENDING] ],
-                [ ATTENDING, CANCELED , [ATTENDING] ],
+                [ ATTENDING, CANCELED , [RESERVED] ],
+                [ ATTENDING, CANCELED , [RESERVED] ],
                 [ RESERVED , None     , [ATTENDING, CANCELED] ],
-                [ None     , None     , [ATTENDING] ],
+                [ None     , None     , [RESERVED] ],
                ]
 
         self.runStates(data)

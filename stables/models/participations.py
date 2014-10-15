@@ -231,6 +231,25 @@ class Course(models.Model):
       else:
         return Enroll.objects.filter(Q(state=ATTENDING), course=self).count()
 
+    def can_attend(self, occurrence, rider):
+        p_part = Participation.objects.get_participations(occurrence).values_list('participant', flat=True)
+        p_attnd = Participation.objects.get_participations(occurrence).filter(Q(state=ATTENDING)).count()
+        c_attnd = Enroll.objects.filter(Q(state=ATTENDING), course=self).exclude(participant__in=p_part).count()
+        if (p_attnd + c_attnd >= self.max_participants):
+            return False
+        freespots = self.max_participants - p_attnd - c_attnd;
+        part_q = Participation.objects.filter(
+            Q(state=RESERVED),
+            event=occurrence.event,
+            start=occurrence.start, end=occurrence.end).order_by("last_state_change_on")
+        part = part_q[:freespots]
+        enroll = Enroll.objects.filter(Q(state=RESERVED), course=self).exclude(participant__in=p_part).exclude(participant__in=part)
+        if not part and not enroll: return True
+        if part and part_q.order_by("last_state_change_on")[0].participant == rider:
+            return True
+        if not part and enroll.earliest("last_state_change_on").participant == rider:
+            return True
+        return False
 
     def attend(self, rider, occurrence):
         return Participation.objects.create_participation(rider, occurrence, ATTENDING)
@@ -253,18 +272,17 @@ class Course(models.Model):
         return ('view_course', (), { 'pk': self.id })
 
 ATTENDING = 0
+RESERVED = 1
 SKIPPED = 2
 CANCELED = 3
 REJECTED = 4
-RESERVED = 5
 WAITFORPAY = 6
 PARTICIPATION_STATES = (
     (ATTENDING, ugettext('Attending')),
-    (-1, 'Obsolete'),
+    (RESERVED, ugettext('Reserved')),
     (SKIPPED, ugettext('Skipped')),
     (CANCELED, ugettext('Canceled')),
     (REJECTED, ugettext('Rejected')),
-    (RESERVED, ugettext('Reserved')),
 )
 ENROLL_STATES = (
     (WAITFORPAY, ugettext('Waiting for payment')),
@@ -392,10 +410,6 @@ class ParticipationManager(models.Manager):
                             event=occurrence.event,
                             start=occurrence.start,
                             end=occurrence.end)
-        if (not enroll.exists() or enroll[0].state != ATTENDING) and not parts:
-            return None
-        if not parts and enroll[0].last_state_change_on > occurrence.start:
-            return None
         if not parts:
             parti = Participation()
             parti.participant = rider
@@ -405,6 +419,12 @@ class ParticipationManager(models.Manager):
             parti.note = ""
         else:
             parti = parts[0]
+        if (not enroll.exists() or enroll[0].state != ATTENDING) and not parts:
+            parti.state = CANCELED
+            if (enroll.exists() and enroll[0].state == RESERVED):
+                parti.state = RESERVED
+        if not parts and enroll and enroll[0].last_state_change_on > occurrence.start:
+            parti.state = CANCELED
         return parti
 
     def get_participations(self, occurrence):
@@ -580,7 +600,14 @@ class Participation(models.Model):
             return [CANCELED]
 
         if self.state == CANCELED:
+            if course and not course.can_attend(self.get_occurrence(), self.participant):
+                return [RESERVED]
             return [ATTENDING]
+
+        if self.state == RESERVED:
+            if course and not course.can_attend(self.get_occurrence(), self.participant):
+                return [CANCELED]
+            return [ATTENDING, CANCELED]
 
     def get_occurrence(self):
         occ = self.event.get_occurrence(timezone.get_current_timezone().normalize(self.start))
