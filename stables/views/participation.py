@@ -1,4 +1,5 @@
 # coding=utf-8
+from django.core.exceptions import PermissionDenied
 from django.http import Http404
 from django.shortcuts import redirect, get_object_or_404
 from django.template import RequestContext
@@ -23,12 +24,14 @@ from django.utils import timezone
 from dateutil import parser
 from schedule.models import Event
 
-from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
 class DashboardMixin(object):
-    @method_decorator(permission_required('stables.change_participation'))
+    @method_decorator(login_required())
     def dispatch(self, request, *args, **kwargs):
+        if not request.user.has_perm('stables.change_participation'):
+            return redirect('user_default')
         return super(DashboardMixin, self).dispatch(request, *args, **kwargs)
 
 class Newboard(DashboardMixin, TemplateView):
