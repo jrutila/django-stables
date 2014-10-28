@@ -36,12 +36,6 @@ def render_response(req, *args, **kwargs):
     kwargs['context_instance'] = RequestContext(req)
     return render_to_response(*args, **kwargs)
 
-@require_POST
-def confirm(request, action):
-    context = dict(request.POST)
-    del context[u'csrfmiddlewaretoken']
-    return render(request, 'stables/confirm.html', { 'action': action, 'title': request.GET['title'],'back': request.META['HTTP_REFERER'], 'context': context })
-
 def add_horse(request):
     if request.method == "POST":
         form = HorseForm(request.POST)

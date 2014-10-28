@@ -2,11 +2,23 @@
 {% load i18n sekizai_tags %}
 {% load stablestags %}
 {% block content %}
-    {{ msg }}
+
+<div class="col-md-12">
+
+<div class="widget">
+    <div class="widget-content">
+
+    <p class="">{{ msg }}</p>
 
     <form method="POST" action="">
         {% csrf_token %}
         <input type="hidden" name="__confirm__" value="1" />
-        <input type="submit" value="ok"/> <a href="{{ return_url }}">cancel</a>
+        <input class="btn btn-primary col-xs-6 col-md-1" type="submit" value="ok"/> <a class="btn btn-default col-xs-6 col-md-1" href="{{ return_url }}">{% trans "back" %}</a>
     </form>
+
+    </div>
+</div>
+
+</div>
+
 {% endblock content %}
