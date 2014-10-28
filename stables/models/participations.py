@@ -247,7 +247,7 @@ class Course(models.Model):
         if not part and not enroll: return True
         if part and part_q.order_by("last_state_change_on")[0].participant == rider:
             return True
-        if not part and enroll.earliest("last_state_change_on").participant == rider:
+        if not part and enroll.order_by("last_state_change_on")[0].participant == rider:
             return True
         return False
 
