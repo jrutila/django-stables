@@ -59,12 +59,12 @@ class PlainViewUser(DetailView):
         user = user.get_profile()
         CustomerInfo.objects.filter(id=user.customer.id).prefetch_related('transaction_set', 'transaction_set__ticket_set')
         pmore = self.request.GET.get('pmore', 5)
-        tmore = self.request.GET.get('tmore', 5)
+        tmore = int(self.request.GET.get('tmore', 3))
 
         setattr(user, 'next', [])
         if user.rider:
-            nxt = Participation.objects.get_next_participation(user)
-            if nxt: user.next.append(nxt)
+            nxt = Participation.objects.get_next_participation(user, limit=tmore)
+            user.next = nxt
             from stables_shop.models import TicketProductActivator
             ordrs = TicketProductActivator.objects.filter(rider=user.rider).prefetch_related('order')
             setattr(user, 'orders', ordrs)
@@ -80,8 +80,9 @@ class PlainViewUser(DetailView):
             setattr(user, 'expired_tickets', user.customer.expired_tickets)
             setattr(user, 'saldo', user.customer.saldo)
             for rdr in user.customer.riderinfo_set.all():
-              if rdr.user != user:
-                user.next.append(Participation.objects.get_next_participation(rdr.user))
+                if rdr.user != user:
+                    nxt = Participation.objects.get_next_participation(rdr.user, limit=tmore)
+                    user.next.extend(nxt)
         elif user.rider:
             setattr(user, 'participations', Participation.objects.filter(
               participant=user).order_by('-start').select_related()[:pmore])

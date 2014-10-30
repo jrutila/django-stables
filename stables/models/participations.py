@@ -178,16 +178,24 @@ class Course(models.Model):
             res = { 'start': event[0].start, 'end': event[0].end }
         return res
 
-    def get_next_occurrence(self):
+    def get_next_occurrences(self, limit):
         occurrences = []
         for e in self.events.all():
-            occ = next(e.occurrences_after(timezone.localtime(timezone.now())), None)
-            if occ:
-              occurrences.append(occ)
+            it = e.occurrences_after(timezone.localtime(timezone.now()))
+            for i in range(0, limit):
+                occ = next(it, None)
+                if occ:
+                    occurrences.append(occ)
         occurrences.sort(key=lambda occ: occ.start)
         if len(occurrences) < 1:
-          return None
-        return occurrences[0]
+            return None
+        return occurrences[:limit]
+
+    def get_next_occurrence(self):
+        nxt = self.get_next_occurrences(1)
+        if nxt:
+            return nxt[0]
+        return None
 
     def full_rider(self, occurrence, nolimit=False, include_statenames=False):
         p_query = Participation.objects.get_participations(occurrence).order_by('last_state_change_on')
@@ -430,34 +438,21 @@ class ParticipationManager(models.Manager):
     def get_participations(self, occurrence):
         return self.filter(start=occurrence.start, end=occurrence.end, ).order_by('last_state_change_on')
 
-    def get_next_participation(self, rider, start=None):
+    def get_next_participation(self, rider, start=None, limit=3):
         enrolls = list(Enroll.objects.filter(participant=rider, state=ATTENDING).prefetch_related('course', 'course__events', 'course__events__rule', 'course__events__occurrence_set'))
-        next_occ = None
-        next_part = None
+        next_part = []
+        parts = list(Participation.objects.filter(participant=rider, start__gte=datetime.datetime.now()).select_related())
+        next_part.extend(parts)
         for e in enrolls:
-          n = e.course.get_next_occurrence()
-          if not n:
-            continue
-          if not next_occ or next_occ.start > n.start:
-            next_occ = n 
-        parts = Participation.objects.filter(participant=rider, start__gte=datetime.datetime.now()).select_related()
-        for p in parts:
-          n = next(p.event.occurrences_after(timezone.localtime(timezone.now())), None)
-          if not n:
-            continue
-          if not next_occ or next_occ.start >= n.start:
-            next_occ = n 
-            next_part = p
-        if not next_occ:
-          return None
-        if next_part:
-          return next_part
-        part = Participation()
-        part.participant = rider
-        part.event = next_occ.event
-        part.start = next_occ.start
-        part.end = next_occ.end
-        return part
+            n = e.course.get_next_occurrences(limit)
+            if not n:
+                continue
+            for occ in n:
+                part = self.get_participation(rider, occ)
+                if not any(part == p for p in parts):
+                    next_part.append(part)
+        next_part.sort(key=lambda p: p.start)
+        return next_part
 
     move = part_move
     cancel = part_cancel
