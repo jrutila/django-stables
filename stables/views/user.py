@@ -1,4 +1,5 @@
-from django.views.generic.edit import UpdateView
+from django.forms import Form
+from django.views.generic.edit import UpdateView, FormView
 from django.views.generic.edit import CreateView
 from django.views.generic import ListView, RedirectView, View
 from django.views.generic import DetailView
@@ -7,6 +8,7 @@ from django.contrib.auth.models import User
 from datetime import datetime
 from collections import defaultdict
 from stables.models.user import CustomerInfo
+from django.core.urlresolvers import reverse
 
 from stables.forms import UserProfileForm
 from stables.models import UserProfile
@@ -49,6 +51,18 @@ class AddUser(UserEditorMixin, CreateView):
             for i in range(0, len(orig)):
                 form.fields[ff[i]].initial = orig[i]
         return super(AddUser, self).get_context_data(**kwargs)
+
+class ActivateUser(FormView):
+    form_class = Form
+
+    def form_valid(self, form):
+        user = User.objects.filter(username=self.kwargs['username'])[0]
+        user.is_active = True
+        user.save()
+        return super(ActivateUser, self).form_valid(form)
+
+    def get_success_url(self):
+        return reverse('view_user', kwargs=self.kwargs)
 
 class PlainViewUser(DetailView):
     template_name = 'stables/user/index.html'
