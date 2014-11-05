@@ -113,7 +113,7 @@ def state(state):
 
 @register.simple_tag()
 def short_pay(participation):
-    return reverse('shop-pay', kwargs={ 'hash': getPaymentLink(participation.id).hash })
+    return getPaymentLink(participation.id)
 
 from isoweek import Week
 @register.filter()
