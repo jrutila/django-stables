@@ -52,8 +52,12 @@ class FinanceReport(reportengine.Report):
         return rows,(("total", len(rows)),)
 
 class FakeTicket():
+    def __init__(self, trans):
+        self.method = trans.method
+        if not self.method:
+            self.method = ugettext("Cash")
     def __unicode__(self):
-        return ugettext("Cash")
+        return self.method
 
 class PaymentTypeReport(FinanceReport):
     namespace = 'stables'
@@ -66,7 +70,7 @@ class PaymentTypeReport(FinanceReport):
         tckts = trans.ticket_set.all()
         if (tckts.count() == 0):
             if trans.amount >= 0:
-                return FakeTicket()
+                return FakeTicket(trans)
             return None
         return tckts[0].type
 
