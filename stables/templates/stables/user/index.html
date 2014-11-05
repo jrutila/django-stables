@@ -102,6 +102,7 @@ Expired {{ name }}: {{ amount }} pcs (first expired: {{ expire_date }})
     </thead>
     <tbody>
     {% for o in object.orders %}
+        <tr>
         <td>{{ o.order.id }}</td>
         <td>{{ o.order.created }}</td>
         <td>{{ o.order.get_status_display }}</td>
@@ -111,6 +112,7 @@ Expired {{ name }}: {{ amount }} pcs (first expired: {{ expire_date }})
             {% endfor %}
         </td>
         <td>{{ o.order.order_total }}&euro;</td>
+        </tr>
     {% endfor %}
     </tbody>
     </table>
