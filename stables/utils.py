@@ -1,6 +1,6 @@
 __author__ = 'jorutila'
 
-def getPaymentLink(participation_id):
+def getPaymentLink(participation_id, create=False):
     from django.conf import settings
     from django.utils.importlib import import_module
     getPaymentLink = settings.PAYMENTLINK_METHOD
@@ -8,5 +8,5 @@ def getPaymentLink(participation_id):
     mod = import_module(func_module)
     #klass = getattr(mod, class_name)
     funk = getattr(mod, func_name)
-    shortUrl = funk(participation_id)
+    shortUrl = funk(participation_id, create)
     return shortUrl

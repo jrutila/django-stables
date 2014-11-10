@@ -354,8 +354,7 @@ class PaymentLinkResource(Resource):
         bundle.obj.method = bundle.data['method']
         bundle.obj.participation_id = bundle.data['participation_id']
         shortUrl = getPaymentLink(bundle.obj.participation_id)
-        from django.core.urlresolvers import reverse
-        url = bundle.request.build_absolute_uri(reverse('shop-pay', kwargs={'hash': shortUrl.hash }))
+        url = bundle.request.build_absolute_uri(shortUrl)
         bundle.obj.url = url
         #TODO: Change to use settings implementations!
         part = Participation.objects.get(pk=bundle.obj.participation_id)
@@ -370,7 +369,7 @@ class PaymentLinkResource(Resource):
                 send_mail('Subject', message, 'noreply@stables.fi', [addr])
         elif (bundle.obj.method == "mobile"):
             import django_settings
-            message = u'Go pay your participation %s using code "%s" (%s)' % (part, shortUrl.hash, url) #django_settings.get('part_pay_info'))
+            message = u'Go pay your participation %s using (%s)' % (part, url) #django_settings.get('part_pay_info'))
             from django_twilio.client import twilio_client
             if ('extra' in bundle.data):
                 part.participant.phone_number = bundle.data['extra']
