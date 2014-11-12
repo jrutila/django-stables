@@ -103,15 +103,15 @@ Expired {{ name }}: {{ amount }} pcs (first expired: {{ expire_date }})
     <tbody>
     {% for o in object.orders %}
         <tr>
-        <td>{{ o.order.id }}</td>
-        <td>{{ o.order.created }}</td>
-        <td>{{ o.order.get_status_display }}</td>
+        <td>{{ o.id }}</td>
+        <td>{{ o.created }}</td>
+        <td>{{ o.get_status_display }}</td>
         <td>
-            {% for i in o.order.items.all %}
+            {% for i in o.items.all %}
             {{ i.product_name }}<br/>
             {% endfor %}
         </td>
-        <td>{{ o.order.order_total }}&euro;</td>
+        <td>{{ o.order_total }}&euro;</td>
         </tr>
     {% endfor %}
     </tbody>

@@ -80,8 +80,11 @@ class PlainViewUser(DetailView):
             nxt = Participation.objects.get_next_participation(user, limit=tmore)
             user.next = nxt
             from stables_shop.models import TicketProductActivator
-            ordrs = TicketProductActivator.objects.filter(rider=user.rider).prefetch_related('order')
-            setattr(user, 'orders', ordrs)
+            tcks = TicketProductActivator.objects.filter(rider=user.rider).select_related('order', 'order__items')
+            ordrs = set()
+            ordrs_add = ordrs.add
+            o = [ t.order for t in tcks if not (t.order in ordrs or ordrs_add(t.order)) ]
+            setattr(user, 'orders', o)
 
         if user.customer:
             setattr(user, 'transactions', Transaction.objects.filter(
