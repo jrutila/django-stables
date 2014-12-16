@@ -157,7 +157,7 @@ class InstructorParticipationAdmin(admin.ModelAdmin):
 
 class TransactionAdmin(reversion.VersionAdmin):
   list_display = ('customer', 'amount', 'source', 'active')
-  search_fields = ['customer__userprofile__user__first_name', 'customer__userprofile__user__last_name',]
+  search_fields = ['customer__user__user__first_name', 'customer__user__user__last_name',]
   ordering = ['-created_on']
 
 class ParticipationTransactionActivatorAdminForm(forms.ModelForm):
