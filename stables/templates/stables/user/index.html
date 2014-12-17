@@ -108,7 +108,7 @@ Expired {{ name }}: {{ amount }} pcs (first expired: {{ expire_date }})
         <td>{{ o.get_status_display }}</td>
         <td>
             {% for i in o.items.all %}
-            {{ i.product_name }}<br/>
+            {{ i.product_name }}{% if i.quantity > 1 %} ({{ i.quantity }} kpl){% endif %}<br/>
             {% endfor %}
         </td>
         <td>{{ o.order_total }}&euro;</td>
