@@ -68,6 +68,7 @@ class CourseForm(forms.ModelForm):
                 starttime=self.cleaned_data['starttime']
                ,endtime=self.cleaned_data['endtime']
                ,since=self.cleaned_data['take_into_account'])
+        self.save_m2m()
         return instance
 
     def clean_take_into_account(self):
