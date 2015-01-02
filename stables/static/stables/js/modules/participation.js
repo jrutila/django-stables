@@ -61,9 +61,30 @@ var FinanceView = Backbone.View.extend({
         this.listenTo(this.model, "sync", this.render);
     },
     events: {
-        'click .pay-button': 'buttonClick',
+        'click .resolve': 'resolve',
         'click .confirm': 'pay',
-        'click .pay': "startPay"
+        'click .pay': "startPay",
+        'click .method': "changeMethod",
+        'keyup input.method': "changeMethod",
+    },
+    changeMethod: function(ev) {
+        var val = "";
+        if ($(ev.target).is('a')) {
+            val = $(ev.target).attr('data-method');
+        } else if ($(ev.target).is('input')) {
+            val = $(ev.target).val();
+        }
+        this.$el.find(".resolve").html(val);
+        this.$el.find(".resolve").attr("data-method", val);
+        return false;
+    },
+    resolve: function(ev) {
+        this.model.set("method", $(ev.currentTarget).attr('data-method'));
+        var val = $(ev.target).attr('data-method');
+        var amount = this.$el.find('.amount').val();
+        this.model.set('method', val);
+        this.model.set('amount', amount);
+        this.model.save();
     },
     buttonClick: function(ev) {
         var trg = $(ev.target);

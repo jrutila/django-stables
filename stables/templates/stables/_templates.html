@@ -48,7 +48,7 @@
 
 <script type="text/html" id="FinancePopoverView">
   <div class="">
-    <div class=""><%= finance_hint %>
+      <div class=""><%= finance_hint %>
         {% gatekeeper merchant %}
         <% if (finance_hint < 0) { %>
             <a class="pay pay_email" title="{% trans "Send payment link with email" %}"><i class="fa fa-envelope"></i></a>
@@ -60,30 +60,39 @@
             <button class="confirm" style="display: none">Lähetä</button>
         <% } %>
         {% endgatekeeper %}
-    </div>
+      </div>
 
-    <div role="form">
-    <% for (var t in pay_types) { %>
-    <div class="input-group">
+      <div role="form">
+          <div class="input-group">
+              <div class="input-group-btn">
+                   <input type="hidden" name="method" value="<%= method %>" />
+                   <button type="button" data-method="" class="btn btn-default resolve">{% trans "Cash" %}</button>
+                   <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                       <span class="caret"></span>
+                       <span class="sr-only">{% trans "Select payment method" %}</span>
+                   </button>
+                   <ul class="dropdown-menu" role="menu">
+                        <li><a href="#" class="method" data-method="">{% trans "Cash" %}</a></li>
+                        <li><a href="#" class="method" data-method="tilisiirto">Tilisiirto</a></li>
+                        <li><a href="#" class="method" data-method="smartum">Smartum</a></li>
+                        <li class="divider"></li>
+                        <li><input type="text" class="method" placeholder="{% trans "Other" %}" /></li>
+                   </ul>
+              </div>
+              <input type="text" class="form-control amount" value="<%= amount %>" placeholder="0.00"/>
+          </div>
+          <div class="input-group">
+              <% for (var t in tickets) { %>
+                <button class="resolve" data-method="<%= t %>"><%= tickets[t] %></button>
+              <% } %>
+          </div>
+      </div>
+  </div>
 
-      <span class="input-group-btn">
-          <button type="button" class="btn pay-button" value="<%= t %>">
-          <% if (t == 0) { %>
-          {% trans "Cash" %}
-          <% } else { %>
-          <%= pay_types[t] %>
-          <% } %>
-          </button>
-      </span>
-      <% if (t == 0) { %>
-          <input type="text" class="form-control" value="<%= pay_types[t] %>" placeholder="0.00"/>
-      <% } %>
-    </div>
-    <% } %>
-    </div>
 
     <div>
     <div>
+
     <textarea name="note"><%= note %></textarea>
     </div>
     <a href="<%= participation_url %>">{% trans "details" %}</a>

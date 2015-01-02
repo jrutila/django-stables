@@ -266,13 +266,13 @@ class ViewFinance:
             saldo, ticket, value = part.get_saldo()
             if value:
                 value = value.quantize(Decimal('0.01'))
-            self.pay_types = {}
-            self.pay_types[0] = Decimal('0.00')
+            self.tickets = {}
+            self.method = ""
 
             unused = part.participant.rider.unused_tickets
             for u in unused:
                 if (not ticket) or (ticket.type != u.type):
-                    self.pay_types[u.type.id] = u.type.name
+                    self.tickets[u.type.id] = u.type.name
             self.participation_url = part.get_absolute_url()
             self.finance_hint = str(value)
             if saldo < Decimal('0.00'):
@@ -280,22 +280,23 @@ class ViewFinance:
 
             if ticket:
                 if value:
-                    self.pay_types[0] = value
+                    self.amount = value
+                self.method = ticket.type.id
                 self.finance_hint = unicode(ticket)
             else:
                 if value == None or saldo < Decimal('0.00'):
-                    self.pay_types[0] = value
+                    self.amount = value
 
             if part.state != ATTENDING and part.state != SKIPPED:
-                self.pay_types = []
+                self.tickets = {}
                 from stables.models import PARTICIPATION_STATES
                 self.finance_hint = PARTICIPATION_STATES[part.state][1]
 
-            self.methods = []
+            self.linkmethods = []
             if part.participant.phone_number:
-                self.methods.append('mobile')
+                self.linkmethods.append('mobile')
             if part.participant.user.email:
-                self.methods.append('email')
+                self.linkmethods.append('email')
 
 class FinanceResource(Resource):
     class Meta:
@@ -305,11 +306,14 @@ class FinanceResource(Resource):
         authentication = ParticipationPermissionAuthentication()
 
     id = fields.IntegerField(attribute='id')
-    pay_types = fields.DictField(attribute='pay_types', null=True)
-    pay = fields.CharField(attribute='pay', null=True)
-    participation_url = fields.CharField(attribute='participation_url')
     finance_hint = fields.CharField(attribute='finance_hint', null=True)
-    methods = fields.ListField(attribute='methods')
+    participation_url = fields.CharField(attribute='participation_url')
+
+    amount = fields.CharField(attribute='amount', null=True)
+    method = fields.CharField(attribute='method')
+
+    tickets = fields.DictField(attribute='tickets', null=True)
+    linkmethods = fields.ListField(attribute='linkmethods')
 
     def obj_get(self, bundle, **kwargs):
         part = Participation.objects.get(pk=kwargs['pk'])
@@ -317,11 +321,12 @@ class FinanceResource(Resource):
 
     def obj_update(self, bundle, request=None, **kwargs):
         part = Participation.objects.get(pk=kwargs['pk'])
-        pay = bundle.data['pay']
-        if '.' in pay:
-            pay_participation(part, value=Decimal(pay))
-        else:
-            pay_participation(part, ticket=TicketType.objects.get(pk=pay))
+        amount = bundle.data['amount']
+        method = bundle.data['method']
+        try:
+            pay_participation(part, ticket=TicketType.objects.get(pk=int(method)))
+        except ValueError:
+            pay_participation(part, value = Decimal(amount) if amount != "" else None, method=method)
         bundle.obj = ViewFinance(part)
         return bundle
 

@@ -121,6 +121,8 @@ class Course(models.Model):
 
     def _endLastEvent(self, since):
         last_event = self._getLastEvent()
+        if type(since) is datetime.date:
+            since = datetime.datetime.combine(since, datetime.time())
         if timezone.is_naive(since):
             since = timezone.get_current_timezone().localize(since)
         if last_event:
