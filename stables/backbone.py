@@ -277,6 +277,13 @@ class ViewFinance:
             self.finance_hint = str(value)
             if saldo < Decimal('0.00'):
                 self.finance_hint = str(saldo)
+            else:
+                try:
+                    method = part.get_pay_transaction().method or _('Cash')
+                    method = method.title()
+                except IndexError:
+                    method = _('Cash')
+                self.finance_hint = method + " " + str(value)
 
             if ticket:
                 if value:
@@ -326,7 +333,7 @@ class FinanceResource(Resource):
         try:
             pay_participation(part, ticket=TicketType.objects.get(pk=int(method)))
         except ValueError:
-            pay_participation(part, value = Decimal(amount) if amount != "" else None, method=method)
+            pay_participation(part, value = Decimal(amount) if amount != "" else None, method=method.lower())
         bundle.obj = ViewFinance(part)
         return bundle
 

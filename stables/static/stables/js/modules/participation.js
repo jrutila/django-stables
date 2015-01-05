@@ -74,8 +74,10 @@ var FinanceView = Backbone.View.extend({
         } else if ($(ev.target).is('input')) {
             val = $(ev.target).val();
         }
-        this.$el.find(".resolve").html(val);
-        this.$el.find(".resolve").attr("data-method", val);
+        var res = this.$el.find(".resolve:first");
+        var title = val ? val : res.attr("data-title");
+        res.html(title.charAt(0).toUpperCase()+title.slice(1));
+        res.attr("data-method", val);
         return false;
     },
     resolve: function(ev) {

@@ -66,15 +66,16 @@
           <div class="input-group">
               <div class="input-group-btn">
                    <input type="hidden" name="method" value="<%= method %>" />
-                   <button type="button" data-method="" class="btn btn-default resolve">{% trans "Cash" %}</button>
+                   <button type="button" data-title="{% trans "Cash" %}" data-method="" class="btn btn-default resolve">{% trans "Cash" %}</button>
                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
                        <span class="caret"></span>
                        <span class="sr-only">{% trans "Select payment method" %}</span>
                    </button>
                    <ul class="dropdown-menu" role="menu">
                         <li><a href="#" class="method" data-method="">{% trans "Cash" %}</a></li>
-                        <li><a href="#" class="method" data-method="tilisiirto">Tilisiirto</a></li>
-                        <li><a href="#" class="method" data-method="smartum">Smartum</a></li>
+                        {% for method in pay_types %}
+                        <li><a href="#" class="method" data-method="{{ method }}">{{ method|capfirst }}</a></li>
+                        {% endfor %}
                         <li class="divider"></li>
                         <li><input type="text" class="method" placeholder="{% trans "Other" %}" /></li>
                    </ul>
@@ -83,7 +84,7 @@
           </div>
           <div class="input-group">
               <% for (var t in tickets) { %>
-                <button class="resolve" data-method="<%= t %>"><%= tickets[t] %></button>
+                <button type="button" class="btn btn-default resolve" data-method="<%= t %>"><%= tickets[t] %></button>
               <% } %>
           </div>
       </div>

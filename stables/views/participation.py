@@ -44,6 +44,7 @@ class Newboard(DashboardMixin, TemplateView):
         ctx['instructors'] = [ i.user for i in InstructorInfo.objects.all().prefetch_related('user', 'user__user')]
         ctx['courses'] = Course.objects.exclude(end__lt=timezone.now()).prefetch_related('events')
         ctx['courses'] = sorted(ctx['courses'], key=lambda c: (c.lastEvent.start.weekday(), c.lastEvent.start.time()) if c.lastEvent else (None, None))
+        ctx['pay_types'] = Transaction.objects.exclude(method__isnull=True).exclude(method="").distinct('method').values_list('method', flat=True)
         return ctx
 
 def get_participation(request, **kwargs):
