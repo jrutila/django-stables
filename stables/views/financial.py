@@ -71,7 +71,7 @@ class EditTicketsView(ParticipationMixin, FormView):
                 ticketamount[key] = ticketamount[key] + 1
         kwargs['groups'] = []
         for ((owner, tt, exp), amnt) in ticketamount.items():
-            key = "%d:%d:%s" % (ContentType.objects.get_for_model(owner).id, tt.id, exp.isoformat())
+            key = "%d:%d:%s" % (ContentType.objects.get_for_model(owner).id, tt.id, exp.isoformat() if exp else None)
             kwargs['groups'].append(
                 (key, "%s (%s) -  %d kpl %s" % (tt, exp, amnt, "(F)" if isinstance(owner, CustomerInfo) else ""))
                 )
