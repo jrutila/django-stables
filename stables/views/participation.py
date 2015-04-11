@@ -112,7 +112,7 @@ class ParticipationView(DashboardMixin, DetailView): # widget_user(request, pid)
 
     def get_object(self, queryset=None):
         part = Participation.objects.get(pk=self.kwargs.get(self.pk_url_kwarg, None))
-        unused_tickets = part.participant.rider.unused_tickets
+        unused_tickets = Ticket.objects.get_unused_tickets(part.participant.rider, part.start)
         transactions = list(Transaction.objects.filter(active=True, content_type=ContentType.objects.get_for_model(Participation), object_id=part.id).order_by('object_id', 'created_on').prefetch_related('ticket_set'))
         accidents = Accident.objects.filter(at__lte=part.end, at__gte=part.start, rider=part.participant.rider)
 

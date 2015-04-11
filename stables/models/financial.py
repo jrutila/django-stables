@@ -43,6 +43,10 @@ class TicketManager(models.Manager):
         crs.execute(query, list(participations))
         return dict(crs.fetchall())
 
+    def get_unused_tickets(self, rider, dt):
+        return _get_tickets(_get_rider_q(rider), _get_valid_q(dt))
+
+
 class Ticket(models.Model):
     class Meta:
         app_label = 'stables'
@@ -125,11 +129,11 @@ def _get_customer_q(self):
     qrider = Q(owner_type=ContentType.objects.get_for_model(RiderInfo), owner_id__in=self.riderinfo_set.all())
     return Q(qrider | qcustomer)
 
-def _get_valid_q():
-    return Q(Q(expires__gte=datetime.datetime.now()) | Q(expires__isnull=True))
+def _get_valid_q(dt=None):
+    return Q(Q(expires__gte=dt or datetime.datetime.now()) | Q(expires__isnull=True))
 
-def _get_expired_q():
-    return Q(expires__lt=datetime.datetime.now())
+def _get_expired_q(dt=None):
+    return Q(expires__lt=dt or datetime.datetime.now())
 
 def _get_tickets(owner_q, expire_q):
     return Ticket.objects.filter(owner_q, transaction__isnull=True).filter(expire_q)
@@ -213,7 +217,7 @@ def pay_participation(participation, value=None, ticket=None, method=None):
                 customer=customer,
                 method=method)
         elif ticket:
-            ticket = participation.participant.rider.unused_tickets.filter(type=ticket).order_by('expires')[0]
+            ticket = Ticket.objects.get_unused_tickets(participation.participant.rider, participation.start).filter(type=ticket).order_by('expires')[0]
             ticket.transaction = transactions.filter(amount__lt=0)[0]
             ticket.save()
 

@@ -1,5 +1,7 @@
 from django.contrib.auth.models import User
 from django.db.models.query import QuerySet
+from stables.models.financial import TicketManager
+from stables.models.user import RiderInfo
 from tastypie.resources import ModelResource
 from tastypie.resources import Resource
 from stables.models import UserProfile
@@ -270,7 +272,8 @@ class ViewFinance:
             self.tickets = {}
             self.method = ""
 
-            unused = part.participant.rider.unused_tickets
+            unused = Ticket.objects.get_unused_tickets(part.participant.rider, part.start)
+            #unused = part.participant.rider.unused_tickets
             for u in unused:
                 if (not ticket) or (ticket.type != u.type):
                     self.tickets[u.type.id] = u.type.name
