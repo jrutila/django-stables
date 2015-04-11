@@ -43,7 +43,7 @@ var HorseCollection = Backbone.Collection.extend({
         this.date = options.date;
     },
     url: function() {
-        return apiUrl+'horse/?last_usage_date__gte='+this.date;
+        return apiUrl+'horse/?last_usage_date__gte='+this.date+'&limit=0';
     }
 })
 

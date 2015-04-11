@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 class Horse(models.Model):
     class Meta:
         app_label = 'stables'
+        ordering = ['name']
     def __unicode__(self):
         return self.name
     name = models.CharField(_('name'), max_length=500)
