@@ -42,11 +42,16 @@ class FinanceReport(reportengine.Report):
         trans = Transaction.objects.filter(object_id__in=[ p.id for p in parts ], content_type=ContentType.objects.get_for_model(Participation)).prefetch_related('ticket_set', 'source__participant__user', 'source__event__course_set', 'source__horse')
         values = defaultdict(amountval_factory)
         rows = []
+        counted = []
         for t in trans:
+
             value = self.get_value(t)
             if value:
-                values[value.__unicode__()]['amount'] = values[value.__unicode__()]['amount'] + 1
+                if (t.object_id not in counted):
+                    values[value.__unicode__()]['amount'] = values[value.__unicode__()]['amount'] + 1
                 values[value.__unicode__()]['value'] = values[value.__unicode__()]['value'] + t.getIncomeValue()
+            # Do not handle transactions twice
+            counted.append(t.object_id)
         for h,av in values.items():
             rows.append([h, av.values()[0], av.values()[1]])
         return rows,(("total", len(rows)),)
