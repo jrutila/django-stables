@@ -99,11 +99,7 @@ class UserProfileForm(forms.ModelForm):
   def save(self, force_insert=False, force_update=False, commit=True):
     instance = super(UserProfileForm, self).save(False)
     if not hasattr(instance, 'user'):
-        import random
-        import string
-        username = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(6))
-        password = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(18))
-        user = User.objects.create_user(username, self.cleaned_data['email'], password)
+        user = User.objects.create_user(email=self.cleaned_data['email'])
         instance.user = user
     if not instance.customer:
       c = CustomerInfo.objects.create()

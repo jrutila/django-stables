@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.db.models.query import QuerySet
 from tastypie.resources import ModelResource
 from tastypie.resources import Resource
@@ -476,8 +477,13 @@ class ParticipationResource(Resource):
             try:
                 participant = UserProfile.objects.find(bundle.data['rider_name'])
             except UserProfile.DoesNotExist:
-                # TODO: Implement new user adding logic!
-                raise ImmediateHttpResponse(HttpBadRequest("Given user does not exist"))
+                first_name = bundle.data['rider_name'].split(' ', 1)[0].capitalize()
+                last_name = bundle.data['rider_name'].split(' ', 1)[1].capitalize()
+                user = User.objects.create(first_name=first_name, last_name=last_name)
+                upr,created = UserProfile.objects.get_or_create(user=user)
+                if created: upr.save()
+                participant = user.get_profile()
+                assert participant is not None
             except UserProfile.MultipleObjectsReturned:
                 raise ImmediateHttpResponse(HttpBadRequest("Given user is too ambiquous"))
         else:

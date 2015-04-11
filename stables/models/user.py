@@ -54,6 +54,29 @@ class UserProfile(models.Model):
 
     inactive = models.BooleanField()
 
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        super(UserProfile, self).save()
+        if not self.user:
+            self.user = User.objects.create()
+            self.user.save()
+        if self.user and not self.user.username:
+            import random
+            import string
+            self.user.username = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(6))
+            self.user.password = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(18))
+            self.user.save()
+
+        if not self.customer:
+            c = CustomerInfo.objects.create()
+            self.customer = c
+        if not self.rider:
+            r = RiderInfo.objects.create(customer=self.customer)
+            self.rider = r
+            self.rider.customer = self.customer
+            self.rider.save()
+        super(UserProfile, self).save()
+
     def get_participations(self):
         from participations import Participation
         return Participation.objects.filter(participant=self).order_by('start')
