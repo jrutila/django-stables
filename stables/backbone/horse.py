@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.db.models.query import QuerySet
 from tastypie import fields
 from stables.backbone import ParticipationPermissionAuthentication

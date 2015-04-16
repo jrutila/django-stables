@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.db.models.signals import pre_save
 import django.dispatch
 from django.db import models, IntegrityError
-from django.middleware import transaction
+from django.middleware.transaction import transaction
 from django.utils import timezone
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.dispatch import receiver

@@ -1,7 +1,13 @@
 from django.conf.urls import *
 
 from tastypie.api import Api
-from stables.backbone import *
+from stables.backbone.enroll import EnrollResource
+from stables.backbone.event import EventResource
+from stables.backbone.financial import FinanceResource, PaymentLinkResource
+from stables.backbone.horse import HorseResource
+from stables.backbone.occurrence import CommentResource, EventMetaDataResource
+from stables.backbone.participation import ParticipationResource
+from stables.backbone.user import UserResource
 
 v1_api = Api(api_name="v1")
 v1_api.register(UserResource())
