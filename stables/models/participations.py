@@ -1,375 +1,33 @@
-from django.db import models
+import logging
+import datetime
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Q
-from django.db.models import Count
-from django.db import IntegrityError, transaction
-from django.contrib.auth.models import User
-from django.contrib.contenttypes.models import ContentType
-import django_settings
-from schedule.models import Event, Occurrence, Rule
-from user import UserProfile, RiderLevel
-from financial import CurrencyField, TicketType
-import datetime
-from django.utils.translation import ugettext, ugettext_lazy as _
-from django.template.defaultfilters import date, time
-from django.core.exceptions import ObjectDoesNotExist
-import reversion
-from django.db.models.signals import post_save
 from django.db.models.signals import pre_save
-from django.dispatch import receiver
-from horse import Horse
 import django.dispatch
+from django.db import models, IntegrityError
+from django.middleware import transaction
 from django.utils import timezone
+from django.utils.translation import ugettext, ugettext_lazy as _
+from django.dispatch import receiver
 from django.template.defaultfilters import date as _date
 from django.template.defaultfilters import time as _time
-
-import logging
+import reversion
+from schedule.models import Event, Occurrence
+from stables.models.event_metadata import EventMetaData
+from stables.models.horse import Horse
+from stables.models import CANCELED, SKIPPED, ATTENDING, RESERVED, PARTICIPATION_STATES, part_move
+from stables.models.course import Course, Enroll
+from stables.models.user import UserProfile
 
 OCCURRENCE_LIST_WEEKS = 5
 
 class ParticipationError(Exception):
     pass
 
-class CourseManager(models.Manager):
-    def get_course_occurrences(self, start, end):
-        events = Participation.objects._get_events(start, end)
-        return events
-
 recurring_change = django.dispatch.Signal(providing_args=['prev', 'new'])
 
-class Course(models.Model):
-    class Meta:
-        verbose_name = _('course')
-        verbose_name_plural = _('courses')
-        app_label = "stables"
-        permissions = (
-            ('view_participations', "Can see detailed participations"),
-        )
-    def __unicode__(self):
-        lastEvent = self._getLastEvent()
-        if lastEvent:
-            return "%s %s" % (_date(lastEvent.start, 'D H:i'), self.name)
-        return self.name
-    name = models.CharField(_('name'), max_length=500)
-    start = models.DateField(_('start'))
-    end = models.DateField(_('end'), blank=True, null=True)
-    events = models.ManyToManyField(Event, blank=True, null=True)
-    creator = models.ForeignKey(User, null=True)
-    created_on = models.DateTimeField(default = datetime.datetime.now)
-    max_participants = models.IntegerField(_('maximum participants'), default=7)
-    default_participation_fee = CurrencyField(_('default participation fee'), default=0)
-    course_fee = CurrencyField(default=0)
-    ticket_type = models.ManyToManyField(TicketType, verbose_name=_('Default ticket type'), blank=True)
-    allowed_levels = models.ManyToManyField(RiderLevel, verbose_name=_('Allowed rider levels'), blank=True)
-
-    objects = CourseManager()
-    
-    def save(self, **kwargs):
-        since = kwargs.get('since', timezone.now())
-        le = self._getLastEvent()
-        starttime = kwargs.get('starttime', timezone.localtime(le.start).time() if le else None)
-        endtime = kwargs.get('endtime', timezone.localtime(le.end).time() if le else None)
-        hasNameChange = le and self.name != le.title
-        hasTimeChange = 'starttime' in kwargs and 'endtime' in kwargs and le and (
-             timezone.localtime(le.start).time() != kwargs['starttime'] or
-             timezone.localtime(le.end).time() != kwargs['endtime'])
-        if hasNameChange or hasTimeChange:
-            if self.id:
-                last_event, last_occ = self._endLastEvent(since)
-                if last_occ:
-                    ev = Event()
-                    self._updateEvent(ev, starttime, endtime, last_occ.start+datetime.timedelta(days=7), self.end)
-                    ev.save()
-                    self.events.add(ev)
-                    if last_event:
-                        last_event.save()
-                        recurring_change.send(sender=Course, prev=last_event, new=ev)
-                else:
-                    ev = self.events.latest('start')
-                    self._updateEvent(ev, starttime, endtime, last_event.start.date(), self.end)
-                    ev.save()
-            super(Course, self).save()
-        else:
-            ev = None
-            if not self.id and starttime and endtime:
-                ev = Event()
-                self._updateEvent(ev, starttime, endtime, self.start, self.end)
-                ev.save()
-            elif self.id and self.end:
-                last_event, last_occ = self._endLastEvent(self.end+datetime.timedelta(days=1))
-                if last_event: last_event.save()
-            super(Course, self).save()
-            if ev: self.events.add(ev)
-
-    def _updateEvent(self, ev, starttime, endtime, start, end=None):
-        ev.title = self.name
-        ev.start = timezone.get_current_timezone().localize(datetime.datetime.combine(start, starttime))
-        ev.end = timezone.get_current_timezone().localize(datetime.datetime.combine(start, endtime))
-        ev.rule = Rule.objects.get(name="Weekly")
-        if end:
-            ev.end_recurring_period = timezone.get_current_timezone().localize(datetime.datetime.combine(end, endtime))
-
-    def _getLastEvent(self):
-        if hasattr(self, '__lastEvent'):
-            return self.__lastEvent
-        self.__lastEvent = None
-        if self.id and self.events.filter(rule__isnull=False).count() > 0:
-            self.__lastEvent = self.events.filter(rule__isnull=False).order_by('-start')[0]
-        return self.__lastEvent
-
-    lastEvent = property(_getLastEvent)
-
-    def _endLastEvent(self, since):
-        last_event = self._getLastEvent()
-        if type(since) is datetime.date:
-            since = datetime.datetime.combine(since, datetime.time())
-        if timezone.is_naive(since):
-            since = timezone.get_current_timezone().localize(since)
-        if last_event:
-            last_occ = last_event.get_occurrences(
-                      timezone.localtime(since-datetime.timedelta(days=7)),
-                      timezone.localtime(since))
-            if last_occ:
-                last_occ = last_occ[0]
-                last_event.end_recurring_period = last_occ.end
-            else:
-                last_occ = None
-            return last_event,last_occ
-        return None, None
-
-    def get_occurrences(self, delta=None, start=None):
-        if not start:
-          start = self.start
-        occurrences = []
-        # TODO: get 365 from somewhere else than 52*7
-        for e in self.events.all():
-            if delta:
-                endd = start+delta
-            else:
-                endd = self.end
-            if endd == None:
-                endd = start+datetime.timedelta(days=OCCURRENCE_LIST_WEEKS*7)
-            occs = e.get_occurrences(
-                timezone.make_aware(datetime.datetime.combine(start, datetime.time(0,0)), timezone.get_current_timezone()),
-                timezone.make_aware(datetime.datetime.combine(endd, datetime.time(23,59)), timezone.get_current_timezone()))
-            for c in occs:
-                occurrences.append(c)
-        occurrences.sort(key=lambda occ: occ.start)
-        return occurrences
-
-    # Obsolete
-    def get_occurrence(self, start):
-        return self.get_occurrences(start=start)[0]
-
-    def get_next_occurrence_after(self, start):
-        nexoc = None
-        for e in self.events.all():
-            en = next(e.occurrences_after(start), None)
-            if en:
-                if not nexoc:
-                    nexoc = en
-                if en.start < nexoc.start:
-                    nexoc = en
-
-        return nexoc
-
-    def get_course_time_info(self):
-        res = None
-        event = self.events.filter(Q(end_recurring_period__gte=datetime.datetime.now()) | Q(end_recurring_period__isnull=True))
-        if event:
-            res = { 'start': event[0].start, 'end': event[0].end }
-        return res
-
-    def get_next_occurrences(self, limit):
-        occurrences = []
-        for e in self.events.all():
-            it = e.occurrences_after(timezone.localtime(timezone.now()))
-            for i in range(0, limit):
-                occ = next(it, None)
-                if occ:
-                    occurrences.append(occ)
-        occurrences.sort(key=lambda occ: occ.start)
-        if len(occurrences) < 1:
-            return None
-        return occurrences[:limit]
-
-    def get_next_occurrence(self):
-        nxt = self.get_next_occurrences(1)
-        if nxt:
-            return nxt[0]
-        return None
-
-    def full_rider(self, occurrence, nolimit=False, include_statenames=False):
-        p_query = Participation.objects.get_participations(occurrence).order_by('last_state_change_on')
-        e_query = Enroll.objects.filter(course=self).exclude(participant__in=(x.participant for x in p_query))
-        e_attnd = e_query.filter(state=ATTENDING)
-        p_attnd = p_query.filter(state=ATTENDING)
-        all = list(p_attnd) + list(e_attnd)
-        if include_statenames:
-            all = list((y.participant, PARTICIPATION_STATES[y.state][1]) for y in sorted(all, key=lambda x: x.last_state_change_on))
-        else:
-            all = list(y.participant for y in sorted(all, key=lambda x: x.last_state_change_on))
-        if nolimit or len(all) < self.max_participants:
-            p_resvd = p_query.filter(state=RESERVED)
-            e_resvd = e_query.filter(state=RESERVED)
-            more = list(p_resvd) + list(e_resvd)
-            if include_statenames:
-                more = list((y.participant, PARTICIPATION_STATES[y.state][1]) for y in sorted(more, key=lambda x: x.last_state_change_on))
-            else:
-                more = list(y.participant for y in sorted(more, key=lambda x: x.last_state_change_on))
-            all = all + more
-        if not nolimit:
-            all = all[:self.max_participants]
-        return all
-
-    def is_full(self, occurrence=None):
-      if occurrence:
-        p_part = Participation.objects.get_participations(occurrence).values_list('participant', flat=True)
-        p_attnd = Participation.objects.get_participations(occurrence).filter(Q(state=ATTENDING) | Q(state=RESERVED)).count()
-        c_attnd = Enroll.objects.filter(Q(state=ATTENDING) | Q(state=RESERVED), course=self).exclude(participant__in=p_part).count()
-        return p_attnd+c_attnd >= self.max_participants
-      else:
-        c_attnd = Enroll.objects.filter(Q(state=ATTENDING) | Q(state=RESERVED), course=self)
-        return c_attnd.count() >= self.max_participants
-
-    def get_attending_amount(self, occurrence=None):
-      if occurrence:
-        p_part = Participation.objects.get_participations(occurrence).values_list('participant', flat=True)
-        p_attnd = Participation.objects.get_participations(occurrence).filter(Q(state=ATTENDING) | Q(state=RESERVED)).count()
-        c_attnd = Enroll.objects.filter(Q(state=ATTENDING) | Q(state=RESERVED), course=self).exclude(participant__in=p_part).count()
-        return p_attnd+c_attnd
-      else:
-        return Enroll.objects.filter(Q(state=ATTENDING), course=self).count()
-
-    def can_attend(self, occurrence, rider):
-        p_part = Participation.objects.get_participations(occurrence).values_list('participant', flat=True)
-        p_attnd = Participation.objects.get_participations(occurrence).filter(Q(state=ATTENDING)).count()
-        c_attnd = Enroll.objects.filter(Q(state=ATTENDING), course=self).exclude(participant__in=p_part).count()
-        if (p_attnd + c_attnd >= self.max_participants):
-            return False
-        freespots = self.max_participants - p_attnd - c_attnd;
-        part_q = Participation.objects.filter(
-            Q(state=RESERVED),
-            event=occurrence.event,
-            start=occurrence.start, end=occurrence.end).order_by("last_state_change_on")
-        part = part_q[:freespots]
-        enroll = Enroll.objects.filter(Q(state=RESERVED), course=self).exclude(participant__in=p_part).exclude(participant__in=part)
-        if not part and not enroll: return True
-        if part and part_q.order_by("last_state_change_on")[0].participant == rider:
-            return True
-        if not part and enroll.order_by("last_state_change_on")[0].participant == rider:
-            return True
-        return False
-
-    def attend(self, rider, occurrence):
-        return Participation.objects.create_participation(rider, occurrence, ATTENDING)
-
-    def get_participation(self, rider, occurrence):
-        return Participation.objects.get_participation(rider, occurrence)
-
-    def enroll(self, rider):
-        (enroll, created) = Enroll.objects.get_or_create(participant=rider, course=self)
-        estates = self.get_possible_states(rider)
-        if ATTENDING in estates or enroll.state == ATTENDING:
-          enroll.state = ATTENDING
-        else:
-          enroll.state = RESERVED
-        enroll.save()
-        return enroll
-
-    @models.permalink
-    def get_absolute_url(self):
-        return ('view_course', (), { 'pk': self.id })
-
-ATTENDING = 0
-RESERVED = 1
-SKIPPED = 2
-CANCELED = 3
-REJECTED = 4
-WAITFORPAY = 6
-PARTICIPATION_STATES = (
-    (ATTENDING, ugettext('Attending')),
-    (RESERVED, ugettext('Reserved')),
-    (SKIPPED, ugettext('Skipped')),
-    (CANCELED, ugettext('Canceled')),
-    (REJECTED, ugettext('Rejected')),
-)
-ENROLL_STATES = (
-    (WAITFORPAY, ugettext('Waiting for payment')),
-    (ATTENDING, ugettext('Attending')),
-    (CANCELED, ugettext('Canceled')),
-    (REJECTED, ugettext('Rejected')),
-    (RESERVED, ugettext('Reserved')),
-)
-
-class EnrollManager(models.Manager):
-    def get_query_set(self):
-        return super(EnrollManager, self).get_query_set().prefetch_related('course', 'participant__user')
-
-    def get_enrolls(self, course, occurrence=None):
-        return self.filter(course=course)
-
-class Enroll(models.Model):
-    class Meta:
-        app_label = 'stables'
-    def __unicode__(self):
-        return unicode(self.course) + ": " + unicode(self.participant)
-    def short(self):
-        return ugettext('%(name)s %(state)s') % {
-            'name': self.participant,
-            'state': PARTICIPATION_STATES[self.state][1],
-        }
-    course = models.ForeignKey(Course)
-    participant = models.ForeignKey(UserProfile)
-    state = models.IntegerField(choices=ENROLL_STATES, default=WAITFORPAY)
-    last_state_change_on = models.DateTimeField(default=datetime.datetime.now())
-
-    objects = EnrollManager()
-    
-    def _get_actual_state(self):
-        if self.state == WAITFORPAY:
-            type = ContentType.objects.get_for_model(self)
-            from django.db.models import Sum
-            from financial import Transaction
-            sum = Transaction.objects.filter(object_id=self.id, content_type=type).aggregate(Sum('amount'))['amount__sum']
-            if sum >= 0:
-                return ATTENDING
-        return self.state
-    actual_state = property(_get_actual_state)
-
-    def cancel(self):
-      self.state = CANCELED
-      self.save()
-
 logger = logging.getLogger(__name__)
-
-
-class CourseParticipationActivator(models.Model):
-    class Meta:
-        app_label='stables'
-    enroll = models.ForeignKey(Enroll)
-    activate_before_hours = models.IntegerField()
-
-    def try_activate(self):
-        if self.enroll.state != ATTENDING:
-            self.delete()
-            return None
-        p = None
-        occ = self.enroll.course.get_next_occurrence()
-        if occ and occ.start-datetime.timedelta(hours=self.activate_before_hours) < timezone.now() and not Participation.objects.filter(participant=self.enroll.participant, start=occ.start):
-          p = Participation.objects.create_participation(self.enroll.participant, occ, self.enroll.state, force=True)
-          reversion.set_comment('Automatically created by activator')
-        return p
-
-@receiver(post_save, sender=Enroll)
-def handle_Enroll_save(sender, **kwargs):
-    enroll = kwargs['instance']
-    if enroll.state == ATTENDING and not CourseParticipationActivator.objects.filter(enroll=enroll).exists():
-        # TODO: get the 24 from somewhere else
-        CourseParticipationActivator.objects.create(enroll=enroll, activate_before_hours=24)
-
-def part_move(self, curr, prev):
-    self.filter(event=prev.event, start=prev.start, end=prev.end).update(start=curr.start, end=curr.end)
 
 def part_cancel(self, course, start, end):
     occ = course.get_occurrence(start)
@@ -615,16 +273,6 @@ class Participation(models.Model):
         except ObjectDoesNotExist:
           return None
 
-@receiver(recurring_change, sender=Course)
-def event_changes(sender, **kwargs):
-    prev = kwargs['prev']
-    new = kwargs['new']
-    for p in Participation.objects.filter(event=prev, start__gt=prev.end_recurring_period):
-        new_occ = new.get_occurrences(
-            datetime.datetime.combine(p.start.date(), datetime.time(0)).replace(tzinfo=timezone.get_current_timezone())
-          , datetime.datetime.combine(p.start.date(), datetime.time(23,59)).replace(tzinfo=timezone.get_current_timezone()))
-        p.move(new_occ[0])
-
 @receiver(pre_save, sender=Occurrence)
 def move_participations(sender, instance, **kwargs):
     curr = instance
@@ -667,29 +315,3 @@ class InstructorParticipation(models.Model):
     start = models.DateTimeField()
     end = models.DateTimeField()
     objects = InstructorParticipationManager()
-
-class EventMetaDataManager(models.Manager):
-    def get_metadatas(self, start, end):
-        events = Event.objects.filter((Q(rule__frequency='WEEKLY') & (Q(end_recurring_period__gte=start) | Q(end_recurring_period__isnull=True))) | (Q(rule__isnull=True) & Q(start__gte=start) & Q(end__lte=end)) | (Q(occurrence__start__gte=start) & Q(occurrence__end__lte=end))).select_related('rule').prefetch_related('course_set')
-        ret = {}
-        for event in events:
-            if event.course_set.count() == 0:
-              continue
-            for occ in event.get_occurrences(start, end):
-                ret[occ] = (event.course_set.all()[0], list(EventMetaData.objects.filter(event=event, start=occ.start, end=occ.end)))
-
-        return ret
-
-    move = part_move
-
-class EventMetaData(models.Model):
-    class Meta:
-        app_label = 'stables'
-    objects = EventMetaDataManager()
-
-    event = models.ForeignKey(Event)
-    start = models.DateTimeField()
-    end = models.DateTimeField()
-
-    max_participants = models.IntegerField(_('maximum participants'), blank=True, null=True) #, default=django_settings.get("default_max_participants", default=7))
-    default_participation_fee = CurrencyField(_('default participation fee'), blank=True, null=True)#, default=django_settings.get("default_participation_fee", default=0.00))
