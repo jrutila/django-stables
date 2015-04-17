@@ -47,11 +47,11 @@ class FinanceReport(reportengine.Report):
 
             value = self.get_value(t)
             if value:
-                if (t.object_id not in counted):
+                if t.object_id not in counted:
                     values[value.__unicode__()]['amount'] = values[value.__unicode__()]['amount'] + 1
+                    # Do not handle transaction count twice
+                    counted.append(t.object_id)
                 values[value.__unicode__()]['value'] = values[value.__unicode__()]['value'] + t.getIncomeValue()
-            # Do not handle transactions twice
-            counted.append(t.object_id)
         for h,av in values.items():
             rows.append([h, av.values()[0], av.values()[1]])
         return rows,(("total", len(rows)),)
