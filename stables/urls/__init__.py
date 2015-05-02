@@ -1,6 +1,7 @@
 from django.conf.urls import *
 
 from tastypie.api import Api
+from stables.backbone.course import CourseResource
 from stables.backbone.enroll import EnrollResource
 from stables.backbone.event import EventResource
 from stables.backbone.financial import FinanceResource, PaymentLinkResource
@@ -19,6 +20,7 @@ v1_api.register(EnrollResource())
 v1_api.register(FinanceResource())
 v1_api.register(HorseResource())
 v1_api.register(PaymentLinkResource())
+v1_api.register(CourseResource())
 
 import reportengine
 reportengine.autodiscover()

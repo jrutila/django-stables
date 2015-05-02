@@ -1,5 +1,6 @@
 {% load i18n staticfiles %}
 {% load stablestags %}
+{% load settings_tags %}
 
 <script type="text/html" id="ParticipationView">
     <div class="note" title="<%= note %>">
@@ -160,6 +161,9 @@
                         <input name="start" id="addeventStart" type="text" class="form-control" placeholder="{% trans "00:00" %}" />
                         <label for="addeventEnd">{% trans "End" %}</label>
                         <input name="end" id="addeventEnd" type="text" class="form-control" placeholder="{% trans "00:00" %}" />
+
+                        <label for="addeventRepeatUntil">{%  trans "Last weekly occurrence (optional)" %}</label>
+                        <input name="repeatUntil" id="addeventRepeatUntil" type="date" class="form-control" />
                     </div>
                     <ul class="nav nav-tabs">
                         <li class="active"><a href="#event-tab" data-toggle="pill">{% trans "Single event" %}</a></li>
@@ -167,10 +171,6 @@
                     </ul>
                     <div class="tab-content">
                         <div class="tab-pane form-group active" id="event-tab">
-                            <!--
-                            <label for="addeventCost">{% trans "Cost" %}</label>
-                            <input name="cost" id="addeventCost" type="text" class="form-control" placeholder="{% trans "0.00" %}" />
-                            -->
                             <label for="addeventTitle">{% trans "Title" %}</label>
                             <input name="title" id="addeventTitle" type="text" class="form-control" />
                         </div>
@@ -181,6 +181,9 @@
                                 <option value="{{ c.id }}">{{ c }}</option>
                                 {% endfor %}
                             </select>
+                            <div class="addEventCourseInfo">
+
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -192,4 +195,13 @@
         </div>
     </div>
 </div>
+</script>
+
+<script type="text/html" id="AddEventCourseInfo" >
+    <% window.labelId = window.labelId == undefined ? 1 : window.labelId + 1; %>
+    <label for="addeventCost<%= labelId %>">{%  trans "Cost" %}</label>
+    <input name="default_participation_fee" id="addeventCost<%= labelId %>" type="number" class="form-control" value="{% settings "default_event_cost" %}"/>
+
+    <label for="addeventParticipants<%= labelId %>">{%  trans "Max participants" %}</label>
+    <input name="max_participants" id="addeventParticipants<%= labelId %>" type="number" class="form-control" value="{% settings "default_participant_max" %}" />
 </script>
