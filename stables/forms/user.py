@@ -97,10 +97,7 @@ class UserProfileForm(forms.ModelForm):
       return data
 
   def save(self, force_insert=False, force_update=False, commit=True):
-    instance = super(UserProfileForm, self).save(False)
-    if not hasattr(instance, 'user'):
-        user = User.objects.create_user(email=self.cleaned_data['email'])
-        instance.user = user
+    instance = super(UserProfileForm, self).save(True)
     if not instance.customer:
       c = CustomerInfo.objects.create()
       instance.customer = c
