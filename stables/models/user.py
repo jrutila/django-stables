@@ -56,10 +56,12 @@ class UserProfile(models.Model):
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
-        super(UserProfile, self).save()
-        if not self.user:
+        try:
+            u = self.user
+        except User.DoesNotExist:
             self.user = User.objects.create()
             self.user.save()
+
         if self.user and not self.user.username:
             import random
             import string
