@@ -1,3 +1,5 @@
+from django.utils.formats import time_format
+
 __author__ = 'jorutila'
 
 from django.db import models
@@ -25,9 +27,7 @@ from django.utils import timezone
 from django.template.defaultfilters import date as _date
 from django.template.defaultfilters import time as _time
 from stables.models import *
-
-class CourseManager(models.Manager):
-    pass
+from django.conf import settings
 
 class Course(models.Model):
     class Meta:
@@ -38,6 +38,10 @@ class Course(models.Model):
             ('view_participations', "Can see detailed participations"),
         )
     def __unicode__(self):
+        ev = next(e for e in self.events.all() if e.rule != None)
+        if ev:
+            start = timezone.localtime(ev.start)
+            return start.strftime('%a') + " " + time_format(start, "TIME_FORMAT") + " " + self.name
         return self.name
     name = models.CharField(_('name'), max_length=500)
     events = models.ManyToManyField(Event, blank=True, null=True)
@@ -47,9 +51,27 @@ class Course(models.Model):
     ticket_type = models.ManyToManyField(TicketType, verbose_name=_('Default ticket type'), blank=True)
     allowed_levels = models.ManyToManyField(RiderLevel, verbose_name=_('Allowed rider levels'), blank=True)
 
-    objects = CourseManager()
+    #objects = CourseManager()
 
     #def get_next_occurrence #TODO:
+    def get_next_occurrences(self, amount=1, since=timezone.now()):
+        #only_active = Q(end_recurring_period__gte=since) | Q(end_recurring_period__isnull=True)
+        evs = self.events.all() #.filter()
+        starts = []
+        for e in evs:
+            if e.rule == None:
+                starts.append(e.start)
+            else:
+                i = 0
+                for o in e.occurrences_after(since):
+                    if o == None:
+                        break
+                    starts.append(o.start)
+                    i = i + 1
+                    if i >= amount:
+                        break
+        return sorted(starts)[:amount]
+
 
 def get_course(self):
     return self.course_set.all()[0]

@@ -15,3 +15,8 @@
 {
     text-decoration: line-through;
 }
+
+.currentRepeat .new {
+    color: darkgreen;
+    font-weight: bold;
+}

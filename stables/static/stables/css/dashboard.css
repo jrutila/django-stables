@@ -129,3 +129,8 @@ a.pay {
     margin-right: 7px;
     font-size: large;
 }
+
+li.condensed {
+    padding-top: 1px;
+    padding-bottom: 1px;
+}

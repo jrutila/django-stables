@@ -154,13 +154,16 @@
             </div>
             <div class="modal-body">
                 <form role="form" id="addeventForm">
-                    <div class="form-group">
+                    <div class="form-group timeform">
                         <label for="addeventDate">{% trans "Date" %}</label>
                         <input name="date" id="addeventDate" type="text" class="form-control" placeholder="{% trans "2014-12-31" %}" value="<%= date %>"/>
                         <label for="addeventStart">{% trans "Start" %}</label>
                         <input name="start" id="addeventStart" type="text" class="form-control" placeholder="{% trans "00:00" %}" />
                         <label for="addeventEnd">{% trans "End" %}</label>
                         <input name="end" id="addeventEnd" type="text" class="form-control" placeholder="{% trans "00:00" %}" />
+
+                        <label for="addeventRepeat">{%  trans "Repeat?" %}</label>
+                        <input name="repeat" id="addeventRepeat" type="checkbox" class="form-control" />
 
                         <label for="addeventRepeatUntil">{%  trans "Last weekly occurrence (optional)" %}</label>
                         <input name="repeatUntil" id="addeventRepeatUntil" type="date" class="form-control" />
@@ -175,14 +178,31 @@
                             <input name="title" id="addeventTitle" type="text" class="form-control" />
                         </div>
                         <div class="tab-pane form-group" id="course-tab">
-                            <label for="addeventCourse">{% trans "Course" %}</label>
-                            <select name="course" id="addeventCourse" class="form-control">
-                                {% for c in courses %}
-                                <option value="{{ c.id }}">{{ c }}</option>
-                                {% endfor %}
-                            </select>
-                            <div class="addEventCourseInfo">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="addeventCourse">{% trans "Course" %}</label>
+                                    <select name="course" id="addeventCourse" class="form-control">
+                                        {% for c in courses %}
+                                        <option value="{{ c.id }}">{{ c }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <ul class="enrolls list-group">
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="addEventCourseInfo">
 
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="currentOccurrence">
+                                    {% trans "Next events:" %}
+                                    <ul class="currentRepeat">
+
+                                    </ul>
+                                </div>
+                                <div class="newAction"></div>
                             </div>
                         </div>
                     </div>
@@ -190,7 +210,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Cancel" %}</button>
-                <button type="submit" form="addeventForm" class="btn btn-primary">{% trans "Add event" %}</button>
+                <button type="submit" form="addeventForm" class="btn btn-primary">{% trans "Save" %}</button>
             </div>
         </div>
     </div>
