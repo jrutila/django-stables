@@ -269,11 +269,7 @@ class Course(models.Model):
 
     def enroll(self, rider):
         (enroll, created) = Enroll.objects.get_or_create(participant=rider, course=self)
-        estates = self.get_possible_states(rider)
-        if ATTENDING in estates or enroll.state == ATTENDING:
-          enroll.state = ATTENDING
-        else:
-          enroll.state = RESERVED
+        enroll.state = ATTENDING
         enroll.save()
         return enroll
 
