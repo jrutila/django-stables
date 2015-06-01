@@ -42,11 +42,11 @@ var AddEventView = Backbone.View.extend({
         var time = moment(date + " " + start);
         if (date && start && end && time) {
             this.addEvents.push(time);
-            while (repeat &&
+            while (repeat && (
                 (repeatUntil && time < moment(repeatUntil + " " + start))
                 ||
                 (!repeatUntil && time < moment(this.addEvents[0]).add(5*7, 'd'))
-                )
+                ))
             {
                 time = moment(time).add(7, 'd');
                 this.addEvents.push(time);
@@ -59,8 +59,8 @@ var AddEventView = Backbone.View.extend({
         var $courseTab =  this.$el.find(".tab-pane:nth(1)");
         $courseTab.find(".addEventCourseInfo").html("");
         this.course = new Course({ id: $(ev.target).val() });
-        this.events = [];
         var that = this;
+        this.xevents = [];
         this.course.fetch({success: function(model, response) {
             var $apnd = $courseTab.find(".addEventCourseInfo").html(hExtraInfo);
             $apnd.find("input[name='default_participation_fee']").val(parseInt(model.get("default_participation_fee")));
@@ -69,7 +69,7 @@ var AddEventView = Backbone.View.extend({
             _.each(model.get("enrolls"), function(e) {
                 $enrolls.append("<li class='list-group-item condensed'>"+e+"</li>");
             });
-            that.events = model.get('events');
+            that.xevents = model.get('events');
             that.renderTimes();
         }});
     },
@@ -79,12 +79,14 @@ var AddEventView = Backbone.View.extend({
         var repeatUntil = this.$el.find("input[name='repeatUntil']").val();
         var $ul = $courseTab.find(".currentOccurrence .currentRepeat").html("");
 
+        var $newCourseUl = this.$el.find(".tab-pane:first .currentOccurrence .currentRepeat").html("");
+
         var listEvents = [];
         if (!repeat)
         {
-            listEvents = _.union(this.events, this.addEvents || []);
+            listEvents = _.union(this.xevents, this.addEvents || []);
         } else if (this.addEvents.length > 0) {
-            _.each(this.events, function(e) {
+            _.each(this.xevents, function(e) {
                 if (moment(e).isBefore(this.addEvents[0], 'day'))
                     listEvents.push(e);
             },this);
@@ -101,22 +103,36 @@ var AddEventView = Backbone.View.extend({
 
         _.each(
             listEvents,
-            function(e) {
+            function(e, i) {
+                if (i >= 5) {
+                    if (listEvents.length > 6) {
+                        $ul.append("...");
+                        $newCourseUl.append("...");
+                    }
+                    return;
+                }
                 var cl = "new";
-                if (_.any(this.events, function(x) { return moment(x).isSame(e); }))
+                if (_.any(this.xevents, function(x) { return moment(x).isSame(e); }))
                     cl = "old";
-            if (!repeatUntil || e.isBefore(moment(repeatUntil + " 23:59:59")))
-                $ul.append("<li clasS='"+cl+"'>"+e.format("llll")+"</li>");
+            if (!repeatUntil || e.isBefore(moment(repeatUntil + " 23:59:59"))) {
+                var format = "<li clasS='" + cl + "'>" + e.format("llll") + "</li>";
+                $ul.append(format);
+                if (cl == "new")
+                    $newCourseUl.append(format);
+            }
         },this);
     },
     render: function() {
         var html, $oldel=this.$el, $newel;
+        this.xevents = [];
         html = _.template($('#AddEventView').html(), this.model.attributes)
         $newel = $(html.trim());
+        $occ = $newel.find(".currentOccurrence")
+        $occ.append(_.template($("#AddEventOccurrenceInfo").html()))
         this.setElement($newel);
         $oldel.replaceWith($newel);
         var hExtraInfo = _.template($("#AddEventCourseInfo").html());
-        $newel.find(".tab-pane:first").append(hExtraInfo);
+        $newel.find(".tab-pane:first .addEventCourseInfo").append(hExtraInfo);
         this.$el.modal('show');
         var that = this;
         this.$el.on('hidden.bs.modal', function() {
@@ -124,7 +140,8 @@ var AddEventView = Backbone.View.extend({
         });
     },
     submitEvent: function(ev) {
-        this.course.save()
+        this.course.save();
+        return false;
         /*
         var data = $(ev.target).serializeArray();
         data = _.object(_.pluck(data, 'name'), _.pluck(data, 'value'));

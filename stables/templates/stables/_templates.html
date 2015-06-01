@@ -174,8 +174,15 @@
                     </ul>
                     <div class="tab-content">
                         <div class="tab-pane form-group active" id="event-tab">
-                            <label for="addeventTitle">{% trans "Title" %}</label>
-                            <input name="title" id="addeventTitle" type="text" class="form-control" />
+                            <div class="row">
+                                <label for="addeventTitle">{% trans "Title" %}</label>
+                                <input name="title" id="addeventTitle" type="text" class="form-control" />
+                            </div>
+                            <div class="addEventCourseInfo">
+
+                            </div>
+                            <div class="row currentOccurrence">
+                            </div>
                         </div>
                         <div class="tab-pane form-group" id="course-tab">
                             <div class="row">
@@ -195,14 +202,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="row">
-                                <div class="currentOccurrence">
-                                    {% trans "Next events:" %}
-                                    <ul class="currentRepeat">
-
-                                    </ul>
-                                </div>
-                                <div class="newAction"></div>
+                            <div class="row currentOccurrence">
                             </div>
                         </div>
                     </div>
@@ -224,4 +224,11 @@
 
     <label for="addeventParticipants<%= labelId %>">{%  trans "Max participants" %}</label>
     <input name="max_participants" id="addeventParticipants<%= labelId %>" type="number" class="form-control" value="{% settings "default_participant_max" %}" />
+</script>
+
+<script type="text/html" id="AddEventOccurrenceInfo">
+    {% trans "Next events:" %}
+    <ul class="currentRepeat">
+
+    </ul>
 </script>
