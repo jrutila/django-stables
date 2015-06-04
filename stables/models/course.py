@@ -75,6 +75,21 @@ class Course(models.Model):
                         break
         return sorted(starts)[:amount]
 
+    def addEvent(self, **event):
+        event["title"] = self.name
+        self.events.create(**event)
+
+    def setRecurrentEvent(self, **event):
+        event["title"] = self.name
+        event["rule"] = Rule.objects.filter(frequency="WEEKLY")[0]
+        curEv = self.events.filter(Q(
+            Q(end_recurring_period__isnull=True) | Q(end_recurring_period__gte=event["start"])
+        ), rule__isnull=False)
+        if (curEv):
+            curEv = curEv[0]
+            curEv.end_recurring_period = event["start"]
+            curEv.save()
+        self.addEvent(**event)
 
 def get_course(self):
     return self.course_set.all()[0]

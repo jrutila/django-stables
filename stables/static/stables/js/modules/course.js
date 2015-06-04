@@ -140,10 +140,19 @@ var AddEventView = Backbone.View.extend({
         });
     },
     submitEvent: function(ev) {
+        var data = $(ev.target).serializeArray();
+        data = _.object(_.pluck(data, "name"), _.pluck(data, "value"));
+        this.course.set(_.pick(data, "name", "max_participants", "default_participation_fee"))
+        this.course.set("newEvent", {
+            date: data["date"],
+            start: data["start"],
+            end: data["end"],
+            repeat: data["repeat"] == "on",
+            repeatUntil: data["repeatUntil"]
+        });
         this.course.save();
         return false;
         /*
-        var data = $(ev.target).serializeArray();
         data = _.object(_.pluck(data, 'name'), _.pluck(data, 'value'));
         var d = {};
         d['title'] = data['title'];

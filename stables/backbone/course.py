@@ -3,6 +3,8 @@ from tastypie.resources import Resource
 from stables.backbone import ApiList
 from stables.models import Course, ATTENDING
 from stables.models.course import Enroll
+from django.utils.dateparse import parse_datetime
+from django.utils import timezone
 
 __author__ = 'jorutila'
 
@@ -40,3 +42,28 @@ class CourseResource(Resource):
         cc = ViewCourse(c, Enroll.objects.get_enrolls(c))
         return cc
 
+    def obj_update(self, bundle, request=None, **kwargs):
+        id = kwargs['pk']
+        c = Course.objects.get(pk=id)
+        event = bundle.data["newEvent"]
+        start = parse_datetime(event["date"]+" "+event["start"])
+        end = parse_datetime(event["date"]+" "+event["end"])
+        end_recurring_period = parse_datetime(event["repeatUntil"])
+        start = timezone.get_current_timezone().localize(start)
+        end = timezone.get_current_timezone().localize(end)
+        nEvent = {
+            "start": start,
+            "end": end,
+            "end_recurring_period": end_recurring_period
+        }
+
+        c.name = bundle.data["name"]
+        if ("newEvent" in bundle.data
+          and "repeat" in bundle.data["newEvent"]
+          and bundle.data["newEvent"]["repeat"]):
+            c.setRecurrentEvent(**nEvent)
+        else:
+            c.addEvent(**nEvent)
+        c.save()
+        cc = ViewCourse(c, Enroll.objects.get_enrolls(c))
+        return cc
