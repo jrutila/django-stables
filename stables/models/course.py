@@ -83,13 +83,19 @@ class Course(models.Model):
         event["title"] = self.name
         event["rule"] = Rule.objects.filter(frequency="WEEKLY")[0]
         curEv = self.events.filter(Q(
-            Q(end_recurring_period__isnull=True) | Q(end_recurring_period__gte=event["start"])
+            Q(end_recurring_period__isnull=True) | Q(end_recurring_period__gte=event["start"].date())
         ), rule__isnull=False)
+        doAdd = True
         if (curEv):
             curEv = curEv[0]
-            curEv.end_recurring_period = event["start"]
+            if curEv.start == event["start"] and curEv.end == event["end"]:
+                curEv.end_recurring_period = event["end_recurring_period"]
+                doAdd = False
+            else:
+                curEv.end_recurring_period = event["start"].date()
             curEv.save()
-        self.addEvent(**event)
+        if doAdd:
+            self.addEvent(**event)
 
 def get_course(self):
     return self.course_set.all()[0]
