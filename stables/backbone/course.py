@@ -2,6 +2,7 @@ from tastypie import fields
 from tastypie.resources import Resource
 from stables.backbone import ApiList
 from stables.models import Course, ATTENDING
+from stables.models import Participation
 from stables.models.course import Enroll
 from django.utils.dateparse import parse_datetime
 from django.utils import timezone
@@ -9,7 +10,7 @@ from django.utils import timezone
 __author__ = 'jorutila'
 
 class ViewCourse:
-    def __init__(self, course=None, enrolls=None):
+    def __init__(self, course=None, enrolls=None, participations=None):
         if course:
             self.id = course.id
             self.name = course.name
@@ -22,6 +23,14 @@ class ViewCourse:
             self.events = ApiList()
             for dt in course.get_next_occurrences(amount=5):
                 self.events.append(dt)
+            self.participations = ApiList()
+            for p in participations:
+                self.participations.append({
+                    "id"          : p.id,
+                    "participant" : p.participant,
+                    "state"       : p.state,
+                    "start"       : p.start
+                })
 
 class CourseResource(Resource):
     class Meta:
@@ -35,11 +44,13 @@ class CourseResource(Resource):
     default_participation_fee = fields.DecimalField(attribute='default_participation_fee', null=True)
     enrolls = fields.ListField(attribute='enrolls')
     events = fields.ListField(attribute='events')
+    participations = fields.ListField(attribute='participations')
 
     def obj_get(self, bundle, **kwargs):
         id = kwargs['pk']
         c = Course.objects.get(pk=id)
-        cc = ViewCourse(c, Enroll.objects.get_enrolls(c))
+        p = Participation.objects.filter(event__course=id, start__gte=timezone.now()).order_by("-start")
+        cc = ViewCourse(c, Enroll.objects.get_enrolls(c), p)
         return cc
 
     def obj_update(self, bundle, request=None, **kwargs):
@@ -48,7 +59,7 @@ class CourseResource(Resource):
         event = bundle.data["newEvent"]
         start = parse_datetime(event["date"]+" "+event["start"])
         end = parse_datetime(event["date"]+" "+event["end"])
-        end_recurring_period = parse_datetime(event["repeatUntil"])
+        end_recurring_period = parse_datetime(event["repeatUntil"]+" "+event["end"])
         start = timezone.get_current_timezone().localize(start)
         end = timezone.get_current_timezone().localize(end)
         nEvent = {
