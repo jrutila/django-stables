@@ -144,6 +144,17 @@
     <span>{% trans "Horse <%= name %> is riding over it's limit of <%= limit %>" %}</span>
 </script>
 
+<script type="text/javascript">
+    var courses = [
+        {% for c in courses %}
+            {
+                value: {{ c.id }},
+                label: "{{ c }}"
+            },
+        {% endfor %}
+    ];
+</script>
+
 <script type="text/html" id="AddEventView" >
 <div class="modal fade" role="dialog" aria-labelledby="ModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -153,60 +164,51 @@
                 <h3 class="modal-title" id="ModalLabel">{% trans "Add new event" %}</h3>
             </div>
             <div class="modal-body">
+
                 <form role="form" id="addeventForm">
-                    <div class="form-group timeform">
-                        <label for="addeventDate">{% trans "Date" %}</label>
-                        <input name="date" id="addeventDate" type="text" class="form-control" placeholder="{% trans "2014-12-31" %}" value="<%= date %>"/>
-                        <label for="addeventStart">{% trans "Start" %}</label>
-                        <input name="start" id="addeventStart" type="text" class="form-control" placeholder="{% trans "00:00" %}" />
-                        <label for="addeventEnd">{% trans "End" %}</label>
-                        <input name="end" id="addeventEnd" type="text" class="form-control" placeholder="{% trans "00:00" %}" />
+                    <div class="form-group courseform ui-front">
+                        <input type="text" class="courseSelect form-control" placeholder="{% trans "Select event or start new" %}" />
+                        <div class="addEventCourseInfo form-group">
 
-                        <label for="addeventRepeat">{%  trans "Repeat?" %}</label>
-                        <input name="repeat" id="addeventRepeat" type="checkbox" class="form-control" />
+                        </div>
+                        <ul class="enrolls list-group">
+                        </ul>
+                    </div>
+                    <div class="form-group currentOccurrence">
+                        {% trans "Next events:" %}
+                        <ul class="currentRepeat">
 
-                        <label for="addeventRepeatUntil">{%  trans "Last weekly occurrence (optional)" %}</label>
-                        <input name="repeatUntil" id="addeventRepeatUntil" type="date" class="form-control" />
+                        </ul>
                     </div>
                     <ul class="nav nav-tabs">
-                        <li class="active"><a href="#event-tab" data-toggle="pill">{% trans "Single event" %}</a></li>
-                        <li><a href="#course-tab" data-toggle="pill">{% trans "Existing course" %}</a></li>
+                        <li class="active"><a href="#onetime-tab" data-toggle="tab">{% trans "One time event" %}</a></li>
+                        <li><a href="#repeating-tab" data-toggle="tab">{% trans "Repeating event" %}</a></li>
+                        <li><a href="#ending-tab" data-toggle="tab">{% trans "End current events" %}</a></li>
                     </ul>
                     <div class="tab-content">
-                        <div class="tab-pane form-group active" id="event-tab">
-                            <div class="row">
-                                <label for="addeventTitle">{% trans "Title" %}</label>
-                                <input name="title" id="addeventTitle" type="text" class="form-control" />
-                            </div>
-                            <div class="addEventCourseInfo">
+                        <div class="tab-pane form-group active" id="onetime-tab">
+                            <div class="form-group timeform">
+                                <label for="addeventDate">{% trans "Date" %}</label>
+                                <input name="date" id="addeventDate" type="text" class="form-control" placeholder="{% trans "2014-12-31" %}" value="<%= date %>"/>
+                                <label for="addeventStart">{% trans "Start" %}</label>
+                                <input name="start" id="addeventStart" type="text" class="form-control" placeholder="{% trans "00:00" %}" />
+                                <label for="addeventEnd">{% trans "End" %}</label>
+                                <input name="end" id="addeventEnd" type="text" class="form-control" placeholder="{% trans "00:00" %}" />
 
-                            </div>
-                            <div class="row currentOccurrence">
+                                <label for="addeventRepeat">{%  trans "Repeat?" %}</label>
+                                <input name="repeat" id="addeventRepeat" type="checkbox" class="form-control" />
+
+                                <label for="addeventRepeatUntil">{%  trans "Last weekly occurrence (optional)" %}</label>
+                                <input name="repeatUntil" id="addeventRepeatUntil" type="date" class="form-control" />
                             </div>
                         </div>
-                        <div class="tab-pane form-group" id="course-tab">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <label for="addeventCourse">{% trans "Course" %}</label>
-                                    <select name="course" id="addeventCourse" class="form-control">
-                                        {% for c in courses %}
-                                        <option value="{{ c.id }}">{{ c }}</option>
-                                        {% endfor %}
-                                    </select>
-                                    <ul class="enrolls list-group">
-                                    </ul>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="addEventCourseInfo">
-
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row currentOccurrence">
-                            </div>
+                        <div class="tab-pane form-group" id="repeating-tab">
+                        </div>
+                        <div class="tab-pane form-group" id="ending-tab">
                         </div>
                     </div>
                 </form>
+
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Cancel" %}</button>
@@ -226,9 +228,6 @@
     <input name="max_participants" id="addeventParticipants<%= labelId %>" type="number" class="form-control" value="{% settings "default_participant_max" %}" />
 </script>
 
-<script type="text/html" id="AddEventOccurrenceInfo">
-    {% trans "Next events:" %}
-    <ul class="currentRepeat">
-
-    </ul>
+<script type="text/html" id="timeform" >
 </script>
+

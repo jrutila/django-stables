@@ -21,7 +21,7 @@ class ViewCourse:
                 if e.state == ATTENDING:
                     self.enrolls.append(e.participant)
             self.events = ApiList()
-            for dt in course.get_next_occurrences(amount=5):
+            for dt in course.get_next_occurrences(amount=6):
                 self.events.append(dt)
             self.participations = ApiList()
             for p in participations:
