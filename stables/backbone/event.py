@@ -66,6 +66,7 @@ class EventResource(Resource):
         object_class = ViewEvent
         cache = ShortClientCache(timeout=30*60, private=True)
         list_allowed_methods = ['get', 'post', 'put']
+        allowed_methods = ['get', 'post']
         authentication = ParticipationPermissionAuthentication()
         always_return_data = True
 
@@ -85,6 +86,7 @@ class EventResource(Resource):
 
     def prepend_urls(self):
         return [
+            url(r"^(?P<resource_name>%s)/(?P<%s>\d*-\d{4}-\d{2}-\d{2}T\d{2}:\d{2}.*)/move%s$" % (self._meta.resource_name, self._meta.detail_uri_name, trailing_slash()), self.wrap_view('move_event'), name="api_move_event"),
             url(r"^(?P<resource_name>%s)/(?P<%s>\d*-\d{4}-\d{2}-\d{2}T\d{2}:\d{2}.*)%s$" % (self._meta.resource_name, self._meta.detail_uri_name, trailing_slash()), self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
             ]
 
@@ -207,6 +209,18 @@ class EventResource(Resource):
                 part = part[0]
             part.instructor = InstructorInfo.objects.get(user__id=data['instructor_id']).user
             part.save()
+        bundle.obj = ViewEvent(occ=occ)
+        return bundle
+
+    def move_event(self, bundle, requesst=None, **kwargs):
+        data = bundle.body
+        id_data = self._get_id_data(kwargs['pk'])
+        ev = Event.objects.get(id=id_data['id'])
+        occ = ev.get_occurrence(id_data['start'])
+
+        if not occ.cancelled and data['cancelled']:
+            #occ.cancel()
+            pass
         bundle.obj = ViewEvent(occ=occ)
         return bundle
 

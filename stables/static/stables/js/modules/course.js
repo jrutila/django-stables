@@ -161,7 +161,7 @@ var AddEventView = Backbone.View.extend({
         var html, $oldel=this.$el, $newel;
         this.xevents = [];
         this.addEvents = [];
-        html = _.template($('#AddEventView').html(), this.model.attributes)
+        html = _.template($('#AddEventView').html())(this.model.attributes);
         $newel = $(html.trim());
 
         this.setElement($newel);

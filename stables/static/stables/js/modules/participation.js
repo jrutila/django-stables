@@ -410,6 +410,7 @@ var Event = Backbone.Model.extend({
                 });
             }
         }
+        Backbone.Do(this);
     },
     idAttribute: "id", /*function() {
         // Use this so that there can be multiple occurrences from the same event
@@ -435,6 +436,15 @@ var Event = Backbone.Model.extend({
     getHour: function() {
         return parseInt(this.get('start').match(/T(\d{2})/)[1])
     },
+    actions: {
+        cancel: {
+            url: "move/",
+            method: "create",
+            data: function() {
+                return { cancelled: false }
+            }
+        }
+    }
 })
 
 var EventCollection = Backbone.Collection.extend({
@@ -454,13 +464,18 @@ var EventView = Backbone.View.extend({
     },
     events: {
         'change select[name="instructor"]': 'instructorChange',
+        'click a.event': 'eventClick'
     },
     template: _.template($('#EventView').html()),
+    eventClick: function(ev) {
+        return false;
+    },
     render: function() {
         this.$el.html(this.template(this.model.attributes))
         $('select[name="instructor"]', this.$el).val(this.model.get('instructor_id'))
         var ul = this.$el.find('ul')
         var that = this;
+        var model = this.model;
         this.model.get('participations')
           .each(function(p) {
             var view = undefined
@@ -473,6 +488,37 @@ var EventView = Backbone.View.extend({
         if (!this.model.get('cancelled'))
             this.renderAdder()
         this.renderComments()
+
+        var editTemplate = _.template($('#EventEditView').html());
+
+        this.$el.find("a.event").popover({
+            trigger: 'click',
+            placement: 'top',
+            content: function() {
+                var $el = $(editTemplate(model.attributes).trim());
+                $el.find("#moveeventDate").datepicker({
+                    dateFormat: "yy-mm-dd",
+                });
+                $el.find("#cancelEvent").change(function(ev) {
+                    if ($(ev.target).is(":checked"))
+                        $(ev.target).parent().siblings(":not(button)").hide();
+                    else
+                        $(ev.target).parent().siblings().show();
+                });
+                $el.submit(function(ev) {
+                    if ($("#cancelEvent").is(":checked"))
+                    {
+                        //that.model.set("cancelled", true);
+                        // TODO: Okay, so we remove comments so that there is no recursion
+                        that.model.unset('comments');
+                        that.model.cancel();
+                    }
+                    return false;
+                });
+                return $el;
+            },
+            html: true
+        });
         return this
     },
     instructorChange: function(ev) {

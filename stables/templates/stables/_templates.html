@@ -103,7 +103,7 @@
 </script>
 
 <script type="text/html" id="EventView">
-<a class="<% if (cancelled) { %>cancelled<% } %>" href="<%= course_url %>" title='<%= moment(start).format('l HH:mm') %>-<%= moment(end).format('HH:mm') %>'><%= moment(start).format('dd HH:mm') %> <%= title %></a>
+<a class="event <% if (cancelled) { %>cancelled<% } %>" href="<%= course_url %>" title='<%= moment(start).format('l HH:mm') %>-<%= moment(end).format('HH:mm') %>'><%= moment(start).format('dd HH:mm') %> <%= title %></a>
     {% if instructors %}
     <select name="instructor">
         <option value="0">{% trans "--" %}</option>
@@ -116,6 +116,24 @@
     </div>-->
     <ul class="rider-list">
     </ul>
+</script>
+
+<script type="text/html" id="EventEditView">
+<form>
+    <label for="moveeventDate">{% trans "Date" %}</label>
+    <input name="date" id="moveeventDate" value="<%= moment(start).format('YYYY-MM-DD') %>" type="text" class="form-control" placeholder="{% trans "YYYY-MM-DD" %}"/>
+    <label for="moveeventStart">{% trans "Start" %}</label>
+    <input name="start" id="moveeventStart" value="<%= moment(start).format('HH:mm') %>" type="text" class="form-control" placeholder="{% trans "00:00" %}" />
+    <label for="moveeventEnd">{% trans "End" %}</label>
+    <input name="end" id="moveeventEnd" value="<%= moment(end).format('HH:mm') %>" type="text" class="form-control" placeholder="{% trans "00:00" %}" />
+
+    <div class="form-control" style="margin-top: 5px; margin-bottom: 5px">
+        <input type="checkbox" name="cancel" id="cancelEvent"/> <label for="cancelEvent">Cancel</label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+    <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Cancel" %}</button>
+</form>
 </script>
 
 <script type="text/html" id="CommentsView">
