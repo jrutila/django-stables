@@ -63,17 +63,17 @@ class Course(models.Model):
         starts = []
         for e in evs:
             if e.rule == None:
-                starts.append(e.start)
+                starts.append(e.get_occurrence(e.start))
             else:
                 i = 0
                 for o in e.occurrences_after(since):
                     if o == None:
                         break
-                    starts.append(o.start)
+                    starts.append(o)
                     i = i + 1
                     if i >= amount:
                         break
-        return sorted(starts)[:amount]
+        return sorted(starts, key=lambda o: o.start)[:amount]
 
     def addEvent(self, **event):
         event["title"] = self.name
