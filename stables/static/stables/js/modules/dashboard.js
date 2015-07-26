@@ -170,7 +170,7 @@ var AddEventView = Backbone.View.extend({
     },
     render: function() {
         var html, $oldel=this.$el, $newel;
-        html = _.template($('#AddEventView').html(), this.model.attributes)
+        html = _.template($('#AddEventView').html())(this.model.attributes)
         $newel = $(html.trim());
         this.setElement($newel);
         $oldel.replaceWith($newel);
