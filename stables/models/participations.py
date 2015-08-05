@@ -30,10 +30,9 @@ recurring_change = django.dispatch.Signal(providing_args=['prev', 'new'])
 logger = logging.getLogger(__name__)
 
 def part_cancel(self, course, start, end):
-    occ = course.get_occurrence(start)
+    occ = course.get_next_occurrences(since=start, amount=1)[0]
     for p in self.filter(event=occ.event, start=start, end=end).exclude(state=CANCELED):
-        p.state=CANCELED
-        p.save()
+        p.cancel()
 
 class ParticipationManager(models.Manager):
     def create_participation(self, rider, occurrence, state, force=False):
@@ -221,7 +220,7 @@ class Participation(models.Model):
           return actual.save()
 
     def cancel(self):
-        self.state = 3
+        self.state = CANCELED
         reversion.set_comment("Canceled")
         self.save()
 

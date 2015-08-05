@@ -441,8 +441,12 @@ var Event = Backbone.Model.extend({
             url: "move/",
             method: "create",
             data: function() {
-                return { cancelled: false }
+                return { cancelled: true }
             }
+        },
+        move: {
+            url: "move/",
+            method: "create",
         }
     }
 })
@@ -460,6 +464,7 @@ var EventView = Backbone.View.extend({
     tagName: 'div',
     initialize: function() {
         this.listenTo(this.model.get('participations'), "sort", this.render);
+        this.listenTo(this.model, "action:cancel", this.render);
         this.listenTo(this.model, "sync", this.notifyChanged);
     },
     events: {
@@ -499,21 +504,46 @@ var EventView = Backbone.View.extend({
                 $el.find("#moveeventDate").datepicker({
                     dateFormat: "yy-mm-dd",
                 });
-                $el.find("#cancelEvent").change(function(ev) {
-                    if ($(ev.target).is(":checked"))
-                        $(ev.target).parent().siblings(":not(button)").hide();
+                var checkCancel = function($target)
+                {
+                    if ($target.is(":checked"))
+                        $target.parent().siblings(":not(button)").hide();
                     else
-                        $(ev.target).parent().siblings().show();
+                        $target.parent().siblings().show();
+                };
+                $el.find("#cancelEvent").change(function(ev) {
+                    checkCancel($(ev.target));
                 });
+                checkCancel($el.find("#cancelEvent"));
                 $el.submit(function(ev) {
-                    if ($("#cancelEvent").is(":checked"))
-                    {
-                        //that.model.set("cancelled", true);
-                        // TODO: Okay, so we remove comments so that there is no recursion
-                        that.model.unset('comments');
-                        that.model.cancel();
+                    $el.find("button").attr("disabled", "disabled");
+                    // TODO: Okay, so we remove comments so that there is no recursion
+                    that.model.unset('comments');
+                    if ($("#cancelEvent").is(":checked")) {
+                        if (that.model.get("cancelled") == false) {
+                            that.model.cancel();
+                        }
+                    } else {
+                        var date = $el.find("#moveeventDate").val();
+                        var start = $el.find("#moveeventStart").val();
+                        var end = $el.find("#moveeventEnd").val();
+                        var oldStr = "";
+                        oldStr += moment(that.model.get("start")).format('YYYY-MM-DDHH:mm');
+                        oldStr += moment(that.model.get("end")).format('HH:mm');
+                        if (date+start+end != oldStr)
+                        {
+                            // Something changed
+                            console.log("Moving")
+                            that.model.move({ start: date+"T"+start, end: date+"T"+end });
+                            console.log("Moved")
+                        }
                     }
+
                     return false;
+                });
+                var $that = $(this);
+                $el.find("button[data-dismiss='modal']").click(function() {
+                    $that.popover("toggle");
                 });
                 return $el;
             },

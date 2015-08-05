@@ -13,7 +13,8 @@ from stables.models.participations import Participation
 from tastypie import fields
 from tastypie.bundle import Bundle
 from tastypie.resources import Resource
-from tastypie.utils import trailing_slash
+from tastypie.utils import is_valid_jsonp_callback_value, dict_strip_unicode_keys, trailing_slash
+from tastypie import http
 from stables.backbone import ApiList, ShortClientCache, ParticipationPermissionAuthentication
 from stables.backbone.occurrence import EventMetaDataResource
 from stables.backbone.participation import ViewParticipation, ParticipationResource
@@ -67,6 +68,7 @@ class EventResource(Resource):
         cache = ShortClientCache(timeout=30*60, private=True)
         list_allowed_methods = ['get', 'post', 'put']
         allowed_methods = ['get', 'post']
+        move_allowed_methods = ['post']
         authentication = ParticipationPermissionAuthentication()
         always_return_data = True
 
@@ -86,7 +88,7 @@ class EventResource(Resource):
 
     def prepend_urls(self):
         return [
-            url(r"^(?P<resource_name>%s)/(?P<%s>\d*-\d{4}-\d{2}-\d{2}T\d{2}:\d{2}.*)/move%s$" % (self._meta.resource_name, self._meta.detail_uri_name, trailing_slash()), self.wrap_view('move_event'), name="api_move_event"),
+            url(r"^(?P<resource_name>%s)/(?P<%s>\d*-\d{4}-\d{2}-\d{2}T\d{2}:\d{2}.*)/move%s$" % (self._meta.resource_name, self._meta.detail_uri_name, trailing_slash()), self.wrap_view('dispatch_move'), name="api_move_event"),
             url(r"^(?P<resource_name>%s)/(?P<%s>\d*-\d{4}-\d{2}-\d{2}T\d{2}:\d{2}.*)%s$" % (self._meta.resource_name, self._meta.detail_uri_name, trailing_slash()), self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
             ]
 
@@ -212,17 +214,36 @@ class EventResource(Resource):
         bundle.obj = ViewEvent(occ=occ)
         return bundle
 
-    def move_event(self, bundle, requesst=None, **kwargs):
-        data = bundle.body
+    def dispatch_move(self, request, **kwargs):
+        return self.dispatch("move", request, **kwargs)
+
+    def post_move(self, request, **kwargs):
+        deserialized = self.deserialize(request, request.body, format=request.META.get('CONTENT_TYPE', 'application/json'))
+        deserialized = self.alter_deserialized_detail_data(request, deserialized)
+        bundle = self.build_bundle(data=dict_strip_unicode_keys(deserialized), request=request)
+
+        data = bundle.data
         id_data = self._get_id_data(kwargs['pk'])
         ev = Event.objects.get(id=id_data['id'])
         occ = ev.get_occurrence(id_data['start'])
+        if not occ:
+            gen = ev.occurrences_after(id_data['start'])
+            occ = gen.next()
 
-        if not occ.cancelled and data['cancelled']:
-            #occ.cancel()
-            pass
-        bundle.obj = ViewEvent(occ=occ)
-        return bundle
+        if not occ.cancelled and 'cancelled' in data and data['cancelled']:
+            occ.cancel()
+        elif not occ.cancelled and 'start' in data and 'end' in data:
+            tz = timezone.get_current_timezone()
+            new_start = timezone.make_aware(datetime.datetime.strptime(data['start'], '%Y-%m-%dT%H:%M'), tz)
+            new_end = timezone.make_aware(datetime.datetime.strptime(data['end'], '%Y-%m-%dT%H:%M'), tz)
+            occ.move(new_start, new_end)
+
+        obj = ViewEvent(occ=occ)
+        bundle = self.build_bundle(obj=obj, request=request)
+        bundle = self.full_dehydrate(bundle)
+        bundle = self.alter_detail_data_to_serialize(request, bundle)
+
+        return self.create_response(request, bundle)
 
 def update_event_resource(sender, **kwargs):
     inst = kwargs['instance']

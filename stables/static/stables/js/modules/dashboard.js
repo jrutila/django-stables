@@ -60,7 +60,19 @@ var Day = Backbone.Model.extend({
         data['events'] = new EventCollection(EventCollection.prototype.parse(data.objects), {
             'limits': this.get('limits'),
             'horses': this.get('horses')
-        })
+        });
+        data['events'].each(function(ev) {
+            this.listenTo(ev, "action:move", function(a,b) {
+                console.log("Fetching because action:move")
+                if (!moment(this.get("date")).isSame(moment(b.start), "day"))
+                {
+                    console.log("Event moved out of day "+this.get("date"))
+                    this.trigger("eventout", a);
+                }
+                this.fetch();
+                console.log("Fetch ready after action:move")
+            });
+        },this);
         delete data.objects
         return data
     },
@@ -76,7 +88,7 @@ var Day = Backbone.Model.extend({
 
 var DayCollection = Backbone.Collection.extend({
     model: Day,
-    comparator: 'date',
+    comparator: 'date'
 })
 
 var Week = Backbone.Model.extend({
@@ -94,6 +106,11 @@ var Week = Backbone.Model.extend({
             {
                 day = new Day({'date': key})
                 day.fetch()
+                day.on("eventout", function(movedEvent) {
+                    var kk = moment(movedEvent.get("start")).format("YYYY-MM-DD");
+                    var dd = that.get("dates")[kk];
+                    dd && dd.fetch();
+                });
             }
             newColl.add(day)
             that.get('dates')[key] = day
