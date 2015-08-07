@@ -447,6 +447,10 @@ var Event = Backbone.Model.extend({
         move: {
             url: "move/",
             method: "create",
+        },
+        options: {
+            url: "options/",
+            method: "update"
         }
     }
 })
@@ -496,7 +500,7 @@ var EventView = Backbone.View.extend({
 
         var editTemplate = _.template($('#EventEditView').html());
 
-        this.$el.find("a.event").popover({
+        this.$el.find("a.move").popover({
             trigger: 'click',
             placement: 'top',
             content: function() {
@@ -517,6 +521,7 @@ var EventView = Backbone.View.extend({
                 checkCancel($el.find("#cancelEvent"));
                 $el.submit(function(ev) {
                     $el.find("button").attr("disabled", "disabled");
+                    $el.find("button:first").replaceWith($("#EventLoadingView").html());
                     // TODO: Okay, so we remove comments so that there is no recursion
                     that.model.unset('comments');
                     if ($("#cancelEvent").is(":checked")) {
@@ -552,12 +557,15 @@ var EventView = Backbone.View.extend({
         return this
     },
     instructorChange: function(ev) {
-        this.model.set('instructor_id', parseInt($(ev.target).val()))
+        var instrId = parseInt($(ev.target).val());
         this.$el.find('select[name="instructor"]').addClass('changed')
         // TODO: Okay, so we remove comments so that there is no recursion
         this.model.unset('comments')
         //TODO: to model
-        this.model.save()
+        var that = this;
+        this.model.options({ instructor: instrId }, { success: function(event) {
+            that.notifyChanged();
+        }});
     },
     renderComments: function() {
         if (this.comments == undefined)

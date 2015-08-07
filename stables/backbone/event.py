@@ -40,7 +40,7 @@ class ViewEvent:
             self.cancelled = occ.cancelled
             self.id = str(occ.event.id) + "-" + timezone.utc.normalize(occ.start.astimezone(timezone.utc)).isoformat()
         if instr:
-            self.instructor_id = instr.instructor_id
+            self.instructor_id = instr.id
         if parts and not self.cancelled:
             self.participations = ApiList()
             for p in parts:
@@ -69,6 +69,7 @@ class EventResource(Resource):
         list_allowed_methods = ['get', 'post', 'put']
         allowed_methods = ['get', 'post']
         move_allowed_methods = ['post']
+        options_allowed_methods = ['put']
         authentication = ParticipationPermissionAuthentication()
         always_return_data = True
 
@@ -89,6 +90,7 @@ class EventResource(Resource):
     def prepend_urls(self):
         return [
             url(r"^(?P<resource_name>%s)/(?P<%s>\d*-\d{4}-\d{2}-\d{2}T\d{2}:\d{2}.*)/move%s$" % (self._meta.resource_name, self._meta.detail_uri_name, trailing_slash()), self.wrap_view('dispatch_move'), name="api_move_event"),
+            url(r"^(?P<resource_name>%s)/(?P<%s>\d*-\d{4}-\d{2}-\d{2}T\d{2}:\d{2}.*)/options%s$" % (self._meta.resource_name, self._meta.detail_uri_name, trailing_slash()), self.wrap_view('dispatch_options'), name="api_options"),
             url(r"^(?P<resource_name>%s)/(?P<%s>\d*-\d{4}-\d{2}-\d{2}T\d{2}:\d{2}.*)%s$" % (self._meta.resource_name, self._meta.detail_uri_name, trailing_slash()), self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
             ]
 
@@ -159,8 +161,9 @@ class EventResource(Resource):
             for (o, (c, p)) in parts.items():
                 logger.debug("Found occ: %s %s" % (o, o.event.title))
                 metadata = metadatas.get(o.event.pk, None)
+                ins = instr.get(o.event.pk, None)
                 occs.append(ViewEvent(o, c, p, saldos,
-                                      instr.get(o.event.pk, None),
+                                      ins.instructor if ins else None,
                                       metadata,
                                       comments.get(metadata.pk if metadata else None, None),
                                       accidents,
@@ -197,20 +200,6 @@ class EventResource(Resource):
         id_data = self._get_id_data(kwargs['pk'])
         ev = Event.objects.get(id=id_data['id'])
         occ = ev.get_occurrence(id_data['start'])
-        part = InstructorParticipation.objects.filter(event=ev, start=occ.start, end=occ.end)
-        if data['instructor_id'] == 0 or data['instructor_id'] == None:
-            if part:
-                part.delete()
-        else:
-            if not part:
-                part = InstructorParticipation()
-                part.start = occ.start
-                part.end = occ.end
-                part.event = ev
-            else:
-                part = part[0]
-            part.instructor = InstructorInfo.objects.get(user__id=data['instructor_id']).user
-            part.save()
         bundle.obj = ViewEvent(occ=occ)
         return bundle
 
@@ -243,6 +232,40 @@ class EventResource(Resource):
         bundle = self.full_dehydrate(bundle)
         bundle = self.alter_detail_data_to_serialize(request, bundle)
 
+        return self.create_response(request, bundle)
+
+    def dispatch_options(self, request, **kwargs):
+        return self.dispatch("options", request, **kwargs)
+
+    def put_options(self, request, **kwargs):
+        deserialized = self.deserialize(request, request.body, format=request.META.get('CONTENT_TYPE', 'application/json'))
+        deserialized = self.alter_deserialized_detail_data(request, deserialized)
+        bundle = self.build_bundle(data=dict_strip_unicode_keys(deserialized), request=request)
+
+        data = bundle.data
+        id_data = self._get_id_data(kwargs['pk'])
+        ev = Event.objects.get(id=id_data['id'])
+        occ = ev.get_occurrence(id_data['start'])
+
+        part = InstructorParticipation.objects.filter(event=ev, start=occ.start, end=occ.end)
+        if data['instructor'] == 0 or data['instructor'] == None:
+            if part:
+                part.delete()
+        else:
+            if not part:
+                part = InstructorParticipation()
+                part.start = occ.start
+                part.end = occ.end
+                part.event = ev
+            else:
+                part = part[0]
+            part.instructor = InstructorInfo.objects.get(user__id=data['instructor']).user
+            part.save()
+
+        obj = ViewEvent(occ=occ, instr=part.instructor)
+        bundle = self.build_bundle(obj=obj, request=request)
+        bundle = self.full_dehydrate(bundle)
+        bundle = self.alter_detail_data_to_serialize(request, bundle)
         return self.create_response(request, bundle)
 
 def update_event_resource(sender, **kwargs):

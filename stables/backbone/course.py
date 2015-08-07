@@ -24,13 +24,14 @@ class ViewCourse:
             for occ in course.get_next_occurrences(amount=6):
                 self.events.append(occ.start)
             self.participations = ApiList()
-            for p in participations:
-                self.participations.append({
-                    "id"          : p.id,
-                    "participant" : p.participant,
-                    "state"       : p.state,
-                    "start"       : p.start
-                })
+            if participations:
+                for p in participations:
+                    self.participations.append({
+                        "id"          : p.id,
+                        "participant" : p.participant,
+                        "state"       : p.state,
+                        "start"       : p.start
+                    })
 
 class CourseResource(Resource):
     class Meta:
