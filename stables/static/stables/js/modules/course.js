@@ -31,6 +31,7 @@ var AddEventView = Backbone.View.extend({
         "submit": 'submitEvent',
         "change #addeventCourse": 'courseSelected',
         "change #addeventForm .timeform input": 'timeChanged',
+        "blur .courseSelect": 'courseNamed',
         "select .courseSelect": 'courseSelected',
     },
     timeChanged: function() {
@@ -57,16 +58,12 @@ var AddEventView = Backbone.View.extend({
     },
     courseSelected: function(ev, ui) {
         var courseId = ui.item.value;
-        var $courseInfo = this.$el.find(".addEventCourseInfo").html("");
         this.course = new Course({ id: courseId });
         var that = this;
         this.xevents = [];
         this.course.fetch({success: function(model, response) {
             that.$el.find(".courseSelect").val(model.get("name"));
-            var hExtraInfo = _.template($("#AddEventCourseInfo").html());
-            var $apnd = $courseInfo.html(hExtraInfo);
-            $apnd.find("input[name='default_participation_fee']").val(parseInt(model.get("default_participation_fee")));
-            $apnd.find("input[name='max_participants']").val(model.get("max_participants"));
+            that.renderCourseInfo(model);
             var $enrolls = that.$el.find(".enrolls").html("");
             _.each(model.get("enrolls"), function(e) {
                 $enrolls.append("<li class='list-group-item condensed'>"+e+"</li>");
@@ -74,6 +71,21 @@ var AddEventView = Backbone.View.extend({
             that.xevents = model.get('events');
             that.renderTimes();
         }});
+    },
+    courseNamed: function(ev, ui) {
+        if (!this.course) {
+            this.course = new Course();
+            this.renderCourseInfo()
+        }
+    },
+    renderCourseInfo: function(model) {
+        var hExtraInfo = _.template($("#AddEventCourseInfo").html());
+        var $courseInfo = this.$el.find(".addEventCourseInfo").html("");
+        var $apnd = $courseInfo.html(hExtraInfo);
+        if (model) {
+            $apnd.find("input[name='default_participation_fee']").val(parseInt(model.get("default_participation_fee")));
+            $apnd.find("input[name='max_participants']").val(model.get("max_participants"));
+        }
     },
     renderTimes: function() {
         var repeat = this.$el.find("input[name='repeat']").is(":checked");
@@ -198,6 +210,7 @@ var AddEventView = Backbone.View.extend({
             });
     },
     submitEvent: function(ev) {
+        this.course = this.course || new Course();
         var data = $(ev.target).serializeArray();
         data = _.object(_.pluck(data, "name"), _.pluck(data, "value"));
         this.course.set(_.pick(data, "name", "max_participants", "default_participation_fee"))

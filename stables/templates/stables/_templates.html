@@ -108,7 +108,7 @@
    title="<%= moment(start).format('l HH:mm') %>-<%= moment(end).format('HH:mm') %>">
     <%= moment(start).format('dd HH:mm') %> <%= title %>
 </a>
-<a class="move">move</a>
+<a class="move"><i class="fa fa-clock-o"></i></a>
 <!--<a class="message">message</a>-->
     {% if instructors %}
     <br/><select name="instructor">
@@ -191,7 +191,7 @@
 
                 <form role="form" id="addeventForm">
                     <div class="form-group courseform ui-front">
-                        <input type="text" class="courseSelect form-control" placeholder="{% trans "Select event or start new" %}" />
+                        <input type="text" name="name" class="courseSelect form-control" placeholder="{% trans "Select event or start new" %}" />
                         <div class="addEventCourseInfo form-group">
 
                         </div>

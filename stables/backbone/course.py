@@ -37,7 +37,8 @@ class CourseResource(Resource):
     class Meta:
         resource_name = 'courses'
         object_class = ViewCourse
-        list_allowed_methods = ['get']
+        list_allowed_methods = ['get', 'post']
+        always_return_data = True
 
     id = fields.CharField(attribute='id')
     name = fields.CharField(attribute='name')
@@ -57,6 +58,30 @@ class CourseResource(Resource):
     def obj_update(self, bundle, request=None, **kwargs):
         id = kwargs['pk']
         c = Course.objects.get(pk=id)
+        self.setEvent(bundle, c)
+        c.save()
+        cc = ViewCourse(c, Enroll.objects.get_enrolls(c))
+        bundle.obj = cc
+        return bundle
+
+    def obj_create(self, bundle, request=None, **kwargs):
+        c = Course.objects.create()
+        self.setEvent(bundle, c)
+        c.save()
+        cc = ViewCourse(c, Enroll.objects.get_enrolls(c))
+        bundle.obj = cc
+        return bundle
+
+    def detail_uri_kwargs(self, bundle_or_obj):
+        return {
+            'pk': bundle_or_obj.obj.id,
+        }
+
+    def setEvent(self, bundle, c):
+        c.name = bundle.data["name"]
+        c.default_participation_fee = bundle.data["default_participation_fee"]
+        c.max_participants = bundle.data["max_participants"]
+
         event = bundle.data["newEvent"]
         start = parse_datetime(event["date"]+" "+event["start"])
         end = parse_datetime(event["date"]+" "+event["end"])
@@ -69,13 +94,11 @@ class CourseResource(Resource):
             "end_recurring_period": end_recurring_period
         }
 
-        c.name = bundle.data["name"]
         if ("newEvent" in bundle.data
-          and "repeat" in bundle.data["newEvent"]
-          and bundle.data["newEvent"]["repeat"]):
+            and "repeat" in bundle.data["newEvent"]
+            and bundle.data["newEvent"]["repeat"]):
             c.setRecurrentEvent(**nEvent)
         else:
             c.addEvent(**nEvent)
-        c.save()
-        cc = ViewCourse(c, Enroll.objects.get_enrolls(c))
-        return cc
+
+
