@@ -42,7 +42,9 @@ var AddEventView = Backbone.View.extend({
         var repeat = this.$el.find("input[name='repeat']").is(":checked");
         var repeatUntil = this.$el.find("input[name='repeatUntil']").val();
         var time = moment(date + " " + start);
+        var name = this.$el.find("input[name='name']").val();
         if (date && start && end && time) {
+            if (name) this.ready(true);
             this.addEvents.push(time);
             while (repeat && (
                 (repeatUntil && time < moment(repeatUntil + " " + start))
@@ -69,6 +71,7 @@ var AddEventView = Backbone.View.extend({
                 $enrolls.append("<li class='list-group-item condensed'>"+e+"</li>");
             });
             that.xevents = model.get('events');
+            that.participations = model.get('participations');
             that.renderTimes();
         }});
     },
@@ -77,17 +80,25 @@ var AddEventView = Backbone.View.extend({
             this.course = new Course();
             this.renderCourseInfo()
         }
+        var date = this.$el.find("input[name='date']").val();
+        var start = this.$el.find("input[name='start']").val();
+        var end = this.$el.find("input[name='end']").val();
+        var time = moment(date + " " + start);
+        if (date && start && end && time) {
+            this.ready(true);
+        }
     },
     renderCourseInfo: function(model) {
         var hExtraInfo = _.template($("#AddEventCourseInfo").html());
         var $courseInfo = this.$el.find(".addEventCourseInfo").html("");
-        var $apnd = $courseInfo.html(hExtraInfo);
+        var $apnd = $courseInfo.html(hExtraInfo({ newCourse: this.course.id == undefined }));
         if (model) {
             $apnd.find("input[name='default_participation_fee']").val(parseInt(model.get("default_participation_fee")));
             $apnd.find("input[name='max_participants']").val(model.get("max_participants"));
         }
     },
     renderTimes: function() {
+        this.xparticipations = _.groupBy(this.participations, 'start');
         var repeat = this.$el.find("input[name='repeat']").is(":checked");
         var repeatUntil = this.$el.find("input[name='repeatUntil']").val();
         var $ul = this.$el.find(".currentOccurrence .currentRepeat").html("");
@@ -117,24 +128,69 @@ var AddEventView = Backbone.View.extend({
         var sortByDateAsc = function (lhs, rhs)  { return lhs > rhs ? 1 : lhs < rhs ? -1 : 0; };
         listEvents.sort(sortByDateAsc);
 
+        var maxPart = _.max(_.map(_.keys(this.xparticipations), function(x) { return moment(x); }));
+        var minPart = _.min(_.map(_.keys(this.xparticipations), function(x) { return moment(x); }));
+        var errored = false;
+
         _.each(
             listEvents,
             function(e, i) {
                 if (!repeatUntil || e.isBefore(moment(repeatUntil + " 23:59:59"))) {
                     if (i >= 5) {
                         if (i == 5 && listEvents.length >= 6) {
-                            $ul.append("...");
+                            $ul.append("<li>...</li>");
                         }
                         return;
                     }
                     var cl = "new";
                     if (_.any(this.xevents, function(x) { return moment(x).isSame(e); }))
                         cl = "old";
+                    if (cl == "new" && repeat && maxPart != -Infinity && e <= maxPart) {
+                        cl = "error";
+                        errored = true;
+                        this.ready(false);
+                    }
 
-                    var format = "<li class='" + cl + "'>" + e.format("llll") + "</li>";
-                    $ul.append(format);
+                    var $format = this._createEvent(e, cl);
+
+                    $ul.append($format);
                 }
         },this);
+        var stillLeft = _.size(this.xparticipations) > 0;
+        _.each(this.xparticipations, function(xp, event) {
+            $ul.append(this._createEvent(moment(event)));
+        }, this);
+        if (stillLeft)
+            $ul.append("<li>...</li>");
+    },
+    _createEvent: function(e, cl) {
+        var event = e.format("YYYY-MM-DDTHH:mm:ss");
+        var $format = $("<li class='" + cl + "'>" + e.format("llll")+"</li>");
+        if (_.has(this.xparticipations, event)) {
+            var $tooltip = $("<i class='fa fa-user'></i>");
+            parts = "<ul>";
+            _.each(this.xparticipations[event], function(xp) {
+                parts += "<li";
+                if (xp.state == 3)
+                    parts += " style='text-decoration: line-through'";
+                parts += ">"+xp.participant+"</li>"
+            });
+            parts += "</ul>";
+            delete this.xparticipations[event];
+            $tooltip.tooltip({
+                title: parts,
+                html: true,
+                placement: "right"
+            });
+            $format.append($tooltip);
+        }
+        return $format;
+    },
+    ready: function(isReady) {
+        if (isReady)
+            this.$el.find("button[type='submit']").removeAttr("disabled");
+        else
+            this.$el.find("button[type='submit']").attr("disabled", "disabled");
     },
     tabSelected: function($newTab) {
         var $inputs = $newTab.find("input, label");
@@ -208,6 +264,7 @@ var AddEventView = Backbone.View.extend({
                 source: coursesSource,
                 select: function(ev, ui) { that.courseSelected(ev, ui); }
             });
+        this.ready(false);
     },
     submitEvent: function(ev) {
         this.course = this.course || new Course();
@@ -223,25 +280,5 @@ var AddEventView = Backbone.View.extend({
         });
         this.course.save();
         return false;
-        /*
-        data = _.object(_.pluck(data, 'name'), _.pluck(data, 'value'));
-        var d = {};
-        d['title'] = data['title'];
-        d['start'] = moment(data['date']+"T"+data['start']);
-        d['end'] = moment(data['date']+"T"+data['end']);
-        d['repeat'] = moment(data['repeatUntil']+"T"+data['end']);
-        if  ( $(ev.target).has('.active *[name="course"]').length )
-            d['course'] = data['course']
-        var e = new Event(d);
-        e.unset('comments');
-        var that = this;
-        e.save({}, { success: function(model, response) {
-            console.log("SAVE SUCCESS");
-            that.trigger("eventAdded");
-            that.$el.modal('hide');
-        }
-        });
-        return false;
-        */
     },
 })

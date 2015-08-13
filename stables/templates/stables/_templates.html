@@ -207,7 +207,7 @@
                     <ul class="nav nav-tabs">
                         <li class="active"><a href="#onetime-tab" data-toggle="tab">{% trans "One time event" %}</a></li>
                         <li><a href="#repeating-tab" data-toggle="tab">{% trans "Repeating event" %}</a></li>
-                        <li><a href="#ending-tab" data-toggle="tab">{% trans "End current events" %}</a></li>
+                        <!--<li><a href="#ending-tab" data-toggle="tab">{% trans "End current events" %}</a></li>-->
                     </ul>
                     <div class="tab-content">
                         <div class="tab-pane form-group active" id="onetime-tab">
@@ -245,6 +245,9 @@
 
 <script type="text/html" id="AddEventCourseInfo" >
     <% window.labelId = window.labelId == undefined ? 1 : window.labelId + 1; %>
+    <% if (newCourse) { %>
+            <div class="addEventInfo">{% trans "Adding a new course" %}</div>
+    <% } %>
     <label for="addeventCost<%= labelId %>">{%  trans "Cost" %}</label>
     <input name="default_participation_fee" id="addeventCost<%= labelId %>" type="number" class="form-control" value="{% settings "default_event_cost" %}"/>
 
