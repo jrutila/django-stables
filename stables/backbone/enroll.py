@@ -14,6 +14,7 @@ class EnrollResource(ModelResource):
         object_class = Enroll
         list_allowed_methods = ['post', 'put']
         authentication = ParticipationPermissionAuthentication()
+        always_return_data = True
 
     event = fields.IntegerField()
 
@@ -24,9 +25,13 @@ class EnrollResource(ModelResource):
         enroll.state = 0
         enroll.last_state_change_on = datetime.datetime.now()
         enroll.save()
+        bundle.obj = enroll
+        return bundle
 
     def obj_update(self, bundle, request=None, **kwargs):
         enroll = Enroll.objects.get(pk=kwargs['pk'])
         enroll.state = bundle.data['state']
         enroll.last_state_change_on = datetime.datetime.now()
         enroll.save()
+        bundle.obj = enroll
+        return bundle
