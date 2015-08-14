@@ -1,7 +1,4 @@
 from django.utils.formats import time_format
-
-__author__ = 'jorutila'
-
 from django.db import models
 from django.core.urlresolvers import reverse
 from django.db.models import Q
@@ -28,6 +25,9 @@ from django.template.defaultfilters import date as _date
 from django.template.defaultfilters import time as _time
 from stables.models import *
 from django.conf import settings
+
+__author__ = 'jorutila'
+
 
 class Course(models.Model):
     class Meta:

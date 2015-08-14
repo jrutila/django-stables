@@ -10,6 +10,7 @@ from stables.models.accident import Accident
 from stables.models.financial import Transaction, Ticket
 from stables.models.participations import InstructorParticipation
 from stables.models.participations import Participation
+from stables.models.course import Enroll
 from tastypie import fields
 from tastypie.bundle import Bundle
 from tastypie.resources import Resource
@@ -27,7 +28,7 @@ __author__ = 'jorutila'
 logger = logging.getLogger(__name__)
 
 class ViewEvent:
-    def __init__(self, occ=None, course=None, parts=None, saldos=None, instr=None, metadata=None, last_comment=None, accidents=None, ticketcounts=None, warnings=None):
+    def __init__(self, occ=None, course=None, parts=None, saldos=None, instr=None, metadata=None, last_comment=None, accidents=None, ticketcounts=None, warnings=None, enrolls=[]):
         self.participations = []
         if occ:
             self.pk = occ.start
@@ -51,9 +52,16 @@ class ViewEvent:
                     warnings[p.pk] = _('%d tickets remaining') % ticketcounts[p.pk]
                 if warnings and p.pk in warnings:
                     setattr(p, 'warning', warnings[p.pk])
+                if enrolls:
+                    enroll = [ e for e in enrolls if e.participant == p.participant ]
+                    if len(enroll) > 0:
+                        setattr(p, "enroll", enroll[0])
                 self.participations.append(ViewParticipation(p))
         if course:
-            pass#self.course = course.get_absolute_url()
+            #self.course = course.get_absolute_url()
+            self.course_id = course.id
+        elif occ:
+            self.course_id = occ.event.course_set.all()[0].id
         if metadata:
             self.metadata = metadata
         if last_comment:
@@ -79,6 +87,7 @@ class EventResource(Resource):
     cancelled = fields.BooleanField(attribute='cancelled', null=True)
     title = fields.CharField(attribute='title')
     event_id = fields.IntegerField(attribute='event_id')
+    course_id = fields.IntegerField(attribute='course_id')
     instructor_id = fields.IntegerField(attribute='instructor_id', null=True)
     participations = fields.ToManyField(ParticipationResource, 'participations', full=True, null=True)
     metadata = fields.ForeignKey(EventMetaDataResource, attribute='metadata', null=True)
@@ -157,6 +166,8 @@ class EventResource(Resource):
             comments = {}
             #for c in Comment.objects.filter(object_pk__in=[m.pk for m in metadatas.values()], content_type=ContentType.objects.get_for_model(EventMetaData)):
             #comments[int(c.object_pk)] = c
+            courses = (c for (o, (c, p)) in parts.items())
+            enrolls = list(Enroll.objects.filter(course__in=courses))
 
             for (o, (c, p)) in parts.items():
                 logger.debug("Found occ: %s %s" % (o, o.event.title))
@@ -168,7 +179,8 @@ class EventResource(Resource):
                                       comments.get(metadata.pk if metadata else None, None),
                                       accidents,
                                       ticketcounts,
-                                      warnings
+                                      warnings,
+                                      enrolls
                 ))
         return occs
 

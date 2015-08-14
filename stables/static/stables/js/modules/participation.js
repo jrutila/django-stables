@@ -490,7 +490,7 @@ var EventView = Backbone.View.extend({
             var view = undefined
             view = new ParticipationView({model: p})
             view.render()
-            if (that.model.get('course_url') == null)
+            if (that.model.get('course_id') == null)
               view.$el.find('button').hide();
             ul.append(view.$el)
         }, this)
