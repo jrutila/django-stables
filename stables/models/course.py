@@ -63,7 +63,7 @@ class Course(models.Model):
         starts = []
         for e in evs:
             if e.rule == None:
-                occ = e.get_occurrence(since)
+                occ = e.occurrences_after(since).next()
                 if occ:
                     starts.append(occ)
             else:

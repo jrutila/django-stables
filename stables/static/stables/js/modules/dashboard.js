@@ -188,8 +188,12 @@ var WeekView = Backbone.View.extend({
             $header.append("&nbsp;<a href='/p/daily/"+day.get('date')+"/'><i class='fa fa-print'></i></a>")
             var ae = new AddEventButtonView({ model: new Backbone.Model({ date: day.get('date') }) })
             ae.render()
-            ae.on("eventAdded", function() {
-                day.fetch();
+            ae.on("eventAdded", function(start) {
+                var date = moment(start).format("YYYY-MM-DD");
+                if (_.has(that.dayViews, date))
+                    that.dayViews[date].model.fetch();
+                else
+                    console.log("No date "+date+" visible");
             });
             $header.append(ae.$el)
             if (!(day.get('date') in that.$timeslots)) {

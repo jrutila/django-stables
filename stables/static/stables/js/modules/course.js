@@ -20,8 +20,8 @@ var AddEventButtonView = Backbone.View.extend({
         var v = new AddEventView({ 'model': this.model });
         v.render();
         var that = this;
-        v.on('eventAdded', function() {
-            that.trigger('eventAdded');
+        v.on('eventAdded', function(start) {
+            that.trigger('eventAdded', start);
         });
     }
 })
@@ -278,7 +278,18 @@ var AddEventView = Backbone.View.extend({
             repeat: data["repeat"] == "on",
             repeatUntil: data["repeatUntil"]
         });
-        this.course.save();
+        var that = this;
+        var isNew = this.course.get("id") != undefined;
+        this.course.save(null, {
+            success: function(model, response) {
+                _.each(model.get("events"), function(ev) {
+                    that.trigger("eventAdded", ev);
+                }, this);
+                that.$el.modal('hide');
+                if (isNew)
+                    courses.push({ value: model.get("id"), label: model.get("name")});
+            }
+        });
         return false;
     },
 })
