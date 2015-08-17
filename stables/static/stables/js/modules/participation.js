@@ -312,9 +312,13 @@ var ParticipationView = Backbone.View.extend({
                 return fv.$el;
             },
             title: function() {
-                return that.model.get('rider_name') + "<button class='close'>&times;</button>";
+                var title = that.model.get('rider_name');
+                //if (that.model.get("rider_phone"))
+                    //title += "&nbsp;<a href='sms:"+that.model.get('rider_phone')+"'>sms</a>";
+                title += "<button class='close'>&times;</button>";
+                return title;
             },
-            html: true,
+            html: true
         }).on('shown.bs.popover', function () {
             var $thisPopover = $(this);
             $(this).next(".popover").find(".popover-title button.close").click(function() {
@@ -410,6 +414,7 @@ var Event = Backbone.Model.extend({
                 });
             }
         }
+        Backbone.Do(this);
     },
     idAttribute: "id", /*function() {
         // Use this so that there can be multiple occurrences from the same event
@@ -435,6 +440,23 @@ var Event = Backbone.Model.extend({
     getHour: function() {
         return parseInt(this.get('start').match(/T(\d{2})/)[1])
     },
+    actions: {
+        cancel: {
+            url: "move/",
+            method: "create",
+            data: function() {
+                return { cancelled: true }
+            }
+        },
+        move: {
+            url: "move/",
+            method: "create",
+        },
+        options: {
+            url: "options/",
+            method: "update"
+        }
+    }
 })
 
 var EventCollection = Backbone.Collection.extend({
@@ -450,38 +472,126 @@ var EventView = Backbone.View.extend({
     tagName: 'div',
     initialize: function() {
         this.listenTo(this.model.get('participations'), "sort", this.render);
+        this.listenTo(this.model, "action:cancel", this.render);
         this.listenTo(this.model, "sync", this.notifyChanged);
     },
     events: {
         'change select[name="instructor"]': 'instructorChange',
+        'click a.event': 'eventClick'
     },
     template: _.template($('#EventView').html()),
+    eventClick: function(ev) {
+        return false;
+    },
     render: function() {
         this.$el.html(this.template(this.model.attributes))
         $('select[name="instructor"]', this.$el).val(this.model.get('instructor_id'))
         var ul = this.$el.find('ul')
         var that = this;
+        var model = this.model;
         this.model.get('participations')
           .each(function(p) {
             var view = undefined
             view = new ParticipationView({model: p})
             view.render()
-            if (that.model.get('course_url') == null)
+            if (that.model.get('course_id') == null)
               view.$el.find('button').hide();
             ul.append(view.$el)
         }, this)
         if (!this.model.get('cancelled'))
             this.renderAdder()
         this.renderComments()
+
+        var editTemplate = _.template($('#EventEditView').html());
+
+        this.$el.find("a.move").popover({
+            trigger: 'click',
+            placement: 'top',
+            content: function() {
+                var $el = $(editTemplate(model.attributes).trim());
+                $el.find("#moveeventDate").datepicker({
+                    dateFormat: "yy-mm-dd",
+                });
+                var checkCancel = function($target)
+                {
+                    if ($target.is(":checked"))
+                        $target.parent().siblings(":not(button)").hide();
+                    else
+                        $target.parent().siblings().show();
+                };
+                $el.find("#cancelEvent").change(function(ev) {
+                    checkCancel($(ev.target));
+                });
+                checkCancel($el.find("#cancelEvent"));
+                $el.submit(function(ev) {
+                    $el.find("button").attr("disabled", "disabled");
+                    $el.find("button:first").replaceWith($("#EventLoadingView").html());
+                    // TODO: Okay, so we remove comments so that there is no recursion
+                    that.model.unset('comments');
+                    if ($("#cancelEvent").is(":checked")) {
+                        if (that.model.get("cancelled") == false) {
+                            that.model.cancel();
+                        }
+                    } else {
+                        var date = $el.find("#moveeventDate").val();
+                        var start = $el.find("#moveeventStart").val();
+                        var end = $el.find("#moveeventEnd").val();
+                        var oldStr = "";
+                        oldStr += moment(that.model.get("start")).format('YYYY-MM-DDHH:mm');
+                        oldStr += moment(that.model.get("end")).format('HH:mm');
+                        if (date+start+end != oldStr)
+                        {
+                            // Something changed
+                            console.log("Moving")
+                            that.model.move({ start: date+"T"+start, end: date+"T"+end });
+                            console.log("Moved")
+                        }
+                    }
+
+                    return false;
+                });
+                var $that = $(this);
+                $el.find("button[data-dismiss='modal']").click(function() {
+                    $that.popover("toggle");
+                });
+                return $el;
+            },
+            html: true
+        });
+        var messageTemplate = _.template($('#MessageSendView').html());
+        this.$el.find("a.message").popover({
+            trigger: 'click',
+            placement: 'top',
+            content: function() {
+                var $el = $(messageTemplate({ participations: model.get("participations").toJSON() }).trim());
+                var $btn = $el.find("a.sendSms");
+                $el.find("input").change(function(target, val) {
+                    var href = "sms:";
+                    $el.find("input:checked").each(function(chk) {
+                        href += $(this).attr("data-number")+",";
+                    });
+                    $btn.attr("href", href);
+                });
+                var $that = $(this);
+                $el.find("[data-dismiss='modal']").click(function() {
+                    $that.popover("toggle");
+                });
+                return $el;
+            },
+            html: true
+        });
         return this
     },
     instructorChange: function(ev) {
-        this.model.set('instructor_id', parseInt($(ev.target).val()))
+        var instrId = parseInt($(ev.target).val());
         this.$el.find('select[name="instructor"]').addClass('changed')
         // TODO: Okay, so we remove comments so that there is no recursion
         this.model.unset('comments')
         //TODO: to model
-        this.model.save()
+        var that = this;
+        this.model.options({ instructor: instrId }, { success: function(event) {
+            that.notifyChanged();
+        }});
     },
     renderComments: function() {
         if (this.comments == undefined)

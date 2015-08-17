@@ -1,4 +1,4 @@
-from stables.models import Horse, Course, Participation, PARTICIPATION_STATES, InstructorParticipation, EventMetaData
+from stables.models import Horse, Course, Participation, PARTICIPATION_STATES, InstructorParticipation
 from stables.models import InstructorInfo
 from stables.models import Enroll
 from stables.models import UserProfile

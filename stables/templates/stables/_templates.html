@@ -1,5 +1,6 @@
 {% load i18n staticfiles %}
 {% load stablestags %}
+{% load settings_tags %}
 
 <script type="text/html" id="ParticipationView">
     <div class="note" title="<%= note %>">
@@ -102,9 +103,17 @@
 </script>
 
 <script type="text/html" id="EventView">
-<a class="<% if (cancelled) { %>cancelled<% } %>" href="<%= course_url %>" title='<%= moment(start).format('l HH:mm') %>-<%= moment(end).format('HH:mm') %>'><%= moment(start).format('dd HH:mm') %> <%= title %></a>
+<div>
+    <a class="event title-link <% if (cancelled) { %>cancelled<% } %>"
+       href="<%= course_url %>"
+       title="<%= moment(start).format('l HH:mm') %>-<%= moment(end).format('HH:mm') %>">
+        <%= moment(start).format('dd HH:mm') %> <%= title %>
+    </a>
+    <a class="move title-link"><i class="fa fa-clock-o"></i></a>
+    <a class="message title-link"><i class="fa fa-mobile"></i></a>
+</div>
     {% if instructors %}
-    <select name="instructor">
+    <br/><select name="instructor">
         <option value="0">{% trans "--" %}</option>
         {% for i in instructors %}
         <option value="{{ i.pk }}">{{ i }}</option>
@@ -115,6 +124,56 @@
     </div>-->
     <ul class="rider-list">
     </ul>
+</script>
+
+<script type="text/html" id="MessageSendView">
+    <div>
+    <table class="table-condensed">
+        <% var sms = "sms:"; %>
+        <% _.each(participations, function(part) { %>
+            <tr>
+                <td><input type="checkbox"
+                <% if (part.state != CANCELLED && part.rider_phone) { %>
+                    checked="checked"
+                    <% sms += part.rider_phone + ","; %>
+                <% } %>
+                <% if (!part.rider_phone) { %>
+                disabled="true"
+                <% } %>
+                    data-number="<%= part.rider_phone %>"
+                        /></td>
+                <td <% if (part.state == CANCELLED) { %>class="cancelled"<% } %>><%= part.rider_name %></td>
+                <td>
+                    <% if (part.rider_phone) { %>
+                        <%= part.rider_phone %>
+                    <% } else { %>
+                        <a href="<%= part.rider_url %>edit/">{% trans "Set" %}</a>
+                    <% } %>
+                </td>
+            </tr>
+        <% }); %>
+    </table>
+    <a href="<%= sms %>" class="sendSms btn btn-primary">{% trans "Send SMS" %}</a>
+    <a class="cancel btn btn-default" data-dismiss="modal">{% trans "Cancel" %}</a>
+    </div>
+</script>
+
+<script type="text/html" id="EventEditView">
+<form>
+    <label for="moveeventDate">{% trans "Date" %}</label>
+    <input name="date" id="moveeventDate" value="<%= moment(start).format('YYYY-MM-DD') %>" type="text" class="form-control" placeholder="{% trans "YYYY-MM-DD" %}"/>
+    <label for="moveeventStart">{% trans "Start" %}</label>
+    <input name="start" id="moveeventStart" value="<%= moment(start).format('HH:mm') %>" type="text" class="form-control" placeholder="{% trans "00:00" %}" />
+    <label for="moveeventEnd">{% trans "End" %}</label>
+    <input name="end" id="moveeventEnd" value="<%= moment(end).format('HH:mm') %>" type="text" class="form-control" placeholder="{% trans "00:00" %}" />
+
+    <div class="form-control" style="margin-top: 5px; margin-bottom: 5px">
+        <input <% if (cancelled) { %>checked="checked"<% } %> type="checkbox" name="cancel" id="cancelEvent"/> <label for="cancelEvent">Cancel</label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+    <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Cancel" %}</button>
+</form>
 </script>
 
 <script type="text/html" id="CommentsView">
@@ -143,6 +202,17 @@
     <span>{% trans "Horse <%= name %> is riding over it's limit of <%= limit %>" %}</span>
 </script>
 
+<script type="text/javascript">
+    var courses = [
+        {% for c in courses %}
+            {
+                value: {{ c.id }},
+                label: "{{ c }}"
+            },
+        {% endfor %}
+    ];
+</script>
+
 <script type="text/html" id="AddEventView" >
 <div class="modal fade" role="dialog" aria-labelledby="ModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -152,44 +222,73 @@
                 <h3 class="modal-title" id="ModalLabel">{% trans "Add new event" %}</h3>
             </div>
             <div class="modal-body">
+
                 <form role="form" id="addeventForm">
-                    <div class="form-group">
-                        <label for="addeventDate">{% trans "Date" %}</label>
-                        <input name="date" id="addeventDate" type="text" class="form-control" placeholder="{% trans "2014-12-31" %}" value="<%= date %>"/>
-                        <label for="addeventStart">{% trans "Start" %}</label>
-                        <input name="start" id="addeventStart" type="text" class="form-control" placeholder="{% trans "00:00" %}" />
-                        <label for="addeventEnd">{% trans "End" %}</label>
-                        <input name="end" id="addeventEnd" type="text" class="form-control" placeholder="{% trans "00:00" %}" />
+                    <div class="form-group courseform ui-front">
+                        <input type="text" name="name" class="courseSelect form-control" placeholder="{% trans "Select event or start new" %}" />
+                        <div class="addEventCourseInfo form-group">
+
+                        </div>
+                        <ul class="enrolls list-group">
+                        </ul>
+                    </div>
+                    <div class="form-group currentOccurrence">
+                        {% trans "Next events:" %}
+                        <ul class="currentRepeat">
+
+                        </ul>
                     </div>
                     <ul class="nav nav-tabs">
-                        <li class="active"><a href="#event-tab" data-toggle="pill">{% trans "Single event" %}</a></li>
-                        <li><a href="#course-tab" data-toggle="pill">{% trans "Existing course" %}</a></li>
+                        <li class="active"><a href="#onetime-tab" data-toggle="tab">{% trans "One time event" %}</a></li>
+                        <li><a href="#repeating-tab" data-toggle="tab">{% trans "Repeating event" %}</a></li>
+                        <!--<li><a href="#ending-tab" data-toggle="tab">{% trans "End current events" %}</a></li>-->
                     </ul>
                     <div class="tab-content">
-                        <div class="tab-pane form-group active" id="event-tab">
-                            <!--
-                            <label for="addeventCost">{% trans "Cost" %}</label>
-                            <input name="cost" id="addeventCost" type="text" class="form-control" placeholder="{% trans "0.00" %}" />
-                            -->
-                            <label for="addeventTitle">{% trans "Title" %}</label>
-                            <input name="title" id="addeventTitle" type="text" class="form-control" />
+                        <div class="tab-pane form-group active" id="onetime-tab">
+                            <div class="form-group timeform">
+                                <label for="addeventDate">{% trans "Date" %}</label>
+                                <input name="date" id="addeventDate" type="text" class="form-control" placeholder="{% trans "2014-12-31" %}" value="<%= date %>"/>
+                                <label for="addeventStart">{% trans "Start" %}</label>
+                                <input name="start" id="addeventStart" type="text" class="form-control" placeholder="{% trans "00:00" %}" />
+                                <label for="addeventEnd">{% trans "End" %}</label>
+                                <input name="end" id="addeventEnd" type="text" class="form-control" placeholder="{% trans "00:00" %}" />
+
+                                <label for="addeventRepeat">{%  trans "Repeat?" %}</label>
+                                <input name="repeat" id="addeventRepeat" type="checkbox" class="form-control" />
+
+                                <label for="addeventRepeatUntil">{%  trans "Last weekly occurrence (optional)" %}</label>
+                                <input name="repeatUntil" id="addeventRepeatUntil" type="date" class="form-control" />
+                            </div>
                         </div>
-                        <div class="tab-pane form-group" id="course-tab">
-                            <label for="addeventCourse">{% trans "Course" %}</label>
-                            <select name="course" id="addeventCourse" class="form-control">
-                                {% for c in courses %}
-                                <option value="{{ c.id }}">{{ c }}</option>
-                                {% endfor %}
-                            </select>
+                        <div class="tab-pane form-group" id="repeating-tab">
+                        </div>
+                        <div class="tab-pane form-group" id="ending-tab">
                         </div>
                     </div>
                 </form>
+
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Cancel" %}</button>
-                <button type="submit" form="addeventForm" class="btn btn-primary">{% trans "Add event" %}</button>
+                <button type="submit" form="addeventForm" class="btn btn-primary">{% trans "Save" %}</button>
             </div>
         </div>
     </div>
 </div>
 </script>
+
+<script type="text/html" id="AddEventCourseInfo" >
+    <% window.labelId = window.labelId == undefined ? 1 : window.labelId + 1; %>
+    <% if (newCourse) { %>
+            <div class="addEventInfo">{% trans "Adding a new course" %}</div>
+    <% } %>
+    <label for="addeventCost<%= labelId %>">{%  trans "Cost" %}</label>
+    <input name="default_participation_fee" id="addeventCost<%= labelId %>" type="number" class="form-control" value="{% settings "default_event_cost" %}"/>
+
+    <label for="addeventParticipants<%= labelId %>">{%  trans "Max participants" %}</label>
+    <input name="max_participants" id="addeventParticipants<%= labelId %>" type="number" class="form-control" value="{% settings "default_participant_max" %}" />
+</script>
+
+<script type="text/html" id="timeform" >
+</script>
+

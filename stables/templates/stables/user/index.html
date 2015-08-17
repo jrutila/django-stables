@@ -38,6 +38,10 @@
 </p>
 <p>
 {% trans "phone number"|capfirst %}: {{ object.phone_number }}
+    {% if object.phone_number %}
+        <a href="tel:{{ object.phone_number }}">{% trans "Call" %}</a>
+        <a href="sms:{{ object.phone_number }}">{% trans "SMS" %}</a>
+    {% endif %}
 </p>
 
 {% if object.next and object.next.count > 0 %}

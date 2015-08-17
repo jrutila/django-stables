@@ -151,7 +151,7 @@ def _get_customer_expired_unused_tickets(self):
     return _get_tickets(_get_customer_q(self), _get_expired_q())
 
 import participations
-from participations import Course, Participation
+from participations import Participation
 Participation.get_saldo = get_saldo
 Participation.get_pay_transaction = get_pay_transaction
 RiderInfo.unused_tickets = property(_get_rider_valid_unused_tickets)
@@ -185,6 +185,7 @@ def pay_participation(participation, value=None, ticket=None, method=None):
     dvalue = value
     if dvalue == None and participation.event.course_set.count() > 0:
         dvalue = participation.event.default_fee
+        saldo = -1*dvalue
     if value == None and ticket==None:
         value = -1*saldo
     if value != None and value < 0:
@@ -262,10 +263,10 @@ def handle_Participation_save(sender, **kwargs):
     if parti.state == participations.ATTENDING:
         # If there is deactivated stuff
         trans = trans.filter(active=False)
-        course = Course.objects.filter(events__in=[parti.event])
+        course = parti.event.course #Course.objects.filter(events__in=[parti.event])
         metadata = participations.EventMetaData.objects.filter(event=parti.event, start=parti.start, end=parti.end)
         if course:
-            course = course[0]
+            #course = course[0]
             if trans:
               for t in trans:
                 t.active=True
@@ -284,23 +285,6 @@ def handle_Participation_save(sender, **kwargs):
         for ticket in Ticket.objects.filter(transaction__in=trans):
           ticket.transaction = None
           ticket.save()
-
-from participations import Enroll
-class CourseTransactionActivator(TransactionActivator):
-    class Meta:
-        app_label = 'stables'
-    def __unicode__(self):
-        return str(self.enroll) + ": " + str(self.fee)
-    enroll = models.ForeignKey(Enroll)
-    fee = CurrencyField()
-
-    def try_activate(self):
-        t = Transaction()
-        t.amount = self.fee*-1
-        t.customer = self.enroll.rider.customer
-        t.source = self.enroll
-        t.save()
-        self.delete()
 
 class TransactionQuerySet(models.query.QuerySet):
   def deactivate(self):

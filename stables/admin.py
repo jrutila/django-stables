@@ -1,8 +1,9 @@
 from stables.models import Horse, UserProfile, RiderInfo, CustomerInfo, RiderLevel, InstructorInfo
 from stables.models import CustomerForm
 from stables.forms import CourseForm
-from stables.models import Course, Participation, Enroll, InstructorParticipation, EventMetaData
-from stables.models import Transaction, Ticket, ParticipationTransactionActivator, CourseTransactionActivator, CourseParticipationActivator, TicketType
+from stables.models import Course, Participation, Enroll, InstructorParticipation
+from stables.models import Transaction, Ticket, ParticipationTransactionActivator, TicketType
+from stables.models.course import CourseParticipationActivator
 from stables.models import Accident, AccidentType
 from stables.models import RiderLevel
 from django import forms
@@ -229,6 +230,4 @@ admin.site.register(TicketType)
 admin.site.register(Transaction, TransactionAdmin)
 admin.site.register(Course)
 admin.site.register(ParticipationTransactionActivator, ParticipationTransactionActivatorAdmin)
-admin.site.register(CourseTransactionActivator)
 admin.site.register(CourseParticipationActivator)
-admin.site.register(EventMetaData)

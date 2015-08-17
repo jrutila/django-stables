@@ -15,3 +15,13 @@
 {
     text-decoration: line-through;
 }
+
+.currentRepeat .new {
+    color: darkgreen;
+    font-weight: bold;
+}
+
+.currentRepeat .error {
+    color: darkred;
+    font-weight: bold;
+}

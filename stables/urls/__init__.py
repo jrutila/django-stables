@@ -1,7 +1,14 @@
 from django.conf.urls import *
 
 from tastypie.api import Api
-from stables.backbone import *
+from stables.backbone.course import CourseResource
+from stables.backbone.enroll import EnrollResource
+from stables.backbone.event import EventResource
+from stables.backbone.financial import FinanceResource, PaymentLinkResource
+from stables.backbone.horse import HorseResource
+from stables.backbone.occurrence import CommentResource, EventMetaDataResource
+from stables.backbone.participation import ParticipationResource
+from stables.backbone.user import UserResource
 
 v1_api = Api(api_name="v1")
 v1_api.register(UserResource())
@@ -13,13 +20,13 @@ v1_api.register(EnrollResource())
 v1_api.register(FinanceResource())
 v1_api.register(HorseResource())
 v1_api.register(PaymentLinkResource())
+v1_api.register(CourseResource())
 
 import reportengine
 reportengine.autodiscover()
 
 urlpatterns = patterns('',
     url(r'^', include('stables.urls.old')),
-    url(r'^c/', include('stables.urls.course')),
     url(r'^u/', include('stables.urls.user')),
     url(r'^p/', include('stables.urls.participation')),
     url(r'^h/', include('stables.urls.horse')),
