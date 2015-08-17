@@ -42,7 +42,7 @@ class Course(models.Model):
             ev = next(e for e in self.events.all() if e.rule != None)
             if ev:
                 start = timezone.localtime(ev.start)
-                return start.strftime('%a') + " " + time_format(start, "TIME_FORMAT") + " " + self.name
+                return _date(start, 'D') + " " + time_format(start, "TIME_FORMAT") + " " + self.name
         except StopIteration:
             pass
         return self.name
