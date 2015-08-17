@@ -185,6 +185,7 @@ def pay_participation(participation, value=None, ticket=None, method=None):
     dvalue = value
     if dvalue == None and participation.event.course_set.count() > 0:
         dvalue = participation.event.default_fee
+        saldo = -1*dvalue
     if value == None and ticket==None:
         value = -1*saldo
     if value != None and value < 0:
