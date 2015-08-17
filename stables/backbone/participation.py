@@ -31,6 +31,7 @@ class ViewParticipation:
                 saldo = part.get_saldo()
             self.id = part.id
             self.rider_name = unicode(part.participant)
+            self.rider_phone = part.participant.phone_number
             self.rider_url = part.participant.get_absolute_url()
             self.rider_id = part.participant.id
             self.state = part.state
@@ -83,6 +84,7 @@ class ViewParticipation:
 class ParticipationResource(Resource):
     id = fields.IntegerField(attribute='id', null=True)
     rider_name = fields.CharField(attribute='rider_name')
+    rider_phone = fields.CharField(attribute='rider_phone', null=True)
     rider_id = fields.IntegerField(attribute='rider_id', null=True)
     rider_url = fields.CharField(attribute='rider_url', null=True)
     state = fields.IntegerField(attribute='state')

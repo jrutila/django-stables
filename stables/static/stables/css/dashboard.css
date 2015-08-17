@@ -68,6 +68,12 @@ white-space: nowrap;
 {
   padding: 5px;
 }
+
+.timetable .title-link
+{
+    margin-right: 10px;
+}
+
 .errorlist
 {
   color: red;
@@ -124,7 +130,7 @@ select.warning {
     background-color: orange;
 }
 
-a.pay {
+a.pay, a.message, a.move {
     cursor: pointer;
     margin-right: 7px;
     font-size: large;

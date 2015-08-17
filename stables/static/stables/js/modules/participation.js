@@ -312,9 +312,13 @@ var ParticipationView = Backbone.View.extend({
                 return fv.$el;
             },
             title: function() {
-                return that.model.get('rider_name') + "<button class='close'>&times;</button>";
+                var title = that.model.get('rider_name');
+                //if (that.model.get("rider_phone"))
+                    //title += "&nbsp;<a href='sms:"+that.model.get('rider_phone')+"'>sms</a>";
+                title += "<button class='close'>&times;</button>";
+                return title;
             },
-            html: true,
+            html: true
         }).on('shown.bs.popover', function () {
             var $thisPopover = $(this);
             $(this).next(".popover").find(".popover-title button.close").click(function() {
@@ -548,6 +552,28 @@ var EventView = Backbone.View.extend({
                 });
                 var $that = $(this);
                 $el.find("button[data-dismiss='modal']").click(function() {
+                    $that.popover("toggle");
+                });
+                return $el;
+            },
+            html: true
+        });
+        var messageTemplate = _.template($('#MessageSendView').html());
+        this.$el.find("a.message").popover({
+            trigger: 'click',
+            placement: 'top',
+            content: function() {
+                var $el = $(messageTemplate({ participations: model.get("participations").toJSON() }).trim());
+                var $btn = $el.find("a.sendSms");
+                $el.find("input").change(function(target, val) {
+                    var href = "sms:";
+                    $el.find("input:checked").each(function(chk) {
+                        href += $(this).attr("data-number")+",";
+                    });
+                    $btn.attr("href", href);
+                });
+                var $that = $(this);
+                $el.find("[data-dismiss='modal']").click(function() {
                     $that.popover("toggle");
                 });
                 return $el;

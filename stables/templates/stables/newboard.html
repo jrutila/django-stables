@@ -28,6 +28,8 @@
         {% endfor %}
     ])
 
+    CANCELLED = 3;
+
     Backbone.Tastypie.csrfToken = $.cookie( 'csrftoken' )
 
     Date.prototype.addDays = function(days) {
