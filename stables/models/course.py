@@ -72,7 +72,11 @@ class Course(models.Model):
         starts = []
         for e in evs:
             if e.rule == None:
-                occ = e.occurrences_after(since).next()
+                occ = None
+                try:
+                    occ = e.occurrences_after(since).next()
+                except StopIteration:
+                    pass
                 if occ:
                     starts.append(occ)
             else:
