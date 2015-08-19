@@ -16,6 +16,9 @@ class ViewCourse:
             self.name = course.name
             self.max_participants = course.max_participants
             self.default_participation_fee = course.default_participation_fee
+            self.default_tickets = ApiList()
+            for tt in course.ticket_type.all():
+                self.default_tickets.append(tt.id)
             self.enrolls = ApiList()
             for e in enrolls:
                 if e.state == ATTENDING:
@@ -44,6 +47,7 @@ class CourseResource(Resource):
     name = fields.CharField(attribute='name')
     max_participants = fields.IntegerField(attribute='max_participants', null=True)
     default_participation_fee = fields.DecimalField(attribute='default_participation_fee', null=True)
+    default_tickets = fields.ListField(attribute="default_tickets", null=True)
     enrolls = fields.ListField(attribute='enrolls')
     events = fields.ListField(attribute='events')
     participations = fields.ListField(attribute='participations')
@@ -81,6 +85,7 @@ class CourseResource(Resource):
         c.name = bundle.data["name"]
         c.default_participation_fee = bundle.data["default_participation_fee"]
         c.max_participants = bundle.data["max_participants"]
+        c.ticket_type = bundle.data["default_tickets"]
 
         event = bundle.data["newEvent"]
         start = parse_datetime(event["date"]+" "+event["start"])

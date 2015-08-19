@@ -211,6 +211,7 @@
             },
         {% endfor %}
     ];
+    var addNewCourse = { value: -1, label: "{% trans 'Add new...' %}"};
 </script>
 
 <script type="text/html" id="AddEventView" >
@@ -279,14 +280,37 @@
 
 <script type="text/html" id="AddEventCourseInfo" >
     <% window.labelId = window.labelId == undefined ? 1 : window.labelId + 1; %>
-    <% if (newCourse) { %>
+    <% if (typeof id == "undefined") { %>
             <div class="addEventInfo">{% trans "Adding a new course" %}</div>
     <% } %>
     <label for="addeventCost<%= labelId %>">{%  trans "Cost" %}</label>
-    <input name="default_participation_fee" id="addeventCost<%= labelId %>" type="number" class="form-control" value="{% settings "default_event_cost" %}"/>
+    <input name="default_participation_fee" id="addeventCost<%= labelId %>" type="number" class="form-control" value="<%= typeof default_participation_fee != 'undefined' ? default_participation_fee : {% settings "default_event_cost" %} %>"/>
 
     <label for="addeventParticipants<%= labelId %>">{%  trans "Max participants" %}</label>
-    <input name="max_participants" id="addeventParticipants<%= labelId %>" type="number" class="form-control" value="{% settings "default_participant_max" %}" />
+    <input name="max_participants" id="addeventParticipants<%= labelId %>" type="number" class="form-control" value="<%= typeof max_participants != 'undefined' ? max_participants : {% settings "default_participant_max" %} %>" />
+
+    <label for="addeventDefaultTickets<%= labelId %>">{%  trans "Default tickets" %}</label>
+    <select class="form-control" id="addeventDefaultTickets<%= labelId %>" name="default_tickets" multiple>
+        {% for tt in ticket_types %}
+            <option value="{{ tt.id }}"
+                <% if (typeof default_tickets != "undefined" && _.contains(default_tickets, {{ tt.id }})) { %>
+                    selected="selected"
+                <% } %>
+                    >{{ tt }}</option>
+        {% endfor %}
+    </select>
+</script>
+
+<script type="text/html" id="ShowEventCourseInfo" >
+    {% trans "Cost" %}
+    <%= default_participation_fee %>
+    {%  trans "Max participants" %}
+    <%= max_participants %>
+    {% for tt in ticket_types %}
+        <% if (typeof default_tickets != "undefined" && _.contains(default_tickets, {{ tt.id }})) { %>
+            {{ tt }}
+        <% } %>
+    {% endfor %}
 </script>
 
 <script type="text/html" id="timeform" >

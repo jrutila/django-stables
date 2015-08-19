@@ -12,6 +12,7 @@ from stables.models import Horse
 from stables.models import InstructorInfo
 from stables.models import Participation
 from stables.models import Ticket
+from stables.models import TicketType
 from stables.models import Transaction
 from stables.models import Accident
 from stables.models import InstructorParticipation
@@ -43,6 +44,7 @@ class Newboard(DashboardMixin, TemplateView):
         ctx['horses'] = Horse.objects.all()
         ctx['instructors'] = [ i.user for i in InstructorInfo.objects.all().prefetch_related('user', 'user__user')]
         ctx['courses'] = Course.objects.all().prefetch_related('events') #exclude(end__lt=timezone.now())
+        ctx['ticket_types'] = TicketType.objects.all();
         #ctx['courses'] = sorted(ctx['courses'], key=lambda c: (c.lastEvent.start.weekday(), c.lastEvent.start.time()) if c.lastEvent else (None, None))
         ctx['pay_types'] = Transaction.objects.exclude(method__isnull=True).exclude(method="").distinct('method').values_list('method', flat=True)
         return ctx

@@ -60,8 +60,10 @@ class ViewEvent:
         if course:
             #self.course = course.get_absolute_url()
             self.course_id = course.id
-        elif occ:
+        elif occ and occ.event.course_set.count() > 0:
             self.course_id = occ.event.course_set.all()[0].id
+        else:
+            self.course_id = 0
         if metadata:
             self.metadata = metadata
         if last_comment:

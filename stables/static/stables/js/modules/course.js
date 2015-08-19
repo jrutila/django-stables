@@ -29,9 +29,12 @@ var AddEventButtonView = Backbone.View.extend({
 var AddEventView = Backbone.View.extend({
     events: {
         "submit": 'submitEvent',
-        "change #addeventCourse": 'courseSelected',
         "change #addeventForm .timeform input": 'timeChanged',
-        "blur .courseSelect": 'courseNamed',
+        "blur .courseSelect": function(ev, ui) {
+            if (!this.course || !this.course.id || this.course.get("name") != ev.target.value)
+                this.courseNamed(ev,ui);
+
+        },
         "select .courseSelect": 'courseSelected',
     },
     timeChanged: function() {
@@ -65,7 +68,7 @@ var AddEventView = Backbone.View.extend({
         this.xevents = [];
         this.course.fetch({success: function(model, response) {
             that.$el.find(".courseSelect").val(model.get("name"));
-            that.renderCourseInfo(model);
+            that.renderCourseInfo();
             var $enrolls = that.$el.find(".enrolls").html("");
             _.each(model.get("enrolls"), function(e) {
                 $enrolls.append("<li class='list-group-item condensed'>"+e+"</li>");
@@ -76,9 +79,14 @@ var AddEventView = Backbone.View.extend({
         }});
     },
     courseNamed: function(ev, ui) {
-        if (!this.course) {
+        if (!this.course || this.course.id) {
             this.course = new Course();
-            this.renderCourseInfo()
+            this.$el.find(".courseSelect").val(ev.target.value);
+            this.renderCourseInfo(true)
+            this.$el.find(".enrolls").html("");
+            this.participations = [];
+            this.xevents = [];
+            this.renderTimes();
         }
         var date = this.$el.find("input[name='date']").val();
         var start = this.$el.find("input[name='start']").val();
@@ -88,14 +96,13 @@ var AddEventView = Backbone.View.extend({
             this.ready(true);
         }
     },
-    renderCourseInfo: function(model) {
-        var hExtraInfo = _.template($("#AddEventCourseInfo").html());
+    renderCourseInfo: function(add) {
+        if (add)
+            var hExtraInfo = _.template($("#AddEventCourseInfo").html());
+        else
+            var hExtraInfo = _.template($("#ShowEventCourseInfo").html());
         var $courseInfo = this.$el.find(".addEventCourseInfo").html("");
-        var $apnd = $courseInfo.html(hExtraInfo({ newCourse: this.course.id == undefined }));
-        if (model) {
-            $apnd.find("input[name='default_participation_fee']").val(parseInt(model.get("default_participation_fee")));
-            $apnd.find("input[name='max_participants']").val(model.get("max_participants"));
-        }
+        var $apnd = $courseInfo.html(hExtraInfo(this.course.attributes));
     },
     renderTimes: function() {
         this.xparticipations = _.groupBy(this.participations, 'start');
@@ -261,16 +268,35 @@ var AddEventView = Backbone.View.extend({
 
         $newel.find(".courseSelect")
             .autocomplete({
-                source: coursesSource,
-                select: function(ev, ui) { that.courseSelected(ev, ui); }
-            });
+                source: [addNewCourse].concat(coursesSource),
+                select: function(ev, ui) {
+                    if (ui.item.value > 0)
+                        that.courseSelected(ev, ui);
+                    else {
+                        that.courseNamed(ev, ui);
+                        return false;
+                    }
+                },
+            }).data("ui-autocomplete")._renderMenu = function( ul, items ) {
+                var that = this;
+                that._renderItemData(ul, addNewCourse);
+                $.each( items, function( index, item ) {
+                    that._renderItemData( ul, item );
+                });
+        }
         this.ready(false);
     },
     submitEvent: function(ev) {
         this.course = this.course || new Course();
         var data = $(ev.target).serializeArray();
+        var default_tickets = [];
+        _.each(data, function(d) {
+            if (d.name == "default_tickets")
+                default_tickets.push(d.value);
+        });
         data = _.object(_.pluck(data, "name"), _.pluck(data, "value"));
-        this.course.set(_.pick(data, "name", "max_participants", "default_participation_fee"))
+        data.default_tickets = default_tickets;
+        this.course.set(_.pick(data, "name", "max_participants", "default_participation_fee", "default_tickets"));
         this.course.set("newEvent", {
             date: data["date"],
             start: data["start"],
