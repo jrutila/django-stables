@@ -105,7 +105,7 @@
 <script type="text/html" id="EventView">
 <div>
     <a class="event title-link <% if (cancelled) { %>cancelled<% } %>"
-       href="<%= course_url %>"
+       href="<%= course_id %>"
        title="<%= moment(start).format('l HH:mm') %>-<%= moment(end).format('HH:mm') %>">
         <%= moment(start).format('dd HH:mm') %> <%= title %>
     </a>
@@ -302,15 +302,20 @@
 </script>
 
 <script type="text/html" id="ShowEventCourseInfo" >
-    {% trans "Cost" %}
-    <%= default_participation_fee %>
-    {%  trans "Max participants" %}
-    <%= max_participants %>
-    {% for tt in ticket_types %}
+        <label class="control-label">{% trans "Cost" %}</label>
+        <p class="form-control-static"><%= default_participation_fee %></p>
+        <label class="control-label">{%  trans "Max participants" %}</label>
+        <p class="form-control-static"><%= max_participants %></p>
+
+        <label >{%  trans "Default tickets" %}</label>
+        <ul class="list-inline">
+        {% for tt in ticket_types %}
         <% if (typeof default_tickets != "undefined" && _.contains(default_tickets, {{ tt.id }})) { %>
-            {{ tt }}
+        <li>{{ tt }}</li>
         <% } %>
-    {% endfor %}
+        {% endfor %}
+        </ul>
+
 </script>
 
 <script type="text/html" id="timeform" >
