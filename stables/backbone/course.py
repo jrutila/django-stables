@@ -82,28 +82,33 @@ class CourseResource(Resource):
         }
 
     def setEvent(self, bundle, c):
+        nameChange = c.name != bundle.data["name"]
         c.name = bundle.data["name"]
+        if nameChange and "name_all" in bundle.data and bundle.data["name_all"]:
+            c.updateEventNames(all=True)
+        # TODO: Maybe someday can change only future names?
+        #else:
+            #c.updateEventNames()
         c.default_participation_fee = bundle.data["default_participation_fee"]
         c.max_participants = bundle.data["max_participants"]
         c.ticket_type = bundle.data["default_tickets"]
 
-        event = bundle.data["newEvent"]
-        start = parse_datetime(event["date"]+" "+event["start"])
-        end = parse_datetime(event["date"]+" "+event["end"])
-        end_recurring_period = parse_datetime(event["repeatUntil"]+" "+event["end"])
-        start = timezone.get_current_timezone().localize(start)
-        end = timezone.get_current_timezone().localize(end)
-        nEvent = {
-            "start": start,
-            "end": end,
-            "end_recurring_period": end_recurring_period
-        }
+        if "newEvent" in bundle.data:
+            event = bundle.data["newEvent"]
+            start = parse_datetime(event["date"]+" "+event["start"])
+            end = parse_datetime(event["date"]+" "+event["end"])
+            end_recurring_period = parse_datetime(event["repeatUntil"]+" "+event["end"])
+            start = timezone.get_current_timezone().localize(start)
+            end = timezone.get_current_timezone().localize(end)
+            nEvent = {
+                "start": start,
+                "end": end,
+                "end_recurring_period": end_recurring_period
+            }
 
-        if ("newEvent" in bundle.data
-            and "repeat" in bundle.data["newEvent"]
-            and bundle.data["newEvent"]["repeat"]):
-            c.setRecurrentEvent(**nEvent)
-        else:
-            c.addEvent(**nEvent)
-
-
+            if ("newEvent" in bundle.data
+                and "repeat" in bundle.data["newEvent"]
+                and bundle.data["newEvent"]["repeat"]):
+                c.setRecurrentEvent(**nEvent)
+            else:
+                c.addEvent(**nEvent)

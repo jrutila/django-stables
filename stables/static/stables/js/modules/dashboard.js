@@ -150,6 +150,9 @@ var DayView = Backbone.View.extend({
             {
                 var evView = new EventView({ model: ev })
                 that.$timeslots[hour].append(evView.$el)
+                evView.on("courseChanged", function(course) {
+                    that.trigger("courseChanged", course);
+                });
             }
             evView.render()
         })
@@ -205,6 +208,11 @@ var WeekView = Backbone.View.extend({
                 var dayv = new DayView({ model: day })
                 dayv.$timeslots = $timeslot
                 dayv.$header = $header
+                dayv.on("courseChanged", function(course) {
+                    _.each(that.dayViews, function(dv) {
+                        dv.model.fetch();
+                    });
+                });
                 that.dayViews[day.get('date')] = dayv
                 if (dayv.model.has('events'))
                     dayv.render()

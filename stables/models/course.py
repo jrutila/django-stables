@@ -94,23 +94,50 @@ class Course(models.Model):
         event["title"] = self.name
         self.events.create(**event)
 
+    def _curEv(self, at):
+        curEv = self.events.filter(Q(
+            Q(end_recurring_period__isnull=True) | Q(end_recurring_period__gte=at)
+        ), rule__isnull=False)
+        if (curEv): return curEv[0]
+        return None
+
     def setRecurrentEvent(self, **event):
         event["title"] = self.name
         event["rule"] = Rule.objects.filter(frequency="WEEKLY")[0]
-        curEv = self.events.filter(Q(
-            Q(end_recurring_period__isnull=True) | Q(end_recurring_period__gte=event["start"].date())
-        ), rule__isnull=False)
+        curEv = self._curEv(event["start"].date())
         doAdd = True
         if (curEv):
-            curEv = curEv[0]
             if curEv.start == event["start"] and curEv.end == event["end"]:
                 curEv.end_recurring_period = event["end_recurring_period"]
                 doAdd = False
             else:
-                curEv.end_recurring_period = event["start"].date()
+                curEv.end_recurring_period = event["start"].date() # start of date
             curEv.save()
         if doAdd:
             self.addEvent(**event)
+
+    def updateEventNames(self, all=False):
+        if all:
+            self.events.update(title=self.name)
+        else:
+            at = timezone.now()
+            curEv = self._curEv(at)
+            if curEv:
+                gen = curEv.occurrences_after(at)
+                try:
+                    nextOcc = gen.next()
+                    # Find first occurrence that is not moved
+                    while (nextOcc.original_start != nextOcc.start or nextOcc.original_end != nextOcc.end):
+                        nextOcc.title = self.name
+                        nextOcc.save()
+                        nextOcc = gen.next()
+
+                    self.setRecurrentEvent(
+                        start=nextOcc.start,
+                        end=nextOcc.end,
+                        end_recurring_period=curEv.end_recurring_period)
+                except StopIteration:
+                    pass
 
 def get_course(self):
     return self.course_set.all()[0]

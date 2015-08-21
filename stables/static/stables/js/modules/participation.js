@@ -504,6 +504,18 @@ var EventView = Backbone.View.extend({
 
         var editTemplate = _.template($('#EventEditView').html());
 
+        this.$el.find("a.event").click(function() {
+            var course = new Course({id: that.model.get("course_id")});
+            course.fetch().success(function() {
+                var v = new EditCourseView({ model: course });
+                v.render();
+                v.$el.modal("show");
+                v.on('courseChanged', function(course) {
+                    that.trigger("courseChanged", course);
+                });
+            });
+        });
+
         this.$el.find("a.move").popover({
             trigger: 'click',
             placement: 'top',

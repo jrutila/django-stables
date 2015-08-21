@@ -26,6 +26,49 @@ var AddEventButtonView = Backbone.View.extend({
     }
 })
 
+var EditCourseView = Backbone.View.extend({
+    events: {
+        "submit form": 'submitEvent',
+    },
+    render: function() {
+        var html = _.template($('#EditCourseView').html())(this.model.attributes);
+        var $newel = $(html.trim());
+
+        this.setElement($newel);
+
+        var hExtraInfo = _.template($("#AddEventCourseInfo").html());
+        this.$el.find(".addEventCourseInfo").html(hExtraInfo(this.model.attributes));
+
+        var that = this;
+        this.$el.on('hidden.bs.modal', function() {
+            that.$el.remove();
+        });
+
+        this.$el.modal("show");
+    },
+    submitEvent: function(ev) {
+        var oldname = $(ev.target).find("[name='name']").val();
+        var data = $(ev.target).serializeArray();
+        var default_tickets = [];
+        _.each(data, function(d) {
+            if (d.name == "default_tickets")
+                default_tickets.push(d.value);
+        });
+        data = _.object(_.pluck(data, "name"), _.pluck(data, "value"));
+        data.default_tickets = default_tickets;
+        this.model.set(_.pick(data, "name", "max_participants", "default_participation_fee", "default_tickets"));
+        this.model.set("name_all", true);
+        var that = this;
+        this.model.save(null, {
+            success: function(model, response) {
+                that.$el.modal('hide');
+                that.trigger("courseChanged", that.model);
+            }
+        });
+        return false;
+    },
+});
+
 var AddEventView = Backbone.View.extend({
     events: {
         "submit": 'submitEvent',
