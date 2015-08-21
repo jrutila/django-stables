@@ -31,6 +31,7 @@ var EditCourseView = Backbone.View.extend({
         "submit form": 'submitEvent',
     },
     render: function() {
+        var origName = this.model.get("name");
         var html = _.template($('#EditCourseView').html())(this.model.attributes);
         var $newel = $(html.trim());
 
@@ -42,6 +43,13 @@ var EditCourseView = Backbone.View.extend({
         var that = this;
         this.$el.on('hidden.bs.modal', function() {
             that.$el.remove();
+        });
+
+        this.$el.find("[name='name']").keyup(function(ev, ui) {
+            if ($(ev.target).val() != origName)
+                $(ev.target).next().show();
+            else
+                $(ev.target).next().hide();
         });
 
         this.$el.modal("show");
