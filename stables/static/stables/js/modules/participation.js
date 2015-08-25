@@ -507,7 +507,8 @@ var EventView = Backbone.View.extend({
         this.$el.find("a.event").click(function() {
             var course = new Course({id: that.model.get("course_id")});
             course.fetch().success(function() {
-                var v = new EditCourseView({ model: course });
+                var d = moment(that.model.get("start")).format("YYYY-MM-DD")
+                var v = new EditCourseView({ model: course, date: d });
                 v.render();
                 v.$el.modal("show");
                 v.on('courseChanged', function(course) {

@@ -29,6 +29,10 @@ var AddEventButtonView = Backbone.View.extend({
 var EditCourseView = Backbone.View.extend({
     events: {
         "submit form": 'submitEvent',
+        "click .gotoNewEvent": 'gotoNewEvent'
+    },
+    initialize: function(data) {
+        this.date = data.date;
     },
     render: function() {
         var origName = this.model.get("name");
@@ -53,6 +57,15 @@ var EditCourseView = Backbone.View.extend({
         });
 
         this.$el.modal("show");
+    },
+    gotoNewEvent: function() {
+        var ae = new AddEventView({ 'model': new Backbone.Model({
+            date: this.date,
+            course: this.model,
+        })})
+        this.$el.modal("hide");
+        ae.render();
+        return false;
     },
     submitEvent: function(ev) {
         var oldname = $(ev.target).find("[name='name']").val();
@@ -87,6 +100,13 @@ var AddEventView = Backbone.View.extend({
 
         },
         "select .courseSelect": 'courseSelected',
+        "click .gotoCourseEdit": 'gotoCourseEdit'
+    },
+    gotoCourseEdit: function() {
+        var ev = new EditCourseView({ model: this.course });
+        this.$el.modal("hide");
+        ev.render();
+        return false;
     },
     timeChanged: function() {
         this.addEvents = [];
@@ -127,6 +147,7 @@ var AddEventView = Backbone.View.extend({
             that.xevents = model.get('events');
             that.participations = model.get('participations');
             that.renderTimes();
+            that.$el.find(".gotoCourseEdit").show();
         }});
     },
     courseNamed: function(ev, ui) {
@@ -291,6 +312,7 @@ var AddEventView = Backbone.View.extend({
         $newel = $(html.trim());
 
         this.setElement($newel);
+        this.$el.find(".gotoCourseEdit").hide();
         $oldel.replaceWith($newel);
         this.$el.modal('show');
 
@@ -335,6 +357,9 @@ var AddEventView = Backbone.View.extend({
                     that._renderItemData( ul, item );
                 });
         }
+        // TODO: Ugghhh.. ugly
+        if (this.model.get("course"))
+            this.courseSelected(null, { item: { value: this.model.get("course").get("id") }});
         this.ready(false);
     },
     submitEvent: function(ev) {
