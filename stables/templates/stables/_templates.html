@@ -290,16 +290,24 @@
     <label for="addeventParticipants<%= labelId %>">{%  trans "Max participants" %}</label>
     <input name="max_participants" id="addeventParticipants<%= labelId %>" type="number" class="form-control" value="<%= typeof max_participants != 'undefined' ? max_participants : {% settings "default_participant_max" %} %>" />
 
-    <label for="addeventDefaultTickets<%= labelId %>">{%  trans "Default tickets" %}</label>
-    <select class="form-control" id="addeventDefaultTickets<%= labelId %>" name="default_tickets" multiple>
-        {% for tt in ticket_types %}
-            <option value="{{ tt.id }}"
-                <% if (typeof default_tickets != "undefined" && _.contains(default_tickets, {{ tt.id }})) { %>
-                    selected="selected"
-                <% } %>
-                    >{{ tt }}</option>
-        {% endfor %}
-    </select>
+    <div class="form-group">
+        <label for="addeventDefaultTickets<%= labelId %>">{%  trans "Default tickets" %}</label>
+        <select class="form-control" id="addeventDefaultTickets<%= labelId %>" name="default_tickets" multiple>
+            {% for tt in ticket_types %}
+                <option value="{{ tt.id }}"
+                    <% if (typeof default_tickets != "undefined" && _.contains(default_tickets, {{ tt.id }})) { %>
+                        selected="selected"
+                    <% } %>
+                        >{{ tt }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-group">
+        <input name="api_hide" id="addeventApi<%= labelId %>" type="checkbox" <% if (typeof api_hide != 'undefined' && api_hide) { %>checked="checked"<% } %> />
+        <label for="addeventApi<%= labelId %>">{%  trans "Hidden from public website" %}</label>
+    </div>
 </script>
 
 <script type="text/html" id="EditCourseView" >
@@ -346,6 +354,9 @@
         {% endfor %}
         </ul>
 
+        <% if (typeof api_hide != 'undefined' && api_hide) { %>
+            <label class="control-label">{%  trans "Hidden from public website" %}</label>
+        <% } %>
 </script>
 
 <script type="text/html" id="timeform" >

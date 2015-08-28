@@ -77,7 +77,8 @@ var EditCourseView = Backbone.View.extend({
         });
         data = _.object(_.pluck(data, "name"), _.pluck(data, "value"));
         data.default_tickets = default_tickets;
-        this.model.set(_.pick(data, "name", "max_participants", "default_participation_fee", "default_tickets"));
+        this.model.set(_.pick(data, "name", "max_participants", "default_participation_fee", "default_tickets", "api_hide"));
+        this.model.set("api_hide", this.model.get("api_hide") == "on");
         this.model.set("name_all", true);
         var that = this;
         this.model.save(null, {
@@ -372,7 +373,8 @@ var AddEventView = Backbone.View.extend({
         });
         data = _.object(_.pluck(data, "name"), _.pluck(data, "value"));
         data.default_tickets = default_tickets;
-        this.course.set(_.pick(data, "name", "max_participants", "default_participation_fee", "default_tickets"));
+        this.course.set(_.pick(data, "name", "max_participants", "default_participation_fee", "default_tickets", "api_hide"));
+        this.course.set("api_hide", this.course.get("api_hide") == "on");
         this.course.set("newEvent", {
             date: data["date"],
             start: data["start"],

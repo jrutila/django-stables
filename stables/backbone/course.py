@@ -17,6 +17,7 @@ class ViewCourse:
             self.max_participants = course.max_participants
             self.default_participation_fee = course.default_participation_fee
             self.default_tickets = ApiList()
+            self.api_hide = course.api_hide
             for tt in course.ticket_type.all():
                 self.default_tickets.append(tt.id)
             self.enrolls = ApiList()
@@ -48,6 +49,7 @@ class CourseResource(Resource):
     max_participants = fields.IntegerField(attribute='max_participants', null=True)
     default_participation_fee = fields.DecimalField(attribute='default_participation_fee', null=True)
     default_tickets = fields.ListField(attribute="default_tickets", null=True)
+    api_hide = fields.BooleanField(attribute="api_hide")
     enrolls = fields.ListField(attribute='enrolls')
     events = fields.ListField(attribute='events')
     participations = fields.ListField(attribute='participations')
@@ -92,6 +94,7 @@ class CourseResource(Resource):
         c.default_participation_fee = bundle.data["default_participation_fee"]
         c.max_participants = bundle.data["max_participants"]
         c.ticket_type = bundle.data["default_tickets"]
+        c.api_hide = bundle.data["api_hide"]
 
         if "newEvent" in bundle.data:
             event = bundle.data["newEvent"]

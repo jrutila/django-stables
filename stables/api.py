@@ -54,6 +54,8 @@ class TimetableView(views.APIView):
             slots = Participation.objects.generate_participations(starttime, endtime)[1]
             dates[str(d)] = []
             for e in events:
+                if e.course.api_hide:
+                    continue
                 occ = e.get_occurrences(starttime, endtime)
                 if occ:
                     for o in occ:

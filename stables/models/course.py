@@ -62,6 +62,7 @@ class Course(models.Model):
     default_participation_fee = CurrencyField(_('default participation fee'), default=0)
     ticket_type = models.ManyToManyField(TicketType, verbose_name=_('Default ticket type'), blank=True)
     allowed_levels = models.ManyToManyField(RiderLevel, verbose_name=_('Allowed rider levels'), blank=True)
+    api_hide = models.BooleanField(_('Hide from api'), default=False)
 
     objects = CourseManager()
 
