@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-08-25 07:25+0300\n"
+"POT-Creation-Date: 2015-08-28 07:53+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -97,11 +97,6 @@ msgstr "Tämän ajan pitää olla %s jälkeen"
 #: forms/course.py:95
 msgid "You cannot change start time or end time on ended course"
 msgstr "Et voi muuttaa päättyneen tunnin aikoja"
-
-#: forms/course.py:97
-#, fuzzy
-msgid "Course end must be after course start"
-msgstr "Tämän ajan pitää olla %s jälkeen"
 
 #: forms/course.py:116
 msgid "Event information"
@@ -256,7 +251,11 @@ msgstr "oletuskortti"
 msgid "Allowed rider levels"
 msgstr "sallitut ratsastajien tasot"
 
-#: models/course.py:160 models/participations.py:184
+#: models/course.py:65
+msgid "Hide from api"
+msgstr ""
+
+#: models/course.py:161 models/participations.py:184
 #, python-format
 msgid "%(name)s %(state)s"
 msgstr ""
@@ -367,7 +366,7 @@ msgid "Send SMS"
 msgstr ""
 
 #: templates/stables/_templates.html:157 templates/stables/_templates.html:175
-#: templates/stables/_templates.html:274 templates/stables/_templates.html:326
+#: templates/stables/_templates.html:274 templates/stables/_templates.html:334
 #: templatetags/stablestags.py:86
 msgid "Cancel"
 msgstr "Peru"
@@ -394,7 +393,7 @@ msgid "End"
 msgstr "päättyy"
 
 #: templates/stables/_templates.html:174 templates/stables/_templates.html:275
-#: templates/stables/_templates.html:327
+#: templates/stables/_templates.html:335
 #: templates/stables/user/edit_user.html:7
 msgid "Save"
 msgstr "Tallenna"
@@ -409,13 +408,12 @@ msgid "Horse <%%= name %%> is riding over it's limit of <%%= limit %%>"
 msgstr "<%%= name %%> on ylittänyt päivärajansa <%%= limit %%>"
 
 #: templates/stables/_templates.html:214
-#, fuzzy
 msgid "Add new..."
-msgstr "Lisää/Muokkaa tuntia"
+msgstr "Lisää uusi..."
 
 #: templates/stables/_templates.html:223
 msgid "Add new event"
-msgstr "Lisää/Muokkaa tuntia"
+msgstr "Lisää uusi tapahtuma/tunti"
 
 #: templates/stables/_templates.html:229
 msgid "Select event or start new"
@@ -457,27 +455,31 @@ msgstr "Viimeinen viikottainen tapahtuma (valinnainen)"
 msgid "Adding a new course"
 msgstr "Olet lisäämässä uutta tuntia"
 
-#: templates/stables/_templates.html:287 templates/stables/_templates.html:335
+#: templates/stables/_templates.html:287 templates/stables/_templates.html:343
 msgid "Cost"
 msgstr "Hinta"
 
-#: templates/stables/_templates.html:290 templates/stables/_templates.html:337
+#: templates/stables/_templates.html:290 templates/stables/_templates.html:345
 msgid "Max participants"
 msgstr "Maksimi osallistujamäärä"
 
-#: templates/stables/_templates.html:293 templates/stables/_templates.html:340
+#: templates/stables/_templates.html:294 templates/stables/_templates.html:348
 msgid "Default tickets"
 msgstr "Automaattisesti kuluva kortti"
 
-#: templates/stables/_templates.html:311
+#: templates/stables/_templates.html:309 templates/stables/_templates.html:358
+msgid "Hidden from public website"
+msgstr "Nämä tunnit piilotetaan omilta kotisivuilta"
+
+#: templates/stables/_templates.html:319
 msgid "Edit course"
 msgstr "Muokkaa tuntia"
 
-#: templates/stables/_templates.html:317
+#: templates/stables/_templates.html:325
 msgid "The name will change on all past and future events"
 msgstr "Nimi muuttuu tulevissa JA menneissä tapahtumissa"
 
-#: templates/stables/_templates.html:321
+#: templates/stables/_templates.html:329
 msgid "I want to add a new event"
 msgstr "Haluan lisätä uuden tapahtuman tälle tunnille"
 
@@ -742,7 +744,6 @@ msgid "Created"
 msgstr "Luotu"
 
 #: templates/stables/user/index.html:103
-#, fuzzy
 msgid "Status"
 msgstr "Tila"
 
