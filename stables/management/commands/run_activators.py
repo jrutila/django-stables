@@ -1,6 +1,6 @@
 from django.contrib.contenttypes.models import ContentType
 from django.core.management.base import BaseCommand
-from stables.models import ParticipationTransactionActivator, CourseTransactionActivator, CourseParticipationActivator
+from stables.models import ParticipationTransactionActivator
 from stables.models import ParticipationError
 import reversion
 from django.db import connection
@@ -19,13 +19,13 @@ class Command(BaseCommand):
 
     @reversion.create_revision()
     def activate_transactions(self):
-        for e in CourseParticipationActivator.objects.all():
-            try:
-                e.try_activate()
-            except ParticipationError:
-                pass
+        #for e in CourseParticipationActivator.objects.all():
+            #try:
+                #e.try_activate()
+            #except ParticipationError:
+                #pass
         for p in ParticipationTransactionActivator.objects.all():
             p.try_activate()
-        for c in CourseTransactionActivator.objects.all():
-            c.try_activate()
+        #for c in CourseTransactionActivator.objects.all():
+            #c.try_activate()
 
