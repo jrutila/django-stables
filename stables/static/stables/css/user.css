@@ -2,6 +2,10 @@ li.inactive {
     display: none;
 }
 
+.list-group .item > div {
+    height: 50px;
+}
+
 .saldo {
     display: block;
     color: red;

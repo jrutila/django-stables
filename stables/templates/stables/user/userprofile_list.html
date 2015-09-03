@@ -30,18 +30,33 @@
         </script>
     {% endaddtoblock %}
 
-<a class="btn btn-default" href="{% url "add_user" %}">{% trans "Add user" %}</a>
-    <input type="checkbox" id="hide_zero" /><label for="hide_zero">{% trans "Show only riders with saldo" %}</label>
-    <input type="checkbox" id="show_inactive" /><label for="show_inactive">{% trans "Show only inactive riders" %}</label>
-<ul class="list-group list-grid" id="rider-list">
-    {% for user in object_list %}
-    <li class="list-group-item{% if user.inactive %} inactive{% endif %}">
-    <a href="{{ user.get_absolute_url }}">{{ user }}</a>
-    {% if user.saldo %}
-        <span class="saldo">{{ user.saldo }}</span>
-    {%  endif %}
-    </li>
-    {% endfor %}
-</ul>
-<p>{% trans "Amount of all users:" %} {{ object_list|length }}</p>
+
+<div class="widget">
+    <div class="widget-header">
+        {% trans "Riders" %}
+        <a class="btn btn-default" href="{% url "add_user" %}" title="{% trans "Add user" %}"><i class="fa fa-plus fa-2"></i></a>
+        <input type="checkbox" id="hide_zero" /><label for="hide_zero">{% trans "Show only riders with saldo" %}</label>
+        <input type="checkbox" id="show_inactive" /><label for="show_inactive">{% trans "Show only inactive riders" %}</label>
+    </div>
+
+    <div class="widget-content">
+        <div class="row list-group" id="rider_list">
+            {% for user in object_list %}
+            <div class="item col-md-2 col-sm-6 col-xs-12 {% if user.inactive %} inactive {% endif %}">
+                <div>
+                    <a href="{{ user.get_absolute_url }}">{{ user }}</a>
+                    {% if user.saldo %}
+                    <span class="saldo">{{ user.saldo }}</span>
+                    {%  endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="widget-footer">
+        <p>{% trans "Amount of all users:" %} {{ object_list|length }}</p>
+    </div>
+</div>
+
 {% endblock content %}
