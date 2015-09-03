@@ -1,11 +1,3 @@
-from stables.models import Horse, UserProfile, RiderInfo, CustomerInfo, RiderLevel, InstructorInfo
-from stables.models import CustomerForm
-from stables.forms import CourseForm
-from stables.models import Course, Participation, Enroll, InstructorParticipation
-from stables.models import Transaction, Ticket, ParticipationTransactionActivator, TicketType
-from stables.models.course import CourseParticipationActivator
-from stables.models import Accident, AccidentType
-from stables.models import RiderLevel
 from django import forms
 from django.contrib import admin
 from django.contrib.auth.models import User
@@ -13,10 +5,16 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.utils.translation import ugettext_lazy as _
 from django.db.models import Q
-import reversion
 
 #class HorseAdmin(reversion.VersionAdmin):
     #pass
+from stables.models.accident import AccidentType, Accident
+from stables.models.course import CourseParticipationActivator, Course, Enroll
+from stables.models.financial import ParticipationTransactionActivator, Ticket, Transaction, TicketType
+from stables.models.horse import Horse
+from stables.models.participations import InstructorParticipation, Participation
+from stables.models.user import CustomerInfo, RiderInfo, CustomerForm, RiderLevel, UserProfile, InstructorInfo
+
 
 class CourseAdmin(admin.ModelAdmin):
     fieldsets = (
@@ -35,7 +33,7 @@ class CourseAdmin(admin.ModelAdmin):
       }),
     )
 
-class ParticipationAdmin(reversion.VersionAdmin):
+class ParticipationAdmin(admin.ModelAdmin):
     list_display = ('participant', 'state', 'start', 'end', 'created_on')
     search_fields = ['participant__user__first_name', 'participant__user__last_name',]
 
@@ -156,7 +154,7 @@ class InstructorParticipationAdmin(admin.ModelAdmin):
   form = InstructorParticipationAdminForm
   list_display = ('instructor', 'event', 'start', 'end')
 
-class TransactionAdmin(reversion.VersionAdmin):
+class TransactionAdmin(admin.ModelAdmin):
   list_display = ('customer', 'amount', 'source', 'active')
   search_fields = ['customer__user__user__first_name', 'customer__user__user__last_name',]
   ordering = ['-created_on']
@@ -208,10 +206,10 @@ class TicketAdmin(admin.ModelAdmin):
         ticket.owner = owner.customer
         ticket.save()
 
-class EnrollAdmin(reversion.VersionAdmin):
+class EnrollAdmin(admin.ModelAdmin):
   search_fields = ['participant__user__first_name']
 
-class AccidentAdmin(reversion.VersionAdmin):
+class AccidentAdmin(admin.ModelAdmin):
   list_display = ('__unicode__', 'at', 'horse')
 
 #admin.site.register(Horse, HorseAdmin)

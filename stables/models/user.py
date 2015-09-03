@@ -121,4 +121,4 @@ class InstructorInfo(models.Model):
 class CustomerForm(forms.ModelForm):
     class Meta:
         model = CustomerInfo
-    address = forms.CharField(widget=forms.Textarea)
+        fields = ['address']

@@ -1,6 +1,6 @@
+from __builtin__ import unicode
 from django.db import models
 from django.db.models import Q
-from user import CustomerInfo, RiderInfo
 import datetime
 from django import forms
 from django.utils.translation import ugettext, ugettext_lazy as _
@@ -10,9 +10,12 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.db import connection
 from decimal import Decimal
+from schedule.models import Event
+from stables.models import participations
+from stables.models.participations import Participation
 
-from south.modelsinspector import add_introspection_rules
-add_introspection_rules([], ["^stables\.models\.financial\.CurrencyField"])
+from stables.models.user import CustomerInfo, RiderInfo
+
 
 class CurrencyField(models.DecimalField):
     def __init__(self, *args, **kwargs):
@@ -150,8 +153,6 @@ def _get_customer_valid_unused_tickets(self):
 def _get_customer_expired_unused_tickets(self):
     return _get_tickets(_get_customer_q(self), _get_expired_q())
 
-import participations
-from participations import Participation
 Participation.get_saldo = get_saldo
 Participation.get_pay_transaction = get_pay_transaction
 RiderInfo.unused_tickets = property(_get_rider_valid_unused_tickets)
@@ -160,7 +161,6 @@ CustomerInfo.unused_tickets = property(_get_customer_valid_unused_tickets)
 CustomerInfo.expired_tickets = property(_get_customer_expired_unused_tickets)
 CustomerInfo.saldo = property(get_customer_saldo)
 
-from schedule.models import Event
 def _get_default_fee(self):
     if self.course_set.count() > 0:
         return self.course_set.all()[0].default_participation_fee

@@ -45,7 +45,7 @@ setup(
     install_requires=[
       #"Babel",
       #"isoweek>=1.2.0",
-      #'django-scheduler==0.7.1-3',
+      'django-scheduler==0.7.5',
       #'django-reversion==1.7.1',
       #'django-sekizai',
       #'django-crispy-forms',
@@ -54,7 +54,7 @@ setup(
       #'backbone-tastypie',
       #'mimeparse',
       #'djangorestframework',
-      'django-phonenumber-field',
+      'django-phonenumber-field==0.7.2',
       #'django-twilio==0.7',
       #'South==1.0',
       #'django_settings',
