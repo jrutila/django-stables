@@ -7,8 +7,15 @@ from django.views.generic import DetailView, FormView, View
 from django.views.generic import TemplateView
 from django.views.generic import CreateView, DeleteView
 from django.contrib.contenttypes.models import ContentType
+from stables.models.accident import Accident
+from stables.models.financial import Ticket
 from stables.models import PARTICIPATION_STATES
 from stables.models import CANCELED, ATTENDING, RESERVED
+from stables.models.common import TicketType, Transaction
+from stables.models.course import Course, Enroll
+from stables.models.horse import Horse
+from stables.models.participations import Participation, InstructorParticipation
+from stables.models.user import InstructorInfo
 from stables.views import LoginRequiredMixin, confirm_required
 import datetime
 from django.utils import timezone

@@ -5,9 +5,10 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 from crispy_forms.layout import Layout, Fieldset, ButtonHolder, Field
 
-from stables.models import Horse
 
 from django.utils import formats
+from stables.models.horse import Horse
+
 
 class HorseFormHelper(FormHelper):
     form_class = 'blueForms'
@@ -16,6 +17,7 @@ class HorseFormHelper(FormHelper):
 class HorseForm(forms.ModelForm):
     class Meta:
         model = Horse
+        fields = ['last_usage_date']
 
     last_usage_date = forms.DateField(input_formats=formats.get_format('DATE_INPUT_FORMATS'), required=False)
 

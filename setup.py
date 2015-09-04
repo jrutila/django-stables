@@ -48,7 +48,7 @@ setup(
       'django-scheduler==0.7.5',
       #'django-reversion==1.7.1',
       #'django-sekizai',
-      #'django-crispy-forms',
+      'django-crispy-forms',
       'django-reportengine',
       'django-tastypie',
       'django-contrib-comments',

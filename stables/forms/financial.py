@@ -8,8 +8,8 @@ from crispy_forms.layout import Submit
 from crispy_forms.layout import HTML
 from crispy_forms.layout import Layout, Fieldset, ButtonHolder
 
-from stables.models import Transaction
-from stables.models import Ticket
+from stables.models.financial import Transaction
+from stables.models.financial import Ticket
 
 import datetime
 

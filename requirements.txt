@@ -2,3 +2,4 @@ django_tastypie
 django-reportengine
 -e git+http://github.com/jrutila/django-reportengine.git#egg=django_reportengine
 django-contrib-comments
+django-crispy-forms

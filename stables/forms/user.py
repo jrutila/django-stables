@@ -1,12 +1,7 @@
 from django import forms
-from stables.models import RiderLevel
-from stables.models import CustomerInfo
-from stables.models import RiderInfo
 from django.utils.translation import ugettext_lazy as _
 
 from django.contrib.auth.models import User
-from stables.models import UserProfile
-from stables.models import InstructorInfo
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
@@ -15,6 +10,9 @@ from crispy_forms.layout import Layout, Fieldset, ButtonHolder
 
 from django.core.exceptions import ValidationError
 from django.utils.safestring import mark_safe
+from stables.models.common import CustomerInfo
+from stables.models.user import RiderLevel, UserProfile, RiderInfo, InstructorInfo
+
 
 class UserFormHelper(FormHelper):
     form_class = 'blueForms'
@@ -93,7 +91,7 @@ class UserProfileForm(forms.ModelForm):
       except UserProfile.DoesNotExist:
           return data
       if user:
-          raise ValidationError(mark_safe(_("Existing user %s! Change first and last names") % ("<a href='%s'>%s</a>" % (user.get_absolute_url(), unicode(user)))))
+          raise ValidationError(mark_safe(_("Existing user %s! Change first and last names") % ("<a href='%s'>%s</a>" % (user.get_absolute_url(), str(user)))))
       return data
 
   def save(self, force_insert=False, force_update=False, commit=True):
