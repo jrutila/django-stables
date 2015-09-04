@@ -1,17 +1,17 @@
 import logging
 import datetime
 from django.conf.urls import url
-from django.contrib.comments import Comment
 from django.db.models.signals import post_save
 from django.utils import timezone
+from django_comments.models import Comment
 from schedule.models import Event, Calendar, Occurrence
-from stables.models import EventMetaData, Course
 from stables.models.accident import Accident
 from stables.models.common import Transaction
+from stables.models.event_metadata import EventMetaData
 from stables.models.financial import Ticket
 from stables.models.participations import InstructorParticipation
 from stables.models.participations import Participation
-from stables.models.course import Enroll
+from stables.models.course import Enroll, Course
 from tastypie import fields
 from tastypie.bundle import Bundle
 from tastypie.resources import Resource

@@ -1,0 +1,3 @@
+django_tastypie
+django-reportengine
+django-contrib-comments

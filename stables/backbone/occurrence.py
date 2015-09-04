@@ -1,4 +1,5 @@
 from django.contrib.sites.models import Site
+from django_comments.models import Comment
 from schedule.models import Event
 from tastypie import fields
 from tastypie.bundle import Bundle
@@ -6,8 +7,7 @@ from stables.backbone import ParticipationPermissionAuthentication
 from tastypie.authorization import Authorization
 from tastypie.contrib.contenttypes.fields import GenericForeignKeyField
 from tastypie.resources import ModelResource
-from stables.models import EventMetaData
-from django.contrib.comments import Comment
+from stables.models.event_metadata import EventMetaData
 
 __author__ = 'jorutila'
 

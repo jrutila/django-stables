@@ -4,8 +4,7 @@ from tastypie import fields
 from stables.backbone import ParticipationPermissionAuthentication
 from tastypie.cache import SimpleCache
 from tastypie.resources import ModelResource
-from stables.models import Horse
-
+from stables.models.horse import Horse
 
 class HorseQuerySet(QuerySet):
     def filter(self, *args, **kwargs):

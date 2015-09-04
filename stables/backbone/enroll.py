@@ -1,10 +1,10 @@
 import datetime
 from schedule.models import Event
+from stables.models.course import Enroll
 from stables.models.user import UserProfile
 from tastypie import fields
 from stables.backbone import ParticipationPermissionAuthentication
 from tastypie.resources import ModelResource
-from stables.models import Enroll
 
 __author__ = 'jorutila'
 
