@@ -12,7 +12,7 @@ from stables.models.common import CustomerInfo
 
 class UserManager(models.Manager):
     def get_query_set(self):
-        return super(UserManager, self).get_query_set().prefetch_related('user')
+        return models.QuerySet(self.model, using=self._db).prefetch_related('user')
 
     def active(self):
         return self.get_query_set().filter(inactive=False).filter(Q(rider__isnull=False) | Q(customer__isnull=False))

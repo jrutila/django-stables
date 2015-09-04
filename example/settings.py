@@ -43,6 +43,7 @@ INSTALLED_APPS = (
 
     'stables',
     'schedule',
+    'reportengine',
 )
 
 MIDDLEWARE_CLASSES = (

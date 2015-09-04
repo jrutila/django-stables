@@ -1,6 +1,3 @@
-from stables.models import Participation, InstructorParticipation
-from stables.models import Transaction
-from stables.models import Accident
 from stables.models import ATTENDING, CANCELED, RESERVED, SKIPPED
 from stables.forms.reports import DateFilterForm
 from django.db.models import Count
@@ -10,6 +7,10 @@ import datetime
 from collections import defaultdict
 from decimal import Decimal
 import reportengine
+from stables.models.accident import Accident
+from stables.models.common import Transaction
+from stables.models.participations import Participation, InstructorParticipation
+
 
 def amountval_factory():
     return { 'amount': 0, 'value': Decimal('0.00') }
@@ -153,8 +154,8 @@ class AccidentReport(reportengine.QuerySetReport):
             acc = (
                     a.at,
                     a.horse.name,
-                    unicode(a.rider.user),
-                    unicode(a.type),
+                    str(a.rider.user),
+                    str(a.type),
                 )
             ret.append(acc)
         return (ret, ("count", qs.count()))

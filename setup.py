@@ -63,7 +63,7 @@ setup(
     zip_safe=False,
     dependency_links = [
       #'http://github.com/jrutila/django-schedule/tarball/master#egg=django-scheduler-0.7.1-3',
-      #'http://github.com/jrutila/django-reportengine/tarball/master#egg=django-reportengine-0.3.1.1',
+      'http://github.com/jrutila/django-reportengine/tarball/master#egg=django-reportengine-0.3.1.1',
       #'http://github.com/jrutila/backbone-tastypie/tarball/master#egg=backbone-tastypie-dev',
     ]
 )
