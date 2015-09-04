@@ -31,6 +31,8 @@ import reversion
 from collections import defaultdict
 
 from django.utils.safestring import mark_safe
+from stables.models.common import _count_saldo
+
 
 def render_response(req, *args, **kwargs):
     kwargs['context_instance'] = RequestContext(req)
@@ -191,7 +193,7 @@ def widget(request, date=None):
         if part.id == t.object_id:
             transbypart[part].append(t)
             # TODO: Count this only when we have the last saldo
-            part.saldo = financial._count_saldo(transbypart[part])[0]
+            part.saldo = _count_saldo(transbypart[part])[0]
             part.transactions.append(t)
             t_id = t_id + 1
         else:

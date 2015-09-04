@@ -1,11 +1,12 @@
 from decimal import Decimal
 from tastypie.bundle import Bundle
+from stables.models.common import TicketType
 from stables.models.participations import Participation
 from tastypie import fields
 from stables.backbone import ParticipationPermissionAuthentication
 from tastypie.resources import Resource
 from stables.models import ATTENDING, SKIPPED
-from stables.models.financial import Ticket, pay_participation, TicketType
+from stables.models.financial import Ticket, pay_participation
 from django.utils.translation import ugettext as _
 from stables.utils import getPaymentLink
 from django.conf import settings

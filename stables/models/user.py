@@ -1,3 +1,4 @@
+from functools import reduce
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
@@ -7,8 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.db.models import Q
 import operator
 from phonenumber_field.modelfields import PhoneNumberField
-
-import datetime
+from stables.models.common import CustomerInfo
 
 class UserManager(models.Manager):
     def get_query_set(self):
@@ -79,26 +79,11 @@ class UserProfile(models.Model):
             self.rider.save()
         super(UserProfile, self).save()
 
-    def get_participations(self):
-        from participations import Participation
-        return Participation.objects.filter(participant=self).order_by('start')
-
     def get_next_participations(self):
         return self.get_participations().filter(state=0)[:3]
 
     def get_absolute_url(self):
         return reverse('view_user', args=(self.user.username,))
-
-class CustomerInfo(models.Model):
-    class Meta:
-        app_label = 'stables'
-    def __unicode__(self):
-        try:
-            return self.user.__unicode__()
-        except:
-            return self.address
-    address = models.CharField(max_length=500)
-    ticket_warning_limit = 1
 
 class RiderInfo(models.Model):
     class Meta:

@@ -7,7 +7,8 @@ from django.utils import timezone
 from schedule.models import Event, Calendar, Occurrence
 from stables.models import EventMetaData, Course
 from stables.models.accident import Accident
-from stables.models.financial import Transaction, Ticket
+from stables.models.common import Transaction
+from stables.models.financial import Ticket
 from stables.models.participations import InstructorParticipation
 from stables.models.participations import Participation
 from stables.models.course import Enroll

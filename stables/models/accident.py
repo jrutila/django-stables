@@ -1,6 +1,5 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from stables.models import RiderInfo, Horse, InstructorInfo
 from django import forms
 from django.core.urlresolvers import reverse
 
@@ -10,6 +9,9 @@ from django.conf import settings
 from django import forms
 import django
 import json
+from stables.models.horse import Horse
+from stables.models.user import RiderInfo, InstructorInfo
+
 
 class LocalizedText():
     def __init__(self, d=None):
@@ -59,16 +61,13 @@ class I18NCharField(models.CharField):
         if not value:
             return value
         if isinstance(value, LocalizedText):
-            return unicode(value.texts)
+            return str(value.texts)
         return value
 
     def formfield(self, **kwargs):
         ff = super(models.CharField, self).formfield(**kwargs)
         ff.widget = LocalizedTextInput()
         return ff
-
-from south.modelsinspector import add_introspection_rules
-add_introspection_rules([], ["^stables\.models\.accident\.I18NCharField"])
 
 #--END
 
@@ -77,7 +76,7 @@ class AccidentType(models.Model):
         app_label = "stables"
 
     def __unicode__(self):
-        return unicode(self.name)
+        return str(self.name)
 
     name = I18NCharField(max_length=20)
 
@@ -91,7 +90,7 @@ class Accident(models.Model):
         )
 
     def __unicode__(self):
-        return unicode(self.rider)+" "+unicode(self.type)
+        return str(self.rider)+" "+str(self.type)
 
     def get_absolute_url(self):
         return reverse('edit_accident', args=(self.pk,))

@@ -9,10 +9,11 @@ from django.db.models import Q
 #class HorseAdmin(reversion.VersionAdmin):
     #pass
 from stables.models.accident import AccidentType, Accident
-from stables.models.course import CourseParticipationActivator, Course, Enroll
-from stables.models.financial import ParticipationTransactionActivator, Ticket, Transaction, TicketType
+from stables.models.common import TicketType
+from stables.models.course import Course, Enroll
+from stables.models.financial import ParticipationTransactionActivator, Ticket, Transaction
 from stables.models.horse import Horse
-from stables.models.participations import InstructorParticipation, Participation
+from stables.models.participations import InstructorParticipation, Participation, CourseParticipationActivator
 from stables.models.user import CustomerInfo, RiderInfo, CustomerForm, RiderLevel, UserProfile, InstructorInfo
 
 
@@ -92,6 +93,7 @@ class UserProfileAdminAddForm(forms.ModelForm):
 
   class Meta:
     model = UserProfile
+    fields = ["first_name", "last_name", "phone_number", "email", "levels"]
 
   def save(self, force_insert=False, force_update=False, commit=True):
     import random
@@ -140,6 +142,7 @@ class UserProfileAdmin(admin.ModelAdmin):
 class InstructorParticipationAdminForm(forms.ModelForm):
     class Meta:
         model = InstructorParticipation
+        fields = ["instructor"]
     instructor = forms.ModelChoiceField(queryset=InstructorInfo.objects.all(), required=True, label=_('Instructor'))
 
     #def __init__(self, instance):
@@ -162,6 +165,7 @@ class TransactionAdmin(admin.ModelAdmin):
 class ParticipationTransactionActivatorAdminForm(forms.ModelForm):
   class Meta:
     model = ParticipationTransactionActivator
+    fields = []
     widgets = {
         'participation': forms.TextInput()
         }
@@ -177,7 +181,7 @@ class ParticipationTransactionActivatorAdmin(admin.ModelAdmin):
 class TicketAdminForm(forms.ModelForm):
   class Meta:
     model = Ticket
-    #exclude = ['transaction' ]
+    fields = ['transaction' ]
   transaction = forms.IntegerField(required=False)
 
   def clean(self):

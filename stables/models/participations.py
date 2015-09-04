@@ -3,21 +3,20 @@ import datetime
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Q
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
+from django.db import transaction, models
 import django.dispatch
 from django.db import models, IntegrityError
-from django.middleware.transaction import transaction
 from django.utils import timezone
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.dispatch import receiver
 from django.template.defaultfilters import date as _date
 from django.template.defaultfilters import time as _time
-import reversion
 from schedule.models import Event, Occurrence
+from stables.models.course import Enroll, Course
 from stables.models.event_metadata import EventMetaData
 from stables.models.horse import Horse
 from stables.models import CANCELED, SKIPPED, ATTENDING, RESERVED, PARTICIPATION_STATES, part_move
-from stables.models.course import Course, Enroll
 from stables.models.user import UserProfile
 
 OCCURRENCE_LIST_WEEKS = 5
@@ -52,18 +51,11 @@ class ParticipationManager(models.Manager):
             parti.note = ""
 
         if state in pstates or force:
-            reversion.set_comment("State change")
             parti.state = state
-            if state not in pstates:
-              reversion.set_comment("Forced state change")
         elif state == ATTENDING and RESERVED in pstates:
             parti.state = RESERVED
-            reversion.set_comment("Automatically reserved")
         else:
             raise ParticipationError
-
-        if not parti.pk:
-            reversion.set_comment('Created participation')
 
         parti.save()
         return parti
@@ -221,7 +213,6 @@ class Participation(models.Model):
 
     def cancel(self):
         self.state = CANCELED
-        reversion.set_comment("Canceled")
         self.save()
 
     def attend(self):
@@ -231,14 +222,12 @@ class Participation(models.Model):
             self.state = RESERVED
         else:
             raise AttributeError
-        reversion.set_comment("Attending")
         self.save()
 
     def move(self, occ):
         self.event = occ.event
         self.start = occ.start
         self.end = occ.end
-        reversion.set_comment("Moved")
         self.save()
 
     def get_possible_states(self):
@@ -271,6 +260,11 @@ class Participation(models.Model):
           return Occurrence.objects.get(event = self.event, start = self.start)
         except ObjectDoesNotExist:
           return None
+
+def __get_participations(self):
+    return Participation.objects.filter(participant=self).order_by('start')
+
+UserProfile.get_participations = __get_participations
 
 @receiver(pre_save, sender=Occurrence)
 def move_participations(sender, instance, **kwargs):
@@ -314,3 +308,27 @@ class InstructorParticipation(models.Model):
     start = models.DateTimeField()
     end = models.DateTimeField()
     objects = InstructorParticipationManager()
+
+
+class CourseParticipationActivator(models.Model):
+    class Meta:
+        app_label='stables'
+    enroll = models.ForeignKey(Enroll)
+    activate_before_hours = models.IntegerField()
+
+    def try_activate(self):
+        if self.enroll.state != ATTENDING:
+            self.delete()
+            return None
+        p = None
+        occ = self.enroll.course.get_next_occurrence()
+        if occ and occ.start-datetime.timedelta(hours=self.activate_before_hours) < timezone.now() and not Participation.objects.filter(participant=self.enroll.participant, start=occ.start):
+            p = Participation.objects.create_participation(self.enroll.participant, occ, self.enroll.state, force=True)
+        return p
+
+@receiver(post_save, sender=Enroll)
+def handle_Enroll_save(sender, **kwargs):
+    enroll = kwargs['instance']
+    if enroll.state == ATTENDING and not CourseParticipationActivator.objects.filter(enroll=enroll).exists():
+        # TODO: get the 24 from somewhere else
+        CourseParticipationActivator.objects.create(enroll=enroll, activate_before_hours=24)
