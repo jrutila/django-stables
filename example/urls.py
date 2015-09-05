@@ -19,4 +19,5 @@ from django.contrib import admin
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^p/', include("stables.urls.participation")),
+    url(r'^accounts/login/$', 'django.contrib.auth.views.login', name='login'),
 ]

@@ -77,6 +77,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'example.wsgi.application'
 
+AUTHENTICATION_BACKENDS = (
+    'autologinbackend.AutoLoginBackend'
+)
+
 
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
