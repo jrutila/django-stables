@@ -37,23 +37,6 @@ class TicketManager(models.Manager):
     def get_unused_tickets(self, rider, dt):
         return _get_tickets(_get_rider_q(rider), _get_valid_q(dt))
 
-class TransactionManager(models.Manager):
-    def get_query_set(self):
-        return TransactionQuerySet(self.model, using=self._db)
-
-    def get_transactions(self, participations):
-        return self.filter(active=True, content_type=ContentType.objects.get_for_model(Participation), object_id__in=participations).order_by('object_id', 'created_on').select_related().prefetch_related('ticket_set__type', 'ticket_set__owner')
-
-    def get_saldos(self, participations):
-        ret = {}
-        trans = list(self.get_transactions(participations))
-        ids = participations
-        for (pid, tt) in [(x, [y for y in trans if y.object_id==x]) for x in ids]:
-            ret[pid] = _count_saldo(tt)
-        return ret
-
-Transaction.objects = TransactionManager()
-
 class Ticket(models.Model):
     class Meta:
         app_label = 'stables'
@@ -276,12 +259,6 @@ def handle_Participation_save(sender, **kwargs):
           ticket.transaction = None
           ticket.save()
 
-
-class TransactionQuerySet(models.query.QuerySet):
-  def deactivate(self):
-    for t in self:
-      t.active = False
-      t.save()
 
 def _get_actual_state(self):
     if self.state == WAITFORPAY:

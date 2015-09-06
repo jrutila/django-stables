@@ -36,6 +36,16 @@ class CustomerInfo(models.Model):
     address = models.CharField(max_length=500)
     ticket_warning_limit = 1
 
+class TransactionQuerySet(models.query.QuerySet):
+    def deactivate(self):
+        for t in self:
+            t.active = False
+            t.save()
+
+class TransactionManager(models.Manager):
+    def get_queryset(self):
+        return TransactionQuerySet(self.model, using=self._db)
+
 
 class Transaction(models.Model):
     class Meta:
@@ -59,6 +69,8 @@ class Transaction(models.Model):
     object_id = models.PositiveIntegerField(null=True, blank=True)
     source = generic.GenericForeignKey('content_type', 'object_id')
     method = models.CharField(max_length=35, null=True, blank=True)
+
+    objects = TransactionManager()
 
     def delete(self):
         self.ticket_set.clear()

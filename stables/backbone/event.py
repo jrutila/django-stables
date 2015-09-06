@@ -1,12 +1,13 @@
 import logging
 import datetime
 from django.conf.urls import url
+from django.contrib.contenttypes.models import ContentType
 from django.db.models.signals import post_save
 from django.utils import timezone
 from django_comments.models import Comment
 from schedule.models import Event, Calendar, Occurrence
 from stables.models.accident import Accident
-from stables.models.common import Transaction
+from stables.models.common import Transaction, _count_saldo
 from stables.models.event_metadata import EventMetaData
 from stables.models.financial import Ticket
 from stables.models.participations import InstructorParticipation
@@ -71,6 +72,17 @@ class ViewEvent:
             self.last_comment = last_comment.comment
             self.last_comment_date = last_comment.submit_date
             self.last_comment_user = last_comment.user_name
+
+def _get_transactions(self, participations):
+    return Transaction.objects.filter(active=True, content_type=ContentType.objects.get_for_model(Participation), object_id__in=participations).order_by('object_id', 'created_on').select_related().prefetch_related('ticket_set__type', 'ticket_set__owner')
+
+def _get_saldos(self, participations):
+    ret = {}
+    trans = list(_get_transactions(participations))
+    ids = participations
+    for (pid, tt) in [(x, [y for y in trans if y.object_id==x]) for x in ids]:
+        ret[pid] = _count_saldo(tt)
+    return ret
 
 class EventResource(Resource):
     class Meta:
@@ -161,7 +173,7 @@ class EventResource(Resource):
                 start, end)
             instr = list(InstructorParticipation.objects.filter(start__gte=start, end__lte=end))
             instr = dict((i.event.pk, i) for i in instr)
-            saldos = dict(Transaction.objects.get_saldos(partids))
+            saldos = dict(_get_saldos(partids))
             ticketcounts = Ticket.objects.get_ticketcounts(partids)
             metadatas = dict((e.event.pk, e) for e in EventMetaData.objects.filter(start__gte=start, end__lte=end))
             accidents = dict([ (a.rider.pk, a) for a in Accident.objects.filter(at__gte=start, at__lte=end)])

@@ -41,6 +41,7 @@ INSTALLED_APPS = (
 
     'django_comments',
 
+    'example',
     'stables',
     'schedule',
     'reportengine',
@@ -77,9 +78,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'example.wsgi.application'
 
-AUTHENTICATION_BACKENDS = (
-    'autologinbackend.AutoLoginBackend'
-)
+#AUTHENTICATION_BACKENDS = (
+    #'example.autologinbackend.AutoLoginBackend',
+#)
 
 
 # Database
