@@ -30,5 +30,6 @@ class Newboard(DashboardMixin, TemplateView):
         ctx['courses'] = Course.objects.all().prefetch_related('events') #exclude(end__lt=timezone.now())
         ctx['ticket_types'] = TicketType.objects.all();
         #ctx['courses'] = sorted(ctx['courses'], key=lambda c: (c.lastEvent.start.weekday(), c.lastEvent.start.time()) if c.lastEvent else (None, None))
-        ctx['pay_types'] = Transaction.objects.exclude(method__isnull=True).exclude(method="").distinct('method').values_list('method', flat=True)
+        # TODO: Check that id db is PostgreSQL and take set away and add .distinct("method")
+        ctx['pay_types'] = set(Transaction.objects.exclude(method__isnull=True).exclude(method="").values_list('method', flat=True))
         return ctx

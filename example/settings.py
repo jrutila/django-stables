@@ -47,6 +47,22 @@ INSTALLED_APPS = (
     'reportengine',
     'sekizai',
     'django_settings',
+    'djangobower',
+)
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'djangobower.finders.BowerFinder',
+)
+
+BOWER_COMPONENTS_ROOT = os.path.join(BASE_DIR, '..', 'components')
+
+BOWER_INSTALLED_APPS = (
+    'jquery#1.11.3',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -73,8 +89,10 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'sekizai.context_processors.sekizai',
             ],
         },
+        'TEMPLATE_DEBUG': DEBUG,
     },
 ]
 

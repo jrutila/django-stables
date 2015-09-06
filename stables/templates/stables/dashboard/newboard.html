@@ -1,7 +1,11 @@
-{% extends "stables/base.html" %}
-{% load staticfiles i18n sekizai_tags stablestags %}
+{% extends "stables/dashboard_base.html" %}
+{% load static i18n sekizai_tags stablestags %}
 
-{% block content %}
+{% block dashboard_header %}
+{% addtoblock "js" %}
+<script type='text/javascript' src="{% static 'jquery/jquery.js' %}"></script>
+{%  endaddtoblock %}
+
 {% addtoblock "js" %}
 <script type='text/javascript' src="{% static 'js/jquery.cookie.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/backbone-tastypie.js' %}"></script>
@@ -106,10 +110,4 @@
 
 {% include "stables/dashboard/_templates.html" %}
 
-<div class="wide widget">
-
-  <div class="widget-content">
-  </div>
-</div>
-
-{% endblock content %}
+{% endblock dashboard_header %}

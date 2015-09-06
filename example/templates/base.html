@@ -1,10 +1,15 @@
+{% load sekizai_tags %}
+
 <!DOCTYPE html>
 <html>
 <head lang="en">
     <meta charset="UTF-8">
     <title></title>
+    {% render_block "css" %}
 </head>
 <body>
  {% block content %}{% endblock content %}
+
+ {% render_block "js" %}
 </body>
 </html>

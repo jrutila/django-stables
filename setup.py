@@ -48,6 +48,7 @@ setup(
       'django-scheduler==0.7.5',
       #'django-reversion==1.7.1',
       'django-sekizai',
+      'django-bower',
       'django-crispy-forms',
       'django-reportengine',
       'django-tastypie',

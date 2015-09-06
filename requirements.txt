@@ -6,3 +6,4 @@ django-crispy-forms
 django-sekizai
 isoweek
 -e git+http://github.com/jrutila/django-settings.git#egg=django-settings
+django-bower
