@@ -6,10 +6,19 @@
 <script type='text/javascript' src="{% static 'jquery/dist/jquery.js' %}"></script>
 {%  endaddtoblock %}
 {% addtoblock "js" %}
+<script type='text/javascript' src="{% static 'jquery-ui/jquery-ui.js' %}"></script>
+{%  endaddtoblock %}
+{% addtoblock "js" %}
 <script type='text/javascript' src="{% static 'jquery.cookie/jquery.cookie.js' %}"></script>
 {%  endaddtoblock %}
 {% addtoblock "js" %}
 <script type='text/javascript' src="{% static 'underscore/underscore.js' %}"></script>
+{%  endaddtoblock %}
+{% addtoblock "js" %}
+<script type='text/javascript' src="{% static 'bootstrap/dist/js/bootstrap.js' %}"></script>
+{%  endaddtoblock %}
+{% addtoblock "js" %}
+<link href="{% static 'bootstrap/dist/css/bootstrap.css' %}" rel="stylesheet" type="text/css" />
 {%  endaddtoblock %}
 {% addtoblock "js" %}
 <script type='text/javascript' src="{% static 'backbone/backbone.js' %}"></script>
@@ -27,6 +36,11 @@
 {% addtoblock "js" %}
 <script type='text/javascript' src="{% static 'stables/js/plugins/tooltipTextarea.js' %}"></script>
 <script type='text/javascript' src="{% static 'stables/js/plugins/msgGrowl/js/msgGrowl.js' %}"></script>
+{%  endaddtoblock %}
+{% addtoblock "js" %}
+<script type='text/javascript'>
+    apiUrl="{% url "api_v1_top_level" api_name="v1" %}";
+</script>
 {%  endaddtoblock %}
 {% addtoblock "js" %}
 <script type='text/javascript' src="{% static 'stables/js/modules/comments.js' %}"></script>

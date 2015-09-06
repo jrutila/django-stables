@@ -7,14 +7,8 @@ var Course = Backbone.Model.extend({
 });
 
 var AddEventButtonView = Backbone.View.extend({
-    tagName: 'a',
-    className: 'addevent',
     events: {
         'click': 'addEvent'
-    },
-    render: function() {
-        this.$el.html("<i class='fa fa-plus'></i>")
-        this.$el.css('cursor', 'pointer');
     },
     addEvent: function(ev) {
         var v = new AddEventView({ 'model': this.model });

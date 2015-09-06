@@ -73,10 +73,10 @@ class ViewEvent:
             self.last_comment_date = last_comment.submit_date
             self.last_comment_user = last_comment.user_name
 
-def _get_transactions(self, participations):
+def _get_transactions(participations):
     return Transaction.objects.filter(active=True, content_type=ContentType.objects.get_for_model(Participation), object_id__in=participations).order_by('object_id', 'created_on').select_related().prefetch_related('ticket_set__type', 'ticket_set__owner')
 
-def _get_saldos(self, participations):
+def _get_saldos(participations):
     ret = {}
     trans = list(_get_transactions(participations))
     ids = participations

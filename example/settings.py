@@ -63,11 +63,14 @@ BOWER_COMPONENTS_ROOT = os.path.join(BASE_DIR, '..', 'components')
 BOWER_INSTALLED_APPS = (
     'jquery#1.11.3',
     'jquery.cookie',
+    'jquery-ui',
     'backbone',
     'backbone.do',
     'backbone-tastypie',
     'underscore',
     'moment',
+    'font-awesome',
+    'bootstrap',
 )
 
 MIDDLEWARE_CLASSES = (
