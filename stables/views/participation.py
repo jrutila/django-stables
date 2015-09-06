@@ -1,50 +1,25 @@
 # coding=utf-8
-from django.core.exceptions import PermissionDenied
+import datetime
+
 from django.http import Http404
 from django.shortcuts import redirect, get_object_or_404
 from django.template import RequestContext
-from django.views.generic import DetailView, FormView, View
+from django.views.generic import DetailView, View
 from django.views.generic import TemplateView
 from django.views.generic import CreateView, DeleteView
 from django.contrib.contenttypes.models import ContentType
-from stables.models.accident import Accident
-from stables.models.financial import Ticket
-from stables.models import PARTICIPATION_STATES
-from stables.models import CANCELED, ATTENDING, RESERVED
-from stables.models.common import TicketType, Transaction
-from stables.models.course import Course, Enroll
-from stables.models.horse import Horse
-from stables.models.participations import Participation, InstructorParticipation
-from stables.models.user import InstructorInfo
-from stables.views import LoginRequiredMixin, confirm_required
-import datetime
 from django.utils import timezone
 from dateutil import parser
 from schedule.models import Event
 
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
-
-class DashboardMixin(object):
-    @method_decorator(login_required())
-    def dispatch(self, request, *args, **kwargs):
-        if not request.user.has_perm('stables.change_participation'):
-            return redirect('user_default')
-        return super(DashboardMixin, self).dispatch(request, *args, **kwargs)
-
-class Newboard(DashboardMixin, TemplateView):
-    template_name = 'stables/newboard.html'
-
-    def get_context_data(self, **kwargs):
-        ctx = super(Newboard, self).get_context_data(**kwargs)
-        ctx['states'] = (PARTICIPATION_STATES[0], PARTICIPATION_STATES[1], PARTICIPATION_STATES[2], PARTICIPATION_STATES[3])
-        ctx['horses'] = Horse.objects.all()
-        ctx['instructors'] = [ i.user for i in InstructorInfo.objects.all().prefetch_related('user', 'user__user')]
-        ctx['courses'] = Course.objects.all().prefetch_related('events') #exclude(end__lt=timezone.now())
-        ctx['ticket_types'] = TicketType.objects.all();
-        #ctx['courses'] = sorted(ctx['courses'], key=lambda c: (c.lastEvent.start.weekday(), c.lastEvent.start.time()) if c.lastEvent else (None, None))
-        ctx['pay_types'] = Transaction.objects.exclude(method__isnull=True).exclude(method="").distinct('method').values_list('method', flat=True)
-        return ctx
+from stables.models.accident import Accident
+from stables.models.financial import Ticket
+from stables.models import CANCELED, ATTENDING, RESERVED
+from stables.models.common import Transaction
+from stables.models.course import Enroll
+from stables.models.participations import Participation, InstructorParticipation
+from stables.views import confirm_required
+from stables.views.dashboard import DashboardMixin
 
 def get_participation(request, **kwargs):
     if 'event' in kwargs:

@@ -1,5 +1,6 @@
-{% extends "base.html" %}
+{% extends "stables/base.html" %}
 {% load staticfiles i18n sekizai_tags stablestags %}
+
 {% block content %}
 {% addtoblock "js" %}
 <script type='text/javascript' src="{% static 'js/jquery.cookie.js' %}"></script>
@@ -96,13 +97,14 @@
 
 </script>
 {% endaddtoblock %}
+
 {% addtoblock "css" %}
 <link href="{% static 'stables/css/dashboard.css' %}" rel="stylesheet" type="text/css" />
 <link href="{% static 'stables/css/course.css' %}" rel="stylesheet" type="text/css" />
 <link href="{% static 'stables/js/plugins/msgGrowl/css/msgGrowl.css' %}" rel="stylesheet" type="text/css" />
 {% endaddtoblock %}
 
-{% include "stables/_templates.html" %}
+{% include "stables/dashboard/_templates.html" %}
 
 <div class="wide widget">
 

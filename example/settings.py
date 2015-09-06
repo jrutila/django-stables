@@ -45,6 +45,8 @@ INSTALLED_APPS = (
     'stables',
     'schedule',
     'reportengine',
+    'sekizai',
+    'django_settings',
 )
 
 MIDDLEWARE_CLASSES = (

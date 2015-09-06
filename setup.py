@@ -44,10 +44,10 @@ setup(
     url = "http://rutila.fi",
     install_requires=[
       #"Babel",
-      #"isoweek>=1.2.0",
+      "isoweek>=1.2.0",
       'django-scheduler==0.7.5',
       #'django-reversion==1.7.1',
-      #'django-sekizai',
+      'django-sekizai',
       'django-crispy-forms',
       'django-reportengine',
       'django-tastypie',
@@ -58,12 +58,13 @@ setup(
       'django-phonenumber-field==0.7.2',
       #'django-twilio==0.7',
       #'South==1.0',
-      #'django_settings',
+      'django_settings',
     ],
     zip_safe=False,
     dependency_links = [
       #'http://github.com/jrutila/django-schedule/tarball/master#egg=django-scheduler-0.7.1-3',
       'http://github.com/jrutila/django-reportengine/tarball/master#egg=django-reportengine-0.3.1.1',
+      'http://github.com/jrutila/django-settings/tarball/master#egg=django-settings-1.3.12.999',
       #'http://github.com/jrutila/backbone-tastypie/tarball/master#egg=backbone-tastypie-dev',
     ]
 )

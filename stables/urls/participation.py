@@ -1,5 +1,6 @@
 from django.conf.urls import *
-from stables.views.participation import Newboard, ParticipationView, DeleteEnroll, CreateEnroll, CancelView, AttendView, \
+from stables.views.dashboard import Newboard
+from stables.views.participation import ParticipationView, DeleteEnroll, CreateEnroll, CancelView, AttendView, \
     DailyView
 
 
