@@ -125,7 +125,7 @@ class ParticipationManager(models.Manager):
         courses = Course.objects.filter(events__in=events).select_related()
         enrolls = list(Enroll.objects.filter(course__in=courses).exclude(state=CANCELED).select_related())
         parts = list(Participation.objects.filter(event__in=events, start__gte=start, end__lte=end).prefetch_related('event', 'participant__user').select_related())
-        ret = {}
+        ret = []
         partid_list = set()
         for event in events:
             crs = event.course_set.all()
@@ -148,7 +148,11 @@ class ParticipationManager(models.Manager):
                 p.note = ""
                 p.enroll = e
                 occ_parts.append(p)
-              ret[occ] = (crs if crs else None, [ p for p in occ_parts ])
+              ret.append((
+                  occ,
+                  crs if crs else None,
+                  [ p for p in occ_parts ]
+              ))
               partid_list = partid_list | set([p.id for p in occ_parts])
         return (partid_list, ret)
 

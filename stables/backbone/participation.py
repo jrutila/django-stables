@@ -30,7 +30,7 @@ class ViewParticipation:
             else:
                 saldo = part.get_saldo()
             self.id = part.id
-            self.rider_name = unicode(part.participant)
+            self.rider_name = str(part.participant)
             self.rider_phone = part.participant.phone_number
             self.rider_url = part.participant.get_absolute_url()
             self.rider_id = part.participant.id
@@ -47,7 +47,7 @@ class ViewParticipation:
                 self.warning = part.warning
 
             if (saldo[1]):
-                self.finance_hint = unicode(saldo[1])
+                self.finance_hint = str(saldo[1])
             elif saldo[2] > Decimal('0.00'):
                 try:
                     method = part.get_pay_transaction().method or _('Cash')
@@ -156,7 +156,7 @@ class ParticipationResource(Resource):
         event = Event.objects.get(pk=bundle.data['event_id'])
         #start = datetime.datetime.strptime(bundle.data['start'], '%Y-%m-%dT%H:%M:%S')
         start = timezone.make_aware((parse(bundle.data['start'])), timezone.get_current_timezone())
-        occ = event.occurrences_after(start).next()
+        occ = next(event.occurrences_after(start))
         assert occ.start == start, 'Start time mismatch %s and %s' % (start, occ.start)
         state = int(bundle.data['state'])
         if ('rider_id' not in bundle.data and bundle.data['rider_name'] != None):
@@ -168,7 +168,7 @@ class ParticipationResource(Resource):
                 user = User.objects.create(first_name=first_name, last_name=last_name)
                 upr,created = UserProfile.objects.get_or_create(user=user)
                 if created: upr.save()
-                participant = user.get_profile()
+                participant = user.userprofile
                 assert participant is not None
             except UserProfile.MultipleObjectsReturned:
                 raise ImmediateHttpResponse(HttpBadRequest("Given user is too ambiquous"))

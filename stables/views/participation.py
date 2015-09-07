@@ -29,7 +29,7 @@ def get_participation(request, **kwargs):
         occ = ev.get_occurrence(d)
 
         try:
-            return Participation.objects.get_participation(request.user.get_profile(), occ)
+            return Participation.objects.get_participation(request.user.userprofile, occ)
         except Participation.DoesNotExist:
             raise Http404('No %s matches the given query.' % Participation._meta.object_name)
     elif 'pk' in kwargs:

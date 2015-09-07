@@ -181,10 +181,10 @@ class EventResource(Resource):
             comments = {}
             #for c in Comment.objects.filter(object_pk__in=[m.pk for m in metadatas.values()], content_type=ContentType.objects.get_for_model(EventMetaData)):
             #comments[int(c.object_pk)] = c
-            courses = (c for (o, (c, p)) in parts.items())
+            courses = (c for (o, c, p) in parts)
             enrolls = list(Enroll.objects.filter(course__in=courses))
 
-            for (o, (c, p)) in parts.items():
+            for (o, c, p) in parts:
                 logger.debug("Found occ: %s %s" % (o, o.event.title))
                 metadata = metadatas.get(o.event.pk, None)
                 ins = instr.get(o.event.pk, None)

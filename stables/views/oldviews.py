@@ -124,7 +124,7 @@ def list_course(request, week=None):
         if c.is_full(o):
           full = _("Full")
         ins = InstructorParticipation.objects.filter(event=o.event, start=o.start, end=o.end)
-        occs[o.start.hour][o.start.weekday()].append((c, full, ins[0] if ins else None, o, request.user.get_profile() if request.user.is_authenticated() else None))
+        occs[o.start.hour][o.start.weekday()].append((c, full, ins[0] if ins else None, o, request.user.userprofile if request.user.is_authenticated() else None))
     week = _get_week(monday)
     today_week = Week.thisweek().week
     return render_response(request, 'stables/courselist.html',
@@ -238,7 +238,7 @@ def view_course(request, course_id):
 
 def get_user_or_404(request, username, perm):
     if username and perm:
-        return User.objects.filter(username=username)[0].get_profile()
+        return User.objects.filter(username=username)[0].userprofile
     elif username != request.user.username:
         raise Http404
     return request.user.get_profile()

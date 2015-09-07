@@ -58,7 +58,7 @@ class EditTicketsView(ParticipationMixin, FormView):
 
     def get_form_kwargs(self):
         kwargs = super(FormView, self).get_form_kwargs()
-        user = User.objects.filter(username=self.kwargs['username'])[0].get_profile()
+        user = User.objects.filter(username=self.kwargs['username'])[0].userprofile
         kwargs['owner'] = user
 
         user = user.customer

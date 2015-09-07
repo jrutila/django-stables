@@ -106,7 +106,7 @@ class UserProfileAdminAddForm(forms.ModelForm):
     user.save()
 
     #instance = super(UserProfileAdminAddForm, self).save(commit=False)
-    instance = user.get_profile()
+    instance = user.userprofile
 
     if not instance.customer:
       c = CustomerInfo.objects.create()

@@ -41,7 +41,7 @@ class RiderLevel(models.Model):
 class UserProfile(models.Model):
     class Meta:
         app_label = 'stables'
-    def __unicode__(self):
+    def __str__(self):
         return self.user.first_name + ' ' + self.user.last_name
     objects = UserManager()
     user = models.OneToOneField(User)
@@ -52,7 +52,7 @@ class UserProfile(models.Model):
     phone_number = PhoneNumberField(_('phone number'), null=True, blank=True)
     extra = models.TextField(null=True, blank=True)
 
-    inactive = models.BooleanField()
+    inactive = models.BooleanField(default=False)
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
