@@ -48,7 +48,7 @@ class ViewParticipation:
 
             if (saldo[1]):
                 self.finance_hint = str(saldo[1])
-            elif saldo[2] > Decimal('0.00'):
+            elif saldo[2] and saldo[2] > Decimal('0.00'):
                 try:
                     method = part.get_pay_transaction().method or _('Cash')
                     method = method.title()

@@ -128,11 +128,11 @@ class DailyView(TemplateView):
         instr = dict((i.event.pk, i) for i in instr)
         ticketcounts = Ticket.objects.get_ticketcounts(partids, limit=None)
         ctx['events'] = []
-        for p in sorted(parts.items()):
-            for part in p[1][1]:
+        for p in sorted(parts):
+            for part in p[2]:
                 if part.id in ticketcounts:
                     setattr(part, 'ticketcount', ticketcounts[part.id])
                 else:
                     setattr(part, 'ticketcount', 0)
-            ctx['events'].append((p[0],p[1][0],sorted(p[1][1], key=lambda x: x.state)))
+            ctx['events'].append((p[0],p[1],sorted(p[2], key=lambda x: x.state)))
         return ctx

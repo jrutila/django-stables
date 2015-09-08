@@ -17,9 +17,9 @@ class HorseFormHelper(FormHelper):
 class HorseForm(forms.ModelForm):
     class Meta:
         model = Horse
-        fields = ['last_usage_date']
+        fields = ['name', 'day_limit', 'last_usage_date']
 
-    last_usage_date = forms.DateField(input_formats=formats.get_format('DATE_INPUT_FORMATS'), required=False)
+    #last_usage_date = forms.DateField(input_formats=formats.get_format('DATE_INPUT_FORMATS'), required=False)
 
     def __init__(self, *args, **kwargs):
       super(HorseForm, self).__init__(*args, **kwargs)

@@ -48,6 +48,7 @@ INSTALLED_APPS = (
     'sekizai',
     'django_settings',
     'djangobower',
+    'crispy_forms',
 )
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')

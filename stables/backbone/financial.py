@@ -31,7 +31,7 @@ class ViewFinance:
                     self.tickets[u.type.id] = u.type.name
             self.participation_url = part.get_absolute_url()
             self.finance_hint = str(value)
-            if saldo < Decimal('0.00'):
+            if saldo and saldo < Decimal('0.00'):
                 self.finance_hint = str(saldo)
             else:
                 try:
