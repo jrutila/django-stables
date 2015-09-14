@@ -1,0 +1,23 @@
+{% load i18n  %}
+
+{% if perms.stables.add_ticket %}
+    <a href="{% url "add_tickets" username=object.user.username %}">{% trans "Add tickets" %}</a>
+    <a href="{% url "edit_tickets" username=object.user.username %}">{% trans "Edit tickets" %}</a>
+{% endif %}
+{{ object.saldo }}
+<ul>
+    {% for t, l in object.tickets.iteritems %}
+        <li class="ticket_valid">
+            {% blocktrans with name=t amount=l.0 expire_date=l.1 %}
+                {{ name }}: {{ amount }} pcs (first expires: {{ expire_date }})
+            {% endblocktrans %}
+        </li>
+    {% endfor %}
+    {% for t, l in object.expired_tickets.iteritems %}
+        <li class="ticket_expired">
+            {% blocktrans with name=t amount=l.0 expire_date=l.1 %}
+                Expired {{ name }}: {{ amount }} pcs (first expired: {{ expire_date }})
+            {% endblocktrans %}
+        </li>
+    {% endfor %}
+</ul>

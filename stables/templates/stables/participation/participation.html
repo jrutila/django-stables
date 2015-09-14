@@ -25,18 +25,6 @@
   <a href="{% url "modify_transactions" pid=object.id %}">{% trans "Modify transactions" %}</a>
   </ul>
 </div>
-<div>
-  <div>
-   {% if object.saldo or object.ticket_used %}
-    <div>{% pay_button object %}</div>
-   {% endif %}
-
-   {% for ttype in object.tickets %}
-    <div>{% pay_button object ttype %}</div>
-   {% endfor %}
-  </div>
-  {{ object.participant.rider.ticket.count }}
-</div>
 <h3>{% trans "Accidents" %}</h3>
 <div>
   {% if object.accidents %}

@@ -160,7 +160,7 @@ class Participation(models.Model):
     class Meta:
         app_label = 'stables'
         unique_together = ('participant', 'event', 'start', 'end')
-    def __unicode__(self):
+    def __str__(self):
         date_format = u'%s' % ugettext("DATE_FORMAT")
         time_format = u'%s' % ugettext("TIME_FORMAT")
         occ = self.get_occurrence()
