@@ -7,3 +7,4 @@ dist/*
 components/
 build/
 *.db
+bower_components/

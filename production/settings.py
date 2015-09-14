@@ -70,6 +70,22 @@ INSTALLED_APPS = list(set(SHARED_APPS + TENANT_APPS))
 
 TENANT_MODEL = "customers.Client"
 
+BOWER_INSTALLED_APPS = (
+    # Required for functionality
+    'jquery#1.11.3',
+    'jquery.cookie',
+    'jquery-ui',
+    'backbone',
+    'backbone.do',
+    'backbone-tastypie',
+    'underscore',
+    'moment',
+    'font-awesome',
+    'bootstrap',
+
+    # Required for base admin
+)
+
 MIDDLEWARE_CLASSES = (
     'tenant_schemas.middleware.TenantMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -86,7 +102,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            os.path.join(BASE_DIR, "production", 'templates'),
+            os.path.join(BASE_DIR, 'templates'),
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -173,6 +189,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'wsgi','static')
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'djangobower.finders.BowerFinder',
 )
 
 STATICFILES_DIRS = (
@@ -180,5 +197,6 @@ STATICFILES_DIRS = (
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
     os.path.join(BASE_DIR,"static"),
+    os.path.join(BASE_DIR,"production","static"),
 )
 

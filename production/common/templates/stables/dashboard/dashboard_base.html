@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{%  load sekizai_tags static %}
+
+{% block content %}
+    {% addtoblock "css" %}
+    <link href="{% static 'font-awesome/css/font-awesome.css' %}" rel="stylesheet" type="text/css" />
+    {% endaddtoblock %}
+    {% block dashboard_header %}
+    {% endblock dashboard_header %}
+
+    <div class="wide widget">
+        <div class="widget-content">
+        </div>
+    </div>
+{% endblock content %}
