@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load i18n sekizai_tags staticfiles %}
+
+{% addtoblock "css" %}
+<link rel="stylesheet" href="{% static 'theme/css/sigin.css' %}" type="text/css"/>
+{% endaddtoblock "css" %}
+
+{% block content %}
+
+<div class="account-container stacked">
+<div class="content clearfix">
+
+<!--[if lte IE 9]>
+<div class="alert alert-danger alert-dismissable">
+    <p>
+HUOM! Selaimesi on vanhentunut, eikä palvelu tue sitä. Jo tietoturvan kannalta suosittelen päivittämään selaimesi viimeisimpään versioon.
+Selaimen päivittäminen on helppoa eikä vie paljon aikaasi.
+</p>
+<p>
+Tästä <a href="http://windows.microsoft.com/fi-fi/internet-explorer/download-ie">linkistä</a> pääset Microsoftin suomenkielisille sivuille lataamaan uusimman selaimen.
+</p>
+<p>Nähdään pian!</p>
+
+<p>PS. Halutessasi voit tietysti vaihtaa Firefox-selaimeen tästä <a href="http://www.mozilla.org/fi/firefox/new/">linkistä</a>. Senkin asentaminen on helppoa ja nopeaa.</p>
+</div>
+<![endif]-->
+
+
+<form method="post" action="{% url 'django.contrib.auth.views.login' %}">
+{% csrf_token %}
+<h1>{% trans "Log in" %}</h1>
+{% if form.errors %}
+<p>Your username and password didn't match. Please try again.</p>
+{% endif %}
+<div class="login-fields">
+    <div class="field">
+        {{ form.username.label_tag }}
+        <input type="text" id="username" name="username" placeholder="{{ form.username.label }}" class="form-control input-lg username-field" value="{{ form.username.value|default_if_none:"" }}"/>
+    </div>
+    <div class="field">
+        {{ form.password.label_tag }}
+        <input type="password" id="password" name="password" placeholder="{{ form.password.label }}" class="form-control input-lg password-field" value=""/>
+    </div>
+
+    <a href="{% url 'password_reset' %}">{% trans 'Forgotten your password or username?' %}</a
+
+    <div class="login-actions">
+        <button class="login-action btn btn-primary" type="submit">{% trans "Log in" %}</button>
+        <input type="hidden" name="next" value="{{ next }}" />
+    </div>
+</div>
+</form>
+
+</div>
+</div>
+
+{% endblock %}

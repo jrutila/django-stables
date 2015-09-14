@@ -1,0 +1,168 @@
+{% load i18n sekizai_tags %}
+{% load staticfiles base_tags %}
+<!doctype html>
+<html>
+ <head>
+  <title>Talli.fi</title>
+  <meta name="description" content="">
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="cleartype" content="on">
+
+    <!-- All JavaScript at the bottom, except this Modernizr build.
+         Modernizr enables HTML5 elements & feature detects for optimal performance.
+         Create your own custom Modernizr build: www.modernizr.com/download/ -->
+    {% block base_css %}
+    <link rel="stylesheet" href="{% static 'theme/css/ui-lightness/jquery-ui-1.10.0.custom.min.css' %}" type="text/css"/>
+    <link href="{% static 'theme/js/plugins/lightbox/themes/evolution-dark/jquery.lightbox.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'bootstrap/dist/css/bootstrap.min.css' %}" type="text/css"/>
+    <link rel="stylesheet" href="{% static 'theme/css/base-admin-3.css' %}" type="text/css"/>
+    <link rel="stylesheet" href="{% static 'theme/css/base-admin-3-responsive.css' %}" type="text/css"/>
+    <link rel="stylesheet" href="{% static 'theme/css/font-awesome.css' %}" type="text/css"/>
+    <link rel="stylesheet" href="{% static 'theme/css/pages/dashboard.css' %}" type="text/css"/>
+    <link rel="stylesheet" href="{% static 'theme/css/custom.css' %}" type="text/css"/>
+    <link rel="stylesheet" href="{% static 'stylesheets/dashboard.css' %}" type="text/css"/>
+    <link rel="stylesheet" href="{% static 'theme/js/plugins/msgbox/jquery.msgbox.css' %}" type="text/css"/>
+    <link rel="stylesheet" href="{% static 'stylesheets/tweaks.css' %}" type="text/css"/>
+    <link rel="stylesheet" href="{% static 'stylesheets/mobile.css' %}" type="text/css"/>
+    <link rel="stylesheet" href="{% static 'theme/css/pages/signin.css' %}" type="text/css"/>
+    {% endblock base_css %}
+    <link href="http://fonts.googleapis.com/css?family=Open+Sans:400italic,600italic,400,600" rel="stylesheet">
+    <script src="{% static 'libs/jquery/js/jquery-1.9.1.min.js' %}"></script>
+    {% render_block "css" %}
+ </head>
+ <body>
+   {% block body %}
+   <nav class="navbar navbar-inverse">
+       <div class="container">
+           <div class="navbar-header">
+               <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                 <span class="sr-only">Toggle navigation</span>
+                   <i class="fa fa-cog"></i>
+               </button>
+               <a class="navbar-brand" href="/">{{ request.tenant.name }}</a>
+           </div>
+           <div class="collapse navbar-collapse navbar-ex1-collapse">
+             <ul class="nav navbar-nav navbar-right">
+                {% if user.is_authenticated %}
+                     {% if request.user.is_superuser %}
+                <li class="dropdown">
+                    <a href="javscript:;" class="dropdown-toggle" data-toggle="dropdown">
+                        <i class="fa fa-cog"></i>
+                        {%  trans "Settings" %}
+                        <b class="caret"></b>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a href="{% url "shop-settings" %}">{%  trans "Shop settings" %}</a></li>
+                        <li><a href="{% url "api-help" %}">{%  trans "Website integration" %}</a></li>
+                    </ul>
+                </li>
+                      {% endif %}
+                <li class="dropdown">
+                        <a href="javscript:;" class="dropdown-toggle" data-toggle="dropdown">
+                                <i class="fa fa-user"></i>
+                                {{ request.user.first_name }} ({{ request.LANGUAGE_CODE }})
+                                <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+<!--
+                                <li><a href="javascript:;">My Profile</a></li>
+                                <li><a href="javascript:;">My Groups</a></li>
+                                <li class="divider"></li>
+-->
+                            <li><a href="{% url "password_change" %} ">{% trans "Change password" %}</a></li>
+                            <li><a href="{% url "logout" %} ">{% trans "Logout" %}</a></li>
+                        </ul>
+                </li>
+                {% else %}
+                  <li class="dropdown">
+                      <a href="{% url "login" %}" >
+                        <i class="fa fa-user"></i>
+                         {% trans "Log in" %}
+                    </a>
+                  </li>
+                {% endif %}
+            </ul>
+          </div>
+       </div>
+   </nav>
+
+  {% if request.user.is_superuser %}
+   <div class="subnavbar">
+    <div class="subnavbar-inner">
+    <div class="container">
+        <a href="javascript:;" class="subnav-toggle" data-toggle="collapse" data-target=".subnav-collapse">
+          <span class="sr-only">Toggle navigation</span>
+          <i class="fa fa-bars"></i>
+       </a>
+       <div class="collapse subnav-collapse">
+        <ul class="mainnav">
+
+            <li {% active request 'newboard' %}>
+            <a href="{% url 'newboard' %}"><i class="fa fa-calendar"></i><span>{% trans 'Calendar'|capfirst %}</span></a>
+            </li>
+            <li {% active request 'list_horse' %}><a href="{% url 'list_horse' %}"><i class="fa fa-heart"></i><span>{% trans 'Horses'|capfirst %}</span></a></li>
+            <li {% active request 'reports-list' %}><a href="{% url 'reports-list' %}"><i class="fa fa-bar-chart-o"></i><span>{% trans 'Reports'|capfirst %}</span></a></li>
+            <li {% active request 'user_default' %}><a href="{% url 'user_default' %}"><i class="fa fa-group"></i><span>{% trans 'Users'|capfirst %}</span></a></li>
+            <li {% active request 'shop-home' %}><a href="{% url 'shop-home' %}"><i class="fa fa-shopping-cart"></i><span>{% trans 'shop'|capfirst %}</span></a></li>
+        </ul>
+      </div>
+    </div>
+    </div>
+
+    <div class="subnavbar-inner {% ifnotactive request 'newboard' %} smalled collapse {% else %} fluid-height {% endifnotactive %}">
+    <div class="container">
+        <div id="dashboard-picker" class="weekdate-picker"></div>
+    </div>
+    </div>
+   </div>
+  {% endif %}
+
+
+   <div id="content" class="main">
+   <div class="container">
+   {% block content %}
+   {% endblock content %}
+   </div>
+   </div>
+   <footer class="footer">This is HTML5 Footer</footer>
+   {% endblock body %}
+  <!-- Grab Google CDN's jQuery, with a protocol relative URL; fall back to local if offline -->
+  <!--
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script>window.jQuery || document.write('<script src="{% static 'libs/jquery/js/jquery-1.9.1.min.js' %}"><\/script>')</script>
+    -->
+
+  <!-- scripts concatenated and minified via build script -->
+  <script src="{% static 'libs/jquery/js/jquery-ui-1.10.3.custom.min.js' %}"></script>
+  <script type='text/javascript' src="{% static 'underscore/underscore.js' %}"></script>
+  <script type='text/javascript' src="{% static 'js/backbone-min.js' %}"></script>
+  <script src="{% static 'bootstrap/dist/js/bootstrap.min.js' %}"></script>
+  <script src="{% static 'theme/js/plugins/msgGrowl/js/msgGrowl.js' %}"></script>
+  <script src="{% static 'theme/js/plugins/lightbox/jquery.lightbox.min.js' %}"></script>
+  <script src="{% static 'theme/js/plugins/msgbox/jquery.msgbox.min.js' %}"></script>
+  <script src="{% static 'jquery-validate/dist/jquery.validate.min.js' %}"></script>
+  <script src="{% static 'theme/js/plugins/multidatepicker/jquery-ui.multidatespicker.js' %}"></script>
+  <script src="{% static 'theme/js/Application.js' %}"></script>
+  <script src="{% static 'js/base.js' %}"></script>
+  <script src="{% static 'theme/js/demo/signin.js' %}"></script>
+
+  <script type="text/javascript">
+    apiUrl="{% url "api_v1_top_level" api_name="v1" %}";
+    dashboardUrl="{% url "newboard" %}";
+
+      $(document).ajaxError(function() {
+          alert('Tapahtui virhe! Lataa sivu uudelleen ja koita uudestaan.')
+      })
+  </script>
+  {% render_block "js" %}
+  <script src="{% static 'js/calendar.js' %}"></script>
+
+  <!--[if gt IE 8]><!-->
+   <script type="text/javascript">
+       $("button[form]").click(function() { $("#"+$(this).attr('form')).submit(); });
+   </script>
+   <!--<![endif]-->
+ </body>
+</html>

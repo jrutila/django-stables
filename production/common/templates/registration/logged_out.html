@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load i18n sekizai_tags staticfiles %}
+
+{% addtoblock "css" %}
+<link rel="stylesheet" href="{% static 'theme/css/sigin.css' %}" type="text/css"/>
+{% endaddtoblock "css" %}
+
+{% block content %}
+
+<div class="account-container stacked">
+<div class="content clearfix">
+<h1>{% trans "Logged out!" %}</h1>
+{% url "login" as login_url %}
+<p>{% blocktrans %}You succesfully logged out. You can <a href="{{ login_url }}">login</a> again.{% endblocktrans %}</p>
+</div>
+</div>
+
+{% endblock %}
