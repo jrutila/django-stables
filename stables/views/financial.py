@@ -6,11 +6,11 @@ from django.shortcuts import get_object_or_404
 from stables.forms import TransactionsForm
 from stables.forms import AddTicketsForm
 from stables.forms import EditTicketsForm
-from stables.models import Participation
-from stables.models import Transaction
-from stables.models import UserProfile
-from stables.models import RiderInfo
-from stables.models import CustomerInfo
+from stables.models.participations import Participation
+from stables.models.common import Transaction
+from stables.models.user import UserProfile
+from stables.models.user import RiderInfo
+from stables.models.user import CustomerInfo
 
 from django.contrib.auth.decorators import permission_required
 from django.utils.decorators import method_decorator

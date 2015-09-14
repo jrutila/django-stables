@@ -1,8 +1,7 @@
 from django.views.generic.edit import CreateView, UpdateView
 
-from stables.models import Accident
-from stables.models import Participation
-from stables.models import InstructorParticipation
+from stables.models.accident import Accident
+from stables.models.participations import Participation, InstructorParticipation
 from stables.forms import AccidentForm
 
 from django.contrib.auth.decorators import permission_required
