@@ -69,8 +69,10 @@
     <div class="widget widget-plain">
         <div class="widget-content">
             <a class="btn btn-primary btn-adder" href="{% url "add_user" %}" title="{% trans "Add user" %}">{% trans "Add rider" %}</a>
-            <input type="checkbox" id="hide_zero" /><label for="hide_zero">{% trans "Show only riders with saldo" %}</label>
-            <input type="checkbox" id="show_inactive" /><label for="show_inactive">{% trans "Show only inactive riders" %}</label>
+            <div class="btn-group" role="group">
+                <input type="checkbox" id="hide_zero" /><label for="hide_zero">{% trans "Show only riders with saldo" %}</label>
+                <input type="checkbox" id="show_inactive" /><label for="show_inactive">{% trans "Show only inactive riders" %}</label>
+            </div>
         </div>
     </div>
     </div>
