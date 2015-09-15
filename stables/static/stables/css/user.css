@@ -2,6 +2,10 @@ li.inactive {
     display: none;
 }
 
+.list-group .item {
+    margin-left: 5px;
+}
+
 .list-group .item > div {
     height: 50px;
 }
@@ -9,4 +13,19 @@ li.inactive {
 .saldo {
     display: block;
     color: red;
+}
+
+.search-query {
+    position: absolute;
+    right: 3px;
+    top: 2px;
+    width: 225px;
+    margin-top: 2px;
+    background-color: #eee;
+    font-size: 11px;
+    font-weight: bold;
+    line-height: 20px;
+    border-color: #ccc;
+    border-radius: 20px;
+    box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.1) inset, 0px 1px 0px rgba(255, 255, 255, 0.15);
 }

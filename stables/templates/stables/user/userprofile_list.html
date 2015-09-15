@@ -9,22 +9,22 @@
         $("#hide_zero").click(function(el) {
             if ($(el.currentTarget).is(":checked"))
             {
-                $("#rider-list li:not(.inactive)").show();
-                $("#rider-list li:not(:has(.saldo))").hide();
+                $("#rider_list .item:not(.inactive)").show();
+                $("#rider_list .item:not(:has(.saldo))").hide();
                 $("#show_inactive").removeAttr("checked");
             }
             else
-                $("#rider-list li:not(.inactive)").show();
+                $("#rider_list .item:not(.inactive)").show();
         });
         $("#show_inactive").click(function(el) {
             if ($(el.currentTarget).is(":checked"))
             {
-                $("#rider-list li").hide();
-                $("#rider-list li.inactive").show();
+                $("#rider_list .item").hide();
+                $("#rider_list .item.inactive").show();
                 $("#hide_zero").removeAttr("checked");
             } else {
-                $("#rider-list li").hide();
-                $("#rider-list li:not(.inactive)").show();
+                $("#rider_list .item").hide();
+                $("#rider_list .item:not(.inactive)").show();
             }
         });
         </script>
@@ -39,21 +39,22 @@
     <div class="widget-header">
         <i class="fa fa-group icon-group"></i>
         <h3>{% trans "Riders" %}</h3>
+        <input class="form-control input-sm search-query" type="text" placeholder="{% trans "Search" %}"/>
     </div>
 
     <div class="widget-content">
-        <div class="row list-group" id="rider_list">
+        <ul class="row list-group" id="rider_list">
             {% for user in object_list %}
-            <div class="item col-md-2 col-sm-6 col-xs-12 {% if user.inactive %} inactive {% endif %}">
+            <li class="item list-group-item col-md-2 col-sm-6 col-xs-12 {% if user.inactive %} inactive {% endif %}">
                 <div>
                     <a href="{{ user.get_absolute_url }}">{{ user }}</a>
                     {% if user.saldo %}
                     <span class="saldo">{{ user.saldo }}</span>
                     {%  endif %}
                 </div>
-            </div>
+            </li>
             {% endfor %}
-        </div>
+        </ul>
     </div>
 
     <div class="widget-footer">
