@@ -31,12 +31,14 @@
     {% endaddtoblock %}
 
 
-<div class="widget">
+<div class="row">
+
+    <div class="col-md-8">
+    <div class="widget stacked">
+
     <div class="widget-header">
-        {% trans "Riders" %}
-        <a class="btn btn-default" href="{% url "add_user" %}" title="{% trans "Add user" %}"><i class="fa fa-plus fa-2"></i></a>
-        <input type="checkbox" id="hide_zero" /><label for="hide_zero">{% trans "Show only riders with saldo" %}</label>
-        <input type="checkbox" id="show_inactive" /><label for="show_inactive">{% trans "Show only inactive riders" %}</label>
+        <i class="fa fa-group icon-group"></i>
+        <h3>{% trans "Riders" %}</h3>
     </div>
 
     <div class="widget-content">
@@ -57,6 +59,21 @@
     <div class="widget-footer">
         <p>{% trans "Amount of all users:" %} {{ object_list|length }}</p>
     </div>
+
+    </div>
+    </div>
+
+    <div class="col-md-4">
+
+    <div class="widget widget-plain">
+        <div class="widget-content">
+            <a class="btn btn-primary btn-addrider" href="{% url "add_user" %}" title="{% trans "Add user" %}">{% trans "Add rider" %}</a>
+            <input type="checkbox" id="hide_zero" /><label for="hide_zero">{% trans "Show only riders with saldo" %}</label>
+            <input type="checkbox" id="show_inactive" /><label for="show_inactive">{% trans "Show only inactive riders" %}</label>
+        </div>
+    </div>
+    </div>
+
 </div>
 
 {% endblock content %}

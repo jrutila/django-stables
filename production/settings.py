@@ -43,6 +43,8 @@ SHARED_APPS = (
     # everything below here is optional
     #'django.contrib.admin',
     'django.contrib.auth',
+
+    'debug_toolbar',
 )
 
 TENANT_APPS = (
@@ -119,6 +121,7 @@ TEMPLATES = [
     },
 ]
 
+CRISPY_TEMPLATE_PACK = 'bootstrap3'
 # Database
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
 

@@ -13,6 +13,33 @@
     <!-- All JavaScript at the bottom, except this Modernizr build.
          Modernizr enables HTML5 elements & feature detects for optimal performance.
          Create your own custom Modernizr build: www.modernizr.com/download/ -->
+{% addtoblock "js" %}
+<script type='text/javascript' src="{% static 'jquery/dist/jquery.js' %}"></script>
+{%  endaddtoblock %}
+{% addtoblock "js" %}
+<script type='text/javascript' src="{% static 'jquery-ui/jquery-ui.js' %}"></script>
+{%  endaddtoblock %}
+{% addtoblock "js" %}
+<script type='text/javascript' src="{% static 'jquery-ui/ui/autocomplete.js' %}"></script>
+{%  endaddtoblock %}
+     {% comment %}
+   {% addtoblock "js" %}
+       <script type='text/javascript' src="{% static 'jquery.cookie/jquery.cookie.js' %}"></script>
+   {%  endaddtoblock %}
+   {% addtoblock "js" %}
+       <script type='text/javascript' src="{% static 'underscore/underscore.js' %}"></script>
+   {%  endaddtoblock %}
+   {% endcomment %}
+{% addtoblock "js" %}
+<script type='text/javascript' src="{% static 'bootstrap/dist/js/bootstrap.js' %}"></script>
+{%  endaddtoblock %}
+{% addtoblock "css" %}
+<link href="{% static 'font-awesome/css/font-awesome.css' %}" rel="stylesheet" type="text/css" />
+{% endaddtoblock %}
+{% addtoblock "css" %}
+<link href="{% static 'bootstrap/dist/css/bootstrap.css' %}" rel="stylesheet" type="text/css" />
+{%  endaddtoblock %}
+
     {% render_block "css" %}
 
     {% block base_css %}
@@ -52,8 +79,10 @@
                         <b class="caret"></b>
                     </a>
                     <ul class="dropdown-menu">
+                        {% comment %}
                         <li><a href="{% url "shop-settings" %}">{%  trans "Shop settings" %}</a></li>
                         <li><a href="{% url "api-help" %}">{%  trans "Website integration" %}</a></li>
+                        {% endcomment %}
                     </ul>
                 </li>
                       {% endif %}
@@ -98,12 +127,18 @@
         <ul class="mainnav">
 
             <li {% active request 'newboard' %}>
-            <a href="{% url 'newboard' %}"><i class="fa fa-calendar"></i><span>{% trans 'Calendar'|capfirst %}</span></a>
+                <a href="{% url 'newboard' %}"><i class="fa fa-calendar"></i><span>{% trans 'Calendar'|capfirst %}</span></a>
             </li>
-            <li {% active request 'list_horse' %}><a href="{% url 'list_horse' %}"><i class="fa fa-heart"></i><span>{% trans 'Horses'|capfirst %}</span></a></li>
+            <li {% active request 'user_default' %}>
+                <a href="{% url 'user_default' %}"><i class="fa fa-group"></i><span>{% trans 'Riders'|capfirst %}</span></a>
+            </li>
+            <li {% active request 'list_horse' %}>
+                <a href="{% url 'list_horse' %}"><i class="fa fa-heart"></i><span>{% trans 'Horses'|capfirst %}</span></a>
+            </li>
+{% comment %}
             <li {% active request 'reports-list' %}><a href="{% url 'reports-list' %}"><i class="fa fa-bar-chart-o"></i><span>{% trans 'Reports'|capfirst %}</span></a></li>
-            <li {% active request 'user_default' %}><a href="{% url 'user_default' %}"><i class="fa fa-group"></i><span>{% trans 'Users'|capfirst %}</span></a></li>
             <li {% active request 'shop-home' %}><a href="{% url 'shop-home' %}"><i class="fa fa-shopping-cart"></i><span>{% trans 'shop'|capfirst %}</span></a></li>
+{% endcomment %}
         </ul>
       </div>
     </div>
@@ -133,10 +168,7 @@
     -->
 
   <!-- scripts concatenated and minified via build script -->
-  <script src="{% static 'libs/jquery/js/jquery-ui-1.10.3.custom.min.js' %}"></script>
   <script src="{% static 'underscore/underscore.js' %}"></script>
-  <script src="{% static 'js/backbone-min.js' %}"></script>
-  <script src="{% static 'bootstrap/dist/js/bootstrap.min.js' %}"></script>
   <script src="{% static 'theme/js/plugins/msgGrowl/js/msgGrowl.js' %}"></script>
   <script src="{% static 'theme/js/plugins/lightbox/jquery.lightbox.min.js' %}"></script>
   <script src="{% static 'theme/js/plugins/msgbox/jquery.msgbox.min.js' %}"></script>
@@ -145,16 +177,15 @@
   <script src="{% static 'theme/js/Application.js' %}"></script>
   <script src="{% static 'js/base.js' %}"></script>
   <script src="{% static 'theme/js/demo/signin.js' %}"></script>
+   {% render_block "js" %}
 
   <script type="text/javascript">
-    apiUrl="{% url "api_v1_top_level" api_name="v1" %}";
     dashboardUrl="{% url "newboard" %}";
 
       $(document).ajaxError(function() {
           alert('Tapahtui virhe! Lataa sivu uudelleen ja koita uudestaan.')
       })
   </script>
-  {% render_block "js" %}
   <script src="{% static 'js/calendar.js' %}"></script>
 
   <!--[if gt IE 8]><!-->

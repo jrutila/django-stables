@@ -1,3 +1,4 @@
+from crispy_forms.bootstrap import FormActions
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 
@@ -60,7 +61,7 @@ class UserProfileForm(forms.ModelForm):
               'address',
               'extra',
               ),
-            ButtonHolder(
+            FormActions(
               Submit('submit', 'Submit')
               )
           )

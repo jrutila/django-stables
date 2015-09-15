@@ -2,7 +2,10 @@
 {% load i18n sekizai_tags %}
 {% block content %}
 <div class="widget">
-    <div class="widget-header"><i class="fa fa-heart"></i><h3>{% trans "Horses" %}</h3></div>
+    <div class="widget-header">
+        <i class="fa fa-heart icon-heart"></i>
+        <h3>{% trans "Horses" %}</h3>
+    </div>
     <div class="widget-content">
         <a class="btn btn-default" href="{% url 'add_horse' %}">{% trans "Add horse" %}</a>
         <ul class="list-group">
