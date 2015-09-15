@@ -10,11 +10,3 @@ li.inactive {
     display: block;
     color: red;
 }
-
-.btn-addrider {
-    display: block;
-    font-size: 22px;
-    padding: 14px 0px;
-    font-weight: 600;
-    margin-bottom: 0.75em;
-}
