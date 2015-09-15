@@ -7,12 +7,11 @@ from django.contrib.auth.models import User
 #from django.utils.translation import ugettext_lazy as _
 from datetime import datetime
 from collections import defaultdict
+from stables.forms.user import UserProfileForm
 from stables.models.common import Transaction
 from stables.models.participations import Participation
 from stables.models.user import CustomerInfo, UserProfile
 from django.core.urlresolvers import reverse
-
-from stables.forms import UserProfileForm
 
 from django.contrib.auth.decorators import permission_required, login_required
 from django.utils.decorators import method_decorator

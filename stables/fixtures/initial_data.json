@@ -35,7 +35,7 @@
         "fields": {
             "setting_id": 1,
             "name": "default_event_cost",
-            "setting_type": 41
+            "setting_type": ["django_settings", "positiveinteger"]
         },
         "model": "django_settings.setting",
         "pk": 1
@@ -44,7 +44,7 @@
         "fields": {
             "setting_id": 2,
             "name": "default_participant_max",
-            "setting_type": 41
+            "setting_type": ["django_settings", "positiveinteger"]
         },
         "model": "django_settings.setting",
         "pk": 2

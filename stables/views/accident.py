@@ -2,7 +2,7 @@ from django.views.generic.edit import CreateView, UpdateView
 
 from stables.models.accident import Accident
 from stables.models.participations import Participation, InstructorParticipation
-from stables.forms import AccidentForm
+from stables.forms.accident import AccidentForm
 
 from django.contrib.auth.decorators import permission_required
 from django.utils.decorators import method_decorator

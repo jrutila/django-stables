@@ -11,13 +11,9 @@ from crispy_forms.layout import Layout, Fieldset, ButtonHolder
 
 from django.core.exceptions import ValidationError
 from django.utils.safestring import mark_safe
+from stables.forms import GenericFormHelper
 from stables.models.common import CustomerInfo
 from stables.models.user import RiderLevel, UserProfile, RiderInfo, InstructorInfo
-
-
-class UserFormHelper(FormHelper):
-    form_class = 'blueForms'
-    form_method = 'post'
 
 class UserProfileForm(forms.ModelForm):
   first_name = forms.CharField(label=_('first name').capitalize(), max_length=500, required=True)
@@ -44,7 +40,7 @@ class UserProfileForm(forms.ModelForm):
         self.fields['email'].initial=instance.user.email
         self.fields['address'].initial=instance.customer.address
 
-    self.helper = UserFormHelper()
+    self.helper = GenericFormHelper()
     self.helper.layout = Layout(
             Fieldset(
               _('Basic information'),

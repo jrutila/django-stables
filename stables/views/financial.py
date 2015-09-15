@@ -3,9 +3,9 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 
-from stables.forms import TransactionsForm
-from stables.forms import AddTicketsForm
-from stables.forms import EditTicketsForm
+from stables.forms.financial import TransactionsForm
+from stables.forms.financial import AddTicketsForm
+from stables.forms.financial import EditTicketsForm
 from stables.models.participations import Participation
 from stables.models.common import Transaction
 from stables.models.user import UserProfile

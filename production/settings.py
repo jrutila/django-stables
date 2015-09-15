@@ -36,6 +36,8 @@ SHARED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.staticfiles',
 
+    'debug_toolbar',
+
     'djangobower',
     'crispy_forms',
     'sekizai',
@@ -43,8 +45,6 @@ SHARED_APPS = (
     # everything below here is optional
     #'django.contrib.admin',
     'django.contrib.auth',
-
-    'debug_toolbar',
 )
 
 TENANT_APPS = (
