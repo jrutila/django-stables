@@ -48,8 +48,8 @@
     {% block base_css %}
     <link rel="stylesheet" href="{% static 'jquery-ui/themes/ui-lightness/jquery-ui.min.css' %}" type="text/css"/>
     <link rel="stylesheet" href="{% static 'theme/js/plugins/lightbox/themes/evolution-dark/jquery.lightbox.css' %}" type="text/css"/>
-    <link rel="stylesheet" href="{% static 'theme/base-admin-3.css' %}" type="text/css"/>
-    <link rel="stylesheet" href="{% static 'theme/base-admin-3-responsive.css' %}" type="text/css"/>
+    <link rel="stylesheet" href="{% static 'theme/css/base-admin-3.css' %}" type="text/css"/>
+    <link rel="stylesheet" href="{% static 'theme/css/base-admin-3-responsive.css' %}" type="text/css"/>
     <link rel="stylesheet" href="{% static 'theme/css/custom.css' %}" type="text/css"/>
         <!--
     <link rel="stylesheet" href="{% static 'theme/js/plugins/msgbox/jquery.msgbox.css' %}" type="text/css"/>
@@ -96,11 +96,6 @@
                                 <b class="caret"></b>
                         </a>
                         <ul class="dropdown-menu">
-<!--
-                                <li><a href="javascript:;">My Profile</a></li>
-                                <li><a href="javascript:;">My Groups</a></li>
-                                <li class="divider"></li>
--->
                             <li><a href="{% url "password_change" %} ">{% trans "Change password" %}</a></li>
                             <li><a href="{% url "logout" %} ">{% trans "Logout" %}</a></li>
                         </ul>
@@ -179,7 +174,6 @@
   <script src="{% static 'theme/js/plugins/multidatepicker/jquery-ui.multidatespicker.js' %}"></script>
   <script src="{% static 'theme/js/Application.js' %}"></script>
   <script src="{% static 'js/base.js' %}"></script>
-  <script src="{% static 'theme/js/demo/signin.js' %}"></script>
    {% render_block "js" %}
 
   <script type="text/javascript">
