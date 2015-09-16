@@ -33,11 +33,21 @@
 {% addtoblock "js" %}
 <script type='text/javascript' src="{% static 'bootstrap/dist/js/bootstrap.js' %}"></script>
 {%  endaddtoblock %}
+
 {% addtoblock "css" %}
 <link href="{% static 'font-awesome/css/font-awesome.css' %}" rel="stylesheet" type="text/css" />
 {% endaddtoblock %}
 {% addtoblock "css" %}
 <link href="{% static 'bootstrap/dist/css/bootstrap.css' %}" rel="stylesheet" type="text/css" />
+{%  endaddtoblock %}
+{% addtoblock "css" %}
+<link href="{% static 'app/custom.css' %}" rel="stylesheet" type="text/css" />
+{%  endaddtoblock %}
+{% addtoblock "css" %}
+<link href="{% static 'app/mobile.css' %}" rel="stylesheet" type="text/css" />
+{%  endaddtoblock %}
+{% addtoblock "js" %}
+<script type='text/javascript' src="{% static 'app/mobile.js' %}"></script>
 {%  endaddtoblock %}
 {% addtoblock "css" %}
 <link href="{% static 'stables/css/generic.css' %}" rel="stylesheet" type="text/css" />
@@ -166,14 +176,15 @@
     -->
 
   <!-- scripts concatenated and minified via build script -->
+   <!--
   <script src="{% static 'underscore/underscore.js' %}"></script>
   <script src="{% static 'theme/js/plugins/msgGrowl/js/msgGrowl.js' %}"></script>
   <script src="{% static 'theme/js/plugins/lightbox/jquery.lightbox.min.js' %}"></script>
   <script src="{% static 'theme/js/plugins/msgbox/jquery.msgbox.min.js' %}"></script>
   <script src="{% static 'jquery-validate/dist/jquery.validate.min.js' %}"></script>
-  <script src="{% static 'theme/js/plugins/multidatepicker/jquery-ui.multidatespicker.js' %}"></script>
   <script src="{% static 'theme/js/Application.js' %}"></script>
   <script src="{% static 'js/base.js' %}"></script>
+  -->
    {% render_block "js" %}
 
   <script type="text/javascript">
@@ -183,7 +194,6 @@
           alert('Tapahtui virhe! Lataa sivu uudelleen ja koita uudestaan.')
       })
   </script>
-  <script src="{% static 'js/calendar.js' %}"></script>
 
   <!--[if gt IE 8]><!-->
    <script type="text/javascript">

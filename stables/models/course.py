@@ -32,7 +32,7 @@ class Course(models.Model):
         permissions = (
             ('view_participations', "Can see detailed participations"),
         )
-    def __unicode__(self):
+    def __str__(self):
         try:
             ev = next(e for e in self.events.all() if e.rule != None)
             if ev:
@@ -61,7 +61,7 @@ class Course(models.Model):
             if e.rule == None:
                 occ = None
                 try:
-                    occ = e.occurrences_after(since).next()
+                    occ = next(e.occurrences_after(since))
                 except StopIteration:
                     pass
                 if occ:
