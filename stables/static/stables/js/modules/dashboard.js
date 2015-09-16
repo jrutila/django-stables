@@ -129,7 +129,7 @@ var DayView = Backbone.View.extend({
     },
     limitTopped: function(limit) {
         var content = $('<div></div>')
-        content.append(_.template($('#HorseLimitReachedMessage').html(), limit.attributes))
+        content.append(_.template($('#HorseLimitReachedMessage').html())(limit.attributes))
         $.msgGrowl({
             type: 'warning',
             title: content.find('h4').html(),
