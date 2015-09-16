@@ -203,3 +203,9 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR,"production","static"),
 )
 
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    #EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+    #EMAIL_FILE_PATH = '/tmp/app-messages'
+
+

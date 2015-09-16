@@ -15,10 +15,11 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
+from production.common.forms import EmailAuthenticationForm
 
 urlpatterns = [
     url('^admin/', include(admin.site.urls)),
-    url('^accounts/login/$', 'django.contrib.auth.views.login', name='login'),
     url('^', include("stables.urls")),
-    url('^', include('django.contrib.auth.urls'))
+    url('^', include('django.contrib.auth.urls')),
+    url('^accounts/login/$', 'django.contrib.auth.views.login', { 'authentication_form': EmailAuthenticationForm }, name='login'),
 ]
