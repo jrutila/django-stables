@@ -49,12 +49,12 @@ class FinanceReport(reportengine.Report):
             value = self.get_value(t)
             if value:
                 if t.object_id not in counted:
-                    values[value.__unicode__()]['amount'] = values[value.__unicode__()]['amount'] + 1
+                    values[str(value)]['amount'] = values[str(value)]['amount'] + 1
                     # Do not handle transaction count twice
                     counted.append(t.object_id)
-                values[value.__unicode__()]['value'] = values[value.__unicode__()]['value'] + t.getIncomeValue()
+                values[str(value)]['value'] = values[str(value)]['value'] + t.getIncomeValue()
         for h,av in values.items():
-            rows.append([h, av.values()[0], av.values()[1]])
+            rows.append([h, av['amount'], av['value']])
         return rows,(("total", len(rows)),)
 
 class FakeTicket():
@@ -62,7 +62,7 @@ class FakeTicket():
         self.method = trans.method
         if not self.method:
             self.method = ugettext("Cash")
-    def __unicode__(self):
+    def __str__(self):
         return self.method
 
 class PaymentTypeReport(FinanceReport):

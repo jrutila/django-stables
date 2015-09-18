@@ -142,8 +142,10 @@
             <li {% active request 'list_horse' %}>
                 <a href="{% url 'list_horse' %}"><i class="fa fa-heart"></i><span>{% trans 'Horses'|capfirst %}</span></a>
             </li>
+            <li {% active request 'reports-list' %}>
+                <a href="{% url 'reports-list' %}"><i class="fa fa-bar-chart-o"></i><span>{% trans 'Reports'|capfirst %}</span></a>
+            </li>
 {% comment %}
-            <li {% active request 'reports-list' %}><a href="{% url 'reports-list' %}"><i class="fa fa-bar-chart-o"></i><span>{% trans 'Reports'|capfirst %}</span></a></li>
             <li {% active request 'shop-home' %}><a href="{% url 'shop-home' %}"><i class="fa fa-shopping-cart"></i><span>{% trans 'shop'|capfirst %}</span></a></li>
 {% endcomment %}
         </ul>
