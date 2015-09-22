@@ -69,6 +69,7 @@ class Course(models.Model):
     #def get_next_occurrence #TODO:
     def get_next_occurrences(self, amount=1, since=timezone.now()):
         #only_active = Q(end_recurring_period__gte=since) | Q(end_recurring_period__isnull=True)
+        since = timezone.localtime(since, timezone.get_current_timezone())
         evs = self.events.all() #.filter()
         starts = []
         for e in evs:
@@ -195,7 +196,9 @@ class CourseParticipationActivator(models.Model):
             self.delete()
             return None
         p = None
-        occ = self.enroll.course.get_next_occurrence()
+        occ = self.enroll.course.get_next_occurrences()
+        occ = occ[0] if occ else None
+        from stables.models.participations import Participation
         if occ and occ.start-datetime.timedelta(hours=self.activate_before_hours) < timezone.now() and not Participation.objects.filter(participant=self.enroll.participant, start=occ.start):
             p = Participation.objects.create_participation(self.enroll.participant, occ, self.enroll.state, force=True)
             reversion.set_comment('Automatically created by activator')
