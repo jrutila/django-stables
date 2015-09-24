@@ -1,11 +1,9 @@
 from django.contrib.contenttypes.models import ContentType
 from django.core.management.base import BaseCommand
-from stables.models import ParticipationTransactionActivator
-from stables.models import ParticipationError
-import reversion
 from django.db import connection
 from optparse import make_option
-from stables.models.course import CourseParticipationActivator
+from stables.models.financial import ParticipationTransactionActivator
+from stables.models.participations import CourseParticipationActivator, ParticipationError
 
 
 class Command(BaseCommand):
@@ -19,7 +17,6 @@ class Command(BaseCommand):
         ContentType.objects.clear_cache()
         self.activate_transactions()
 
-    @reversion.create_revision()
     def activate_transactions(self):
         for e in CourseParticipationActivator.objects.all():
             try:
