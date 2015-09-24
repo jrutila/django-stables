@@ -5,6 +5,8 @@ from stables.models import ParticipationError
 import reversion
 from django.db import connection
 from optparse import make_option
+from stables.models.course import CourseParticipationActivator
+
 
 class Command(BaseCommand):
     option_list = BaseCommand.option_list + (
@@ -19,11 +21,11 @@ class Command(BaseCommand):
 
     @reversion.create_revision()
     def activate_transactions(self):
-        #for e in CourseParticipationActivator.objects.all():
-            #try:
-                #e.try_activate()
-            #except ParticipationError:
-                #pass
+        for e in CourseParticipationActivator.objects.all():
+            try:
+                e.try_activate()
+            except ParticipationError:
+                pass
         for p in ParticipationTransactionActivator.objects.all():
             p.try_activate()
         #for c in CourseTransactionActivator.objects.all():

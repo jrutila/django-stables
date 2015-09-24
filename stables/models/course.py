@@ -55,6 +55,7 @@ class Course(models.Model):
     #def get_next_occurrence #TODO:
     def get_next_occurrences(self, amount=1, since=timezone.now()):
         #only_active = Q(end_recurring_period__gte=since) | Q(end_recurring_period__isnull=True)
+        since = timezone.localtime(since, timezone.get_current_timezone())
         evs = self.events.all() #.filter()
         starts = []
         for e in evs:

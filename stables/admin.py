@@ -161,6 +161,33 @@ class TransactionAdmin(admin.ModelAdmin):
   list_display = ('customer', 'amount', 'source', 'active')
   search_fields = ['customer__user__user__first_name', 'customer__user__user__last_name',]
   ordering = ['-created_on']
+  actions = ['remove_and_preserve_ticket']
+
+  def queryset(self, request):
+    qs = super(TransactionAdmin, self).queryset(request)
+    failed = request.GET.get('e')
+    ids = []
+    if failed[:4] == "fail":
+      amount = failed.split("-")
+      if len(amount) > 1: amount = amount[1]
+      else: amount = 10
+      for tr in qs:
+        if len(ids) >= amount:
+          break
+        occ = tr.source.get_occurrence()
+        if not occ:
+          ids.append(tr.id)
+      qs = qs.filter(id__in=ids)
+    return qs
+
+  def remove_and_preserve_ticket(self, request, queryset):
+    for tr in queryset:
+      for t in tr.ticket_set.all():
+        t.transaction = None
+        t.save()
+      part = tr.source
+      part.delete()
+      tr.delete()
 
 class ParticipationTransactionActivatorAdminForm(forms.ModelForm):
   class Meta:
