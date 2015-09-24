@@ -1,10 +1,7 @@
 from django.contrib import admin
-from models import TicketProduct, PartShortUrl
-from models import TicketProductActivator
-from models import EnrollProduct
-from models import EnrollProductActivator
-from django.db import models
-from django.forms import forms
+from stables_shop.models import TicketProduct, EnrollProduct, EnrollProductActivator, PartShortUrl
+from stables_shop.models import TicketProductActivator
+
 
 class PartShortUrlAdmin(admin.ModelAdmin):
     raw_id_fields = ('participation',)

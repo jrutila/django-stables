@@ -51,14 +51,14 @@ def calcAuthCode(order_number, timestamp, paid, method):
 if __name__ == "__main__":
     import sys
     if len(sys.argv) == 2:
-        print "authcode"
+        print("authcode")
         params = sys.argv[1].split("&")
         aa = {}
         for p in params:
             p = p.split("=")
             aa[p[0].lower()] = p[1]
         del aa["return_authcode"]
-        print calcAuthCode(**aa)
+        print(calcAuthCode(**aa))
     else:
-        print "Makin payment"
-        print createPayment()
+        print("Makin payment")
+        print(createPayment())

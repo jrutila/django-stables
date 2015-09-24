@@ -63,6 +63,7 @@ TENANT_APPS = (
     'schedule',
     'reportengine',
 
+    'shop',
     'stables_shop',
 
     'django_settings'
@@ -183,6 +184,9 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+SHOP_APP_LABEL = 'stables_shop'
+SHOP_ADDRESS_MODEL = 'stables_shop.addressmodel.Address'
 
 
 # Static files (CSS, JavaScript, Images)

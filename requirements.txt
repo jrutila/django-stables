@@ -14,3 +14,5 @@ beautifulsoup4
 django-fsm
 post-office
 django-filer
+django-ipware
+django-cms

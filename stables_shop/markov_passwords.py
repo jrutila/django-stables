@@ -40,7 +40,7 @@ def pairwise(iterable):
     """
     iterator = iter(iterable)
     try:
-        a = iterator.next()
+        a = next(iterator)
     except StopIteration:
         return
     for b in iterator:
@@ -67,8 +67,8 @@ class MarkovChain(object):
             counts[current][next] += 1
         
         self.totals = dict(
-            (current, sum(next_counts.itervalues()))
-            for current, next_counts in counts.iteritems()
+            (current, sum(next_counts.values()))
+            for current, next_counts in counts.items()
         )
         
 
@@ -100,7 +100,7 @@ def main():
     chain = MarkovChain(
         c for c in japanese.lower() if c in string.ascii_lowercase
     )
-    print ''.join(itertools.islice(chain, 14))
+    print(''.join(itertools.islice(chain, 14)))
 
 if __name__ == '__main__':
     main()

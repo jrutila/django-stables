@@ -20,6 +20,8 @@ from production.common.forms import EmailAuthenticationForm
 urlpatterns = [
     url('^admin/', include(admin.site.urls)),
     url('^', include("stables.urls")),
+    url('^s/', include("stables_shop.urls")),
+    url('^shop/', include("stables_shop.shop_urls")),
     url('^', include('django.contrib.auth.urls')),
     url('^accounts/login/$', 'django.contrib.auth.views.login', { 'authentication_form': EmailAuthenticationForm }, name='login'),
 ]

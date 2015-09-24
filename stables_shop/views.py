@@ -3,19 +3,20 @@ from django.forms import HiddenInput
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import redirect
 import django_settings
+from stables.models.financial import pay_participation
 from shop.util.order import add_order_to_request
 from shop.views.checkout import CheckoutSelectionView
-from shop.models import AddressModel
 from django.views.generic.base import TemplateView
 from django.views.generic import UpdateView, DetailView, View
 from django.views.generic import CreateView
 from django.views.generic import FormView
 from django.views.generic import ListView
 from django.views.generic import RedirectView
-from shop.models import Order
+from shop.models import Order, AddressModel
 from shop.models import Product
+from stables.models.participations import Participation
+from stables.models.user import UserProfile
 from stables_shop.backends import DigitalShipping
-from stables.models import UserProfile, Participation, pay_participation
 from django.forms.util import ErrorList
 from django.utils.translation import ugettext_lazy as _
 from django.core.urlresolvers import reverse
@@ -24,9 +25,9 @@ from crispy_forms.layout import Submit
 from crispy_forms.layout import ButtonHolder
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
-from models import PartShortUrl
-import paytrail
+from . import paytrail
 from shop.backends_pool import backends_pool
+from stables_shop.models import PartShortUrl
 
 class DefaultHelper(FormHelper):
     label_class = "col-xs-2"

@@ -91,8 +91,8 @@
                         <b class="caret"></b>
                     </a>
                     <ul class="dropdown-menu">
-                        {% comment %}
                         <li><a href="{% url "shop-settings" %}">{%  trans "Shop settings" %}</a></li>
+                        {% comment %}
                         <li><a href="{% url "api-help" %}">{%  trans "Website integration" %}</a></li>
                         {% endcomment %}
                     </ul>
@@ -145,9 +145,9 @@
             <li {% active request 'reports-list' %}>
                 <a href="{% url 'reports-list' %}"><i class="fa fa-bar-chart-o"></i><span>{% trans 'Reports'|capfirst %}</span></a>
             </li>
-{% comment %}
-            <li {% active request 'shop-home' %}><a href="{% url 'shop-home' %}"><i class="fa fa-shopping-cart"></i><span>{% trans 'shop'|capfirst %}</span></a></li>
-{% endcomment %}
+            <li {% active request 'shop-home' %}>
+                <a href="{% url 'shop-home' %}"><i class="fa fa-shopping-cart"></i><span>{% trans 'shop'|capfirst %}</span></a>
+            </li>
         </ul>
       </div>
     </div>

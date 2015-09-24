@@ -6,8 +6,10 @@ from django.db import models
 from datetime import date
 from django.core.urlresolvers import reverse
 from shop.models.defaults.order import Order
-from shop.models.defaults.order_item import OrderItem
+from shop.models.defaults.orderitem import OrderItem
+from shop.shipping.backends.flat_rate import FlatRateShipping
 from shop.shop_api import ShopAPI
+from shop.util.decorators import on_method, order_required
 from stables_shop import paytrail
 from stables_shop.product import Product
 
