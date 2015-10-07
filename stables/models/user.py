@@ -44,7 +44,7 @@ class UserProfile(models.Model):
     def __str__(self):
         return self.user.first_name + ' ' + self.user.last_name
     objects = UserManager()
-    user = models.OneToOneField(User)
+    user = models.OneToOneField("auth.User")
     rider = models.OneToOneField('RiderInfo', null=True, blank=True, related_name='user', on_delete=models.SET_NULL)
     customer = models.OneToOneField('CustomerInfo', null=True, blank=True, on_delete=models.SET_NULL, related_name='user')
     instructor = models.OneToOneField('InstructorInfo', null=True, blank=True, related_name='user')

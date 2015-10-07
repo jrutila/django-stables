@@ -1,21 +1,21 @@
 #from shop.models import Product
 from django.db import models
 from django.db.models import DurationField
+from shop.models import Product
+from shop.models_bases import BaseProduct
 from stables.models.course import Course, Enroll
 from stables.models.financial import TicketType, Ticket
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from stables.models.participations import Participation
 from stables.models.user import RiderInfo, UserProfile
-from stables_shop.backends import ProductActivator
 from django.utils import timezone
 import datetime
 from django_settings.models import Model as SettingsModel
 from django_settings.models import registry
 from django.core.urlresolvers import reverse
+from stables_shop.backends import ProductActivator
 from stables_shop.markov_passwords import MarkovChain, finnish
-from stables_shop.product import Product
-
 
 class LongString(models.Model):
    value = models.TextField()
@@ -48,7 +48,6 @@ class TicketProduct(Product):
 
     def get_activator(self):
         return TicketProductActivator()
-
 
 class TicketProductActivator(ProductActivator):
     start = models.PositiveIntegerField(null=True)

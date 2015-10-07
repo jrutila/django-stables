@@ -49,6 +49,9 @@ INSTALLED_APPS = (
     'django_settings',
     'djangobower',
     'crispy_forms',
+
+    'shop',
+    'stables_shop'
 )
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
@@ -110,6 +113,7 @@ WSGI_APPLICATION = 'example.wsgi.application'
 #AUTHENTICATION_BACKENDS = (
     #'example.autologinbackend.AutoLoginBackend',
 #)
+SHOP_PRODUCT_MODEL = ('stables_shop.product.Product', 'stables_shop')
 
 
 # Database

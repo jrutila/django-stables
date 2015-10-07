@@ -166,6 +166,14 @@ else:
             'PASSWORD': '',
             'HOST': '127.0.0.1',
             'PORT': '5432',
+        },
+        'old': {
+            'ENGINE': 'tenant_schemas.postgresql_backend',
+            'NAME': 'talli',
+            'USER': 'talli',
+            'PASSWORD': '',
+            'HOST': '127.0.0.1',
+            'PORT': '5432',
         }
     }
 
@@ -187,6 +195,12 @@ USE_TZ = True
 
 SHOP_APP_LABEL = 'stables_shop'
 SHOP_ADDRESS_MODEL = 'stables_shop.addressmodel.Address'
+SHOP_SHIPPING_BACKENDS = ['stables_shop.backends.DigitalShipping',]
+SHOP_PAYMENT_BACKENDS = ['stables_shop.backends.PayTrailBackend', 'shop.payment.backends.prepayment.ForwardFundBackend']
+SHOP_CART_MODIFIERS = ['stables_shop.modifiers.FixedVATRate',]
+SHOP_PRODUCT_MODEL = ('stables_shop.product.Product', 'stables_shop')
+from decimal import Decimal
+SHOP_VAT = Decimal('0.10')
 
 
 # Static files (CSS, JavaScript, Images)
