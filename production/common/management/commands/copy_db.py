@@ -22,9 +22,10 @@ def dictfetchall(cursor):
     ]
 
 def insert(data, name, opts):
+    conv = opts["convert"] if "convert" in opts else None
     colnames = [x for x in data.keys() if "missing" not in opts or x not in opts["missing"]]
     cols = ['"%s"' % x for x in colnames]
-    vals = [data[x] for x in colnames]
+    vals = [conv[x](data[x]) if conv and x in conv else data[x] for x in colnames]
     vals_str_list = ["%s"] * len(vals)
     vals_str = ", ".join(vals_str_list)
 
@@ -64,15 +65,45 @@ class Command(BaseCommand):
         tables['schedule_rule'] = {}
         tables['schedule_event'] = { "missing": ["priority"]}
         tables['schedule_occurrence'] = {}
+        tables['stables_shop_product'] = { }
         tables['shop_cart'] = {}
         tables['shop_cartitem'] = {}
         tables['shop_order'] = {}
-        tables['shop_product'] = {}
         tables['shop_orderitem'] = {}
         tables['shop_extraorderpricefield'] = {}
         tables['shop_orderextrainfo'] = {}
         tables['shop_orderpayment'] = {}
         tables['stables_course'] = {}
+        tables['stables_horse'] = {}
+        tables['stables_instructorinfo'] = {}
+        tables['stables_customerinfo'] = {}
+        tables['stables_riderinfo'] = {}
+        tables['stables_accident'] = {}
+        tables['stables_course_allowed_levels'] = {}
+        tables['stables_riderlevel'] = {}
+        tables['stables_course_events'] = {}
+        tables['stables_course_ticket_type'] = {}
+        tables['stables_userprofile'] = {}
+        tables['stables_enroll'] = {}
+        tables['stables_courseparticipationactivator'] = {}
+        #tables['stables_coursetransactionactivator'] = {}
+        tables['stables_eventmetadata'] = {}
+        tables['stables_instructorparticipation'] = {}
+        tables['stables_participation'] = {}
+        tables['stables_participationtransactionactivator'] = {}
+        tables['stables_participationtransactionactivator_ticket_type'] = {}
+        tables['stables_riderinfo_levels'] = {}
+        tables['stables_riderlevel_includes'] = {}
+        tables['stables_shop_address'] = {}
+        tables['stables_shop_digitalshippingaddressmodel'] = {}
+        tables['stables_shop_enrollproduct'] = {}
+        tables['stables_shop_enrollproductactivator'] = {}
+        tables['stables_shop_partshorturl'] = {}
+        tables['stables_shop_productactivator'] = {}
+        tables['stables_shop_ticketproduct'] = { "convert": { "duration": lambda x: "%s second" % int(x/1000000) }}
+        tables['stables_shop_ticketproductactivator'] = {}
+        tables['stables_transaction'] = {}
+        tables['stables_ticket'] = {}
 
         for tenant in result:
             skipping = False
@@ -80,13 +111,14 @@ class Command(BaseCommand):
                 skipping = options["skip"]
             for (name, t) in tables.items():
                 tname = "%s.%s" % (tenant['schema_name'], name)
-                if skipping:
+                if skipping and skipping != "True":
                     if skipping == name: skipping = False
                     self.stdout.write("Skipped "+tname)
                     continue
-                self.stdout.write("Writing "+tname)
+                toname = t["table"] if "table" in t else tname
+                self.stdout.write("Writing %s to %s" % (tname, toname))
                 c.execute("SELECT * FROM %s" % tname)
                 data = dictfetchall(c)
                 for d in data:
-                    (sql, vals) = insert(d, tname, t)
+                    (sql, vals) = insert(d, toname, t)
                     w.execute(sql, vals)
