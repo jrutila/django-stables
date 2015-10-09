@@ -17,11 +17,12 @@ from django.core.urlresolvers import reverse
 from stables_shop.backends import ProductActivator
 from stables_shop.markov_passwords import MarkovChain, finnish
 
-class LongString(models.Model):
+class LongString(SettingsModel):
    value = models.TextField()
 
    class Meta:
        abstract = True
+       app_label = "stables_shop"
 registry.register(LongString)
 
 class DigitalShippingAddressModel(models.Model):

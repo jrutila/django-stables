@@ -94,6 +94,12 @@ class Command(BaseCommand):
         tables['stables_shop_ticketproductactivator'] = { "convert": { "duration": lambda x: "%s second" % int(x/1000000) if x else "\\N" }}
         tables['stables_transaction'] = {}
         tables['stables_ticket'] = {}
+        tables['django_settings_setting'] = { "convert": { "setting_type_id": "content_type" }}
+        tables['django_settings_email'] = {}
+        tables['django_settings_integer'] = {}
+        tables['django_settings_longstring'] = { "table": "stables_shop_longstring" }
+        tables['django_settings_positiveinteger'] = {}
+        tables['django_settings_string'] = {}
 
         for tenant in result:
 
@@ -121,7 +127,7 @@ class Command(BaseCommand):
                     if skipping == name: skipping = False
                     self.stdout.write("Skipped "+tname)
                     continue
-                toname = t["table"] if "table" in t else tname
+                toname = tenant["schema_name"]+"."+t["table"] if "table" in t else tname
                 c.execute("SELECT * FROM %s" % tname)
                 data = dictfetchall(c)
                 opts = t
