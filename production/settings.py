@@ -85,6 +85,8 @@ BOWER_INSTALLED_APPS = (
     'moment',
     'font-awesome',
     'bootstrap',
+    'jquery-slugify',
+    'DataTables',
 
     # Required for base admin
 )

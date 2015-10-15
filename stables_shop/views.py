@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import HiddenInput
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.shortcuts import redirect
 import django_settings
 from stables.models.financial import pay_participation
@@ -237,7 +237,15 @@ class HomePageView(ShopEditorMixin, ShopSettingsSetMixin, TemplateView):
 
 class DefaultForm(forms.Form):
     def __init__(self, *args, **kwargs):
-        super(forms.Form, self).__init__(*args, **kwargs)
+        super(DefaultForm, self).__init__(*args, **kwargs)
+        self.helper = DefaultHelper()
+        self.helper.add_input(Submit('submit', 'Submit'))
+        self.helper.form_tag = True
+        self.helper.disable_csrf = False
+
+class DefaultModelForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(DefaultModelForm, self).__init__(*args, **kwargs)
         self.helper = DefaultHelper()
         self.helper.add_input(Submit('submit', 'Submit'))
         self.helper.form_tag = True
@@ -278,38 +286,32 @@ class ShipForm(DefaultForm):
 
 
 def prodform(prodmodel):
-    class ProductForm(forms.ModelForm):
+    class ProductForm(DefaultModelForm):
         class Meta:
+            exclude = []
             model = prodmodel
 
-        def __init__(self, *args, **kwargs):
-            super(ProductForm, self).__init__(*args, **kwargs)
-            self.helper = FormHelper(self)
-            self.helper.form_tag = True
-            self.helper.disable_csrf = False
-            self.helper.layout.append(
-                      ButtonHolder(
-                        Submit('save', _('Save')),
-                        )
-                    )
     return ProductForm
 
 
 class EditProduct(ShopEditorMixin, UpdateView):
     model = Product
-    template_name = "stables_shop/generic_form.html"
+    template_name = "stables_shop/product_form.html"
     success_url = '/s' #TODO: Bad!
     def get_form_class(self):
         return prodform(self.object.__class__)
 
 class CreateProduct(ShopEditorMixin, CreateView):
     model = Product
-    template_name = "stables_shop/generic_form.html"
+    template_name = "stables_shop/product_form.html"
     success_url = '/s' #TODO: Bad!
 
     def get_form_class(self):
         ct = ContentType.objects.get(pk=self.kwargs['content_type_id'])
-        return prodform(ct.model_class())
+        klass = ct.model_class()
+        if not issubclass(klass, Product):
+            raise Http404("Give Product type not found")
+        return prodform(klass)
 
 class FinishedOrderList(ShopEditorMixin, ListView):
     model = Order
@@ -349,7 +351,7 @@ class PayView(ShopEditorMixin, OrderCancelMixin, FormView):
         return super(PayView, self).form_valid(form)
 
 class ShipView(ShopEditorMixin, OrderCancelMixin, FormView):
-    template_name = 'stables_shop/generic_form.html'
+    template_name = 'stables/generic_form.html'
     success_url = '/s' #TODO: Bad!
     form_class = ShipForm
 
@@ -404,7 +406,7 @@ class SettingsForm(DefaultForm):
                 django_settings.set('String', f, '', validate=False)
 
 class SettingsView(ShopEditorMixin, FormView):
-    template_name = 'stables_shop/generic_form.html'
+    template_name = 'stables/generic_form.html'
     success_url = '/s' #TODO: Bad!
     form_class = SettingsForm
 
