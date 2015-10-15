@@ -202,10 +202,10 @@ class Participation(models.Model):
                 self.last_state_change_on = datetime.datetime.now()
         sid = transaction.savepoint()
         try:
-          ret = models.Model.save(self, **kwargs)
+          ret = super(Participation, self).save(**kwargs)
           transaction.savepoint_commit(sid)
           return ret
-        except IntegrityError:
+        except IntegrityError as e:
           transaction.savepoint_rollback(sid)
           actual = Participation.objects.get(participant=self.participant, event=self.event, start=self.start, end=self.end)
           actual.horse = self.horse

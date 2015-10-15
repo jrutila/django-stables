@@ -20,7 +20,7 @@ class CurrencyField(models.DecimalField):
 class TicketType(models.Model):
     class Meta:
         app_label = 'stables'
-    def __unicode__(self):
+    def __str__(self):
         return self.name
     name = models.CharField(_("name"), max_length=32)
     description = models.TextField(_("description"))
