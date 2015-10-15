@@ -39,6 +39,10 @@ class Command(BaseCommand):
             dest='tenant',
             default=False,
             help='Run only this tenant')
+        parser.add_argument('--domain',
+                           dest='domain',
+                           default=False,
+                           help="Give the string format for domain e.g.: %s.localhost")
         #parser.add_argument('poll_id', nargs='+', type=int)
 
     def handle(self, *args, **options):
@@ -61,6 +65,7 @@ class Command(BaseCommand):
         tables['shop_order'] = {}
         tables['shop_orderitem'] = {}
         tables['shop_extraorderpricefield'] = {}
+        tables['shop_extraorderitempricefield'] = {}
         tables['shop_orderextrainfo'] = {}
         tables['shop_orderpayment'] = {}
         tables['stables_course'] = {}
@@ -92,8 +97,8 @@ class Command(BaseCommand):
         tables['stables_shop_productactivator'] = {}
         tables['stables_shop_ticketproduct'] = { "convert": { "duration": lambda x: "%s second" % int(x/1000000) if x else "\\N" }}
         tables['stables_shop_ticketproductactivator'] = { "convert": { "duration": lambda x: "%s second" % int(x/1000000) if x else "\\N" }}
-        tables['stables_transaction'] = {}
-        tables['stables_ticket'] = {}
+        tables['stables_transaction'] = { "convert": { "content_type_id": "content_type" }}
+        tables['stables_ticket'] = { "convert": { "owner_type_id": "content_type" }}
         tables['django_settings_setting'] = { "convert": { "setting_type_id": "content_type" }}
         tables['django_settings_email'] = {}
         tables['django_settings_integer'] = {}
@@ -101,17 +106,26 @@ class Command(BaseCommand):
         tables['django_settings_positiveinteger'] = {}
         tables['django_settings_string'] = {}
 
+        tenant_opts = {
+            "tahko": {
+                "tables": {"stables_transaction": { "preconvert": { "content_type_id": lambda x: 49 if x == 29 else x } } }
+            }
+        }
+
         for tenant in result:
 
             if "tenant" in options:
                 if (options["tenant"] and tenant["schema_name"] != options["tenant"]):
                     continue
+            topts = tenant_opts[tenant["schema_name"]] if tenant["schema_name"] in tenant_opts else None
 
             connections["default"].set_schema("public")
             if not options["skip"]:
                 #if (tenant["schema_name"] != "demo"): break
                 del tenant["id"]
                 t = Client(**tenant)
+                if options["domain"]:
+                    t.domain_url = options["domain"] % t.schema_name
                 t.save()
                 self.stdout.write("Created client "+tenant['domain_url'])
 
@@ -123,6 +137,7 @@ class Command(BaseCommand):
                 skipping = options["skip"]
             for (name, t) in tables.items():
                 tname = "%s.%s" % (tenant['schema_name'], name)
+                ttopts = topts["tables"][name] if topts and name in topts["tables"] else None
                 if skipping and skipping != "True":
                     if skipping == name: skipping = False
                     self.stdout.write("Skipped "+tname)
@@ -133,7 +148,9 @@ class Command(BaseCommand):
                 opts = t
                 fd = ""
                 conv = opts["convert"] if "convert" in opts else None
+                pconv = ttopts["preconvert"] if ttopts and "preconvert" in ttopts else None
                 counter = 0
+                ctcache = {}
                 if (len(data)):
                     self.stdout.write("Writing %s to %s" % (tname, toname))
                     colnames = [x for x in data[0].keys() if "missing" not in opts or x not in opts["missing"]]
@@ -142,15 +159,23 @@ class Command(BaseCommand):
                         vals = []
                         for x in colnames:
                             dd = d[x]
-                            if conv and x in conv:
+                            val = None
+                            if pconv and x in pconv:
+                                dd = pconv[x](dd)
+                            if conv and x in conv and val == None:
                                 if (conv[x] == "content_type"):
-                                    oldct = ContentType.objects.using("old").get(id=dd)
-                                    newct = ContentType.objects.using("default").get(model=oldct.model)
-                                    vals.append(newct.id)
+                                    if dd not in ctcache:
+                                        oldct = ContentType.objects.using("old").get(id=dd)
+                                        self.stdout.write("Try to find CT: %s" % oldct.model)
+                                        newct = ContentType.objects.using("default").get(model=oldct.model)
+                                        ctcache[dd] = newct.id
+                                    val = ctcache[dd]
                                 else:
-                                    vals.append(conv[x](dd))
-                            else:
-                                vals.append(default_conv(dd))
+                                    val = conv[x](dd)
+                            if val == None:
+                                val = default_conv(dd)
+                            if val != None:
+                                vals.append(val)
                         #vals = [conv[x](d[x]) if conv and x in conv else default_conv(d[x]) for x in colnames]
                         fd = str(fd) + "\t".join([str(x) for x in vals]) + "\n"
                         #(sql, vals) = insert(d, toname, t)
@@ -158,6 +183,13 @@ class Command(BaseCommand):
                     self.stdout.write(",".join(colnames) + " -> "+toname)
                     self.stdout.write(fd)
                     w.copy_from(StringIO(fd), toname, columns=['"'+x+'"' for x in colnames])
+                    params = {"tbl": toname, "tblsc": toname.replace(tenant["schema_name"]+".", "")}
+                    check = "SELECT relname FROM pg_class WHERE relname='%(tblsc)s_id_seq';" % params
+                    w.execute(check)
+                    if w.fetchone() != None:
+                        id_seq = "SELECT setval('%(tbl)s_id_seq', COALESCE((SELECT MAX(id)+1 FROM %(tbl)s), 1), false)" % params
+                        self.stdout.write(id_seq)
+                        w.execute(id_seq)
                 else:
                     self.stdout.write("No data for %s" % toname)
 
