@@ -15,6 +15,8 @@ from django.core.urlresolvers import reverse
 
 from django.contrib.auth.decorators import permission_required, login_required
 from django.utils.decorators import method_decorator
+from stables_shop.models import TicketProductActivator
+
 
 class UserEditorMixin(object):
     @method_decorator(permission_required('stables.change_userprofile'))
@@ -78,12 +80,11 @@ class PlainViewUser(DetailView):
         if user.rider:
             nxt = Participation.objects.get_next_participation(user, limit=tmore)
             user.next = nxt
-            # TODO: Orders should be listed
-            #tcks = TicketProductActivator.objects.filter(rider=user.rider).select_related('order', 'order__items')
-            #ordrs = set()
-            #ordrs_add = ordrs.add
-            #o = [ t.order for t in tcks if not (t.order in ordrs or ordrs_add(t.order)) ]
-            #setattr(user, 'orders', o)
+            tcks = TicketProductActivator.objects.filter(rider=user.rider).order_by("-order__created")
+            ordrs = set()
+            ordrs_add = ordrs.add
+            o = [ t.order for t in tcks if not (t.order in ordrs or ordrs_add(t.order)) ]
+            setattr(user, 'orders', o)
 
         if user.customer:
             setattr(user, 'transactions', Transaction.objects.filter(
