@@ -1,0 +1,17 @@
+{% load i18n  %}
+<span {% if object.inactive %}style="text-decoration:line-through"{% endif %} >
+    {{ object }}
+    {% if object.instructor %}
+        <p>
+            {% trans "(I)" %}
+        </p>
+    {% endif %}
+    {% if perms.auth.edit_user %}
+        &nbsp;<a href="{% url "edit_user" object.user %}"><i class="fa fa-edit"></i></a>
+    {% endif %}
+    </span>
+{% ifnotequal object.customer object.rider.customer %}
+    <small>
+        (<a href="{{ object.rider.customer.user.get_absolute_url }}">{{ object.rider.customer.user }}</a>)
+    </small>
+{% endifnotequal %}

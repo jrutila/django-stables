@@ -1,21 +1,15 @@
-from django import template
-from stables.models import Participation, Enroll
-from django.utils.translation import ugettext, ugettext_lazy as _
-from django.core.urlresolvers import reverse
-from urllib import urlencode
-from django.contrib.auth.decorators import permission_required
-from django.contrib.contenttypes.models import ContentType
-from stables.models import Transaction
-from schedule.models import Event
 import datetime
 
+from django import template
+from django.utils.translation import ugettext_lazy as _
+from django.core.urlresolvers import reverse
 from django.core.urlresolvers import NoReverseMatch
-from stables.models import PARTICIPATION_STATES
-from stables.models import ATTENDING, CANCELED, RESERVED, SKIPPED
-
-import stables.models as enum
-from stables.utils import getPaymentLink
 from django.utils import timezone
+
+from stables.models import PARTICIPATION_STATES
+from stables.models import ATTENDING, CANCELED, RESERVED
+from stables.utils import getPaymentLink
+
 
 register = template.Library()
 

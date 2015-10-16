@@ -3,13 +3,14 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 from crispy_forms.layout import Layout
 from crispy_forms.layout import ButtonHolder
+from stables.models.accident import Accident
+from stables.models.user import RiderInfo
 
-from stables.models import Accident
-from stables.models import RiderInfo
 
 class AccidentForm(forms.ModelForm):
     class Meta:
         model = Accident
+        exclude = []
 
     def __init__(self, *args, **kwargs):
       super(AccidentForm, self).__init__(*args, **kwargs)

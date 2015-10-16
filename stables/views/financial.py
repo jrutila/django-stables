@@ -3,14 +3,14 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 
-from stables.forms import TransactionsForm
-from stables.forms import AddTicketsForm
-from stables.forms import EditTicketsForm
-from stables.models import Participation
-from stables.models import Transaction
-from stables.models import UserProfile
-from stables.models import RiderInfo
-from stables.models import CustomerInfo
+from stables.forms.financial import TransactionsForm
+from stables.forms.financial import AddTicketsForm
+from stables.forms.financial import EditTicketsForm
+from stables.models.participations import Participation
+from stables.models.common import Transaction
+from stables.models.user import UserProfile
+from stables.models.user import RiderInfo
+from stables.models.user import CustomerInfo
 
 from django.contrib.auth.decorators import permission_required
 from django.utils.decorators import method_decorator
@@ -58,7 +58,7 @@ class EditTicketsView(ParticipationMixin, FormView):
 
     def get_form_kwargs(self):
         kwargs = super(FormView, self).get_form_kwargs()
-        user = User.objects.filter(username=self.kwargs['username'])[0].get_profile()
+        user = User.objects.filter(username=self.kwargs['username'])[0].userprofile
         kwargs['owner'] = user
 
         user = user.customer

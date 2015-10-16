@@ -1,9 +1,5 @@
 from django.conf.urls import *
-
-from stables.views import HorseCreate
-from stables.views import HorseUpdate
-from stables.views import ViewHorse
-from stables.views import HorseList
+from stables.views.horse import HorseUpdate, HorseCreate, ViewHorse, HorseList
 
 urlpatterns = patterns('',
     url(r'^(?P<pk>\d+)/change/', HorseUpdate.as_view(), name="change_horse"),

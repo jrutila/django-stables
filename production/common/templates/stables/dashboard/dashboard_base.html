@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{%  load sekizai_tags static %}
+
+{% block content %}
+{% addtoblock "css" %}
+<link href="{% static 'font-awesome/css/font-awesome.css' %}" rel="stylesheet" type="text/css" />
+{% endaddtoblock %}
+
+{% addtoblock "js" %}
+<script src="{% static 'plugins/multidatepicker/jquery-ui.multidatespicker.js' %}"></script>
+{% endaddtoblock %}
+
+{% addtoblock "js" %}
+<script src="{% static 'app/calendar.js' %}"></script>
+{% endaddtoblock %}
+
+    {% block dashboard_header %}
+    {% endblock dashboard_header %}
+
+    <div class="wide widget">
+        <div class="widget-content">
+        </div>
+    </div>
+{% endblock content %}

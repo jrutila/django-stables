@@ -1,0 +1,36 @@
+{% extends "reportengine/base.html" %}
+{% load staticfiles i18n %}
+
+{% block content %}
+<form method="POST" action="{% url "report-request" %}">
+    <div class="widget">
+        <div class="widget-content">
+    {% csrf_token %}
+<fieldset class="col-md-7">
+    <div class="form-group">
+        <label class="col-lg-4" for="start">{% trans "Start" %}</label>
+        <div class="col-lg-8"><input class="form-control" id="id_start" type="date" name="start"/></div>
+    </div>
+    <div class="form-group">
+        <label class="col-lg-4" for="end">{% trans "End" %}</label>
+        <div class="col-lg-8"><input class="form-control" id="id_end" type="date" name="end"/></div>
+    </div>
+</fieldset>
+
+<div class="col-md-5 shortcuts" id="changelist">
+    {% regroup reports|dictsort:"namespace" by namespace as report_list %}
+    {% for namespace in report_list %}
+        <input type="hidden" name="namespace" value="{{ namespace.grouper }}"/>
+        {% for report in namespace.list|dictsort:"verbose_name" %}
+        <button type="submit" class="shortcut" name="slug" value="{{ report.slug }}">
+            {{ report.verbose_name }}
+        </button>
+        {% endfor %}
+    {% endfor %}
+        </div>
+    </div>
+</div>
+
+</form>
+
+{% endblock %}

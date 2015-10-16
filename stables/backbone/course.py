@@ -1,11 +1,11 @@
 from tastypie import fields
 from tastypie.resources import Resource
 from stables.backbone import ApiList
-from stables.models import Course, ATTENDING
-from stables.models import Participation
-from stables.models.course import Enroll
+from stables.models import ATTENDING
+from stables.models.course import Enroll, Course
 from django.utils.dateparse import parse_datetime
 from django.utils import timezone
+from stables.models.participations import Participation
 
 __author__ = 'jorutila'
 

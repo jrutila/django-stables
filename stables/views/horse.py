@@ -4,11 +4,10 @@ from django.views.generic import DetailView
 from django.views.generic import ListView
 from django.core.urlresolvers import reverse
 
-from stables.models import Horse
-from stables.forms import HorseForm
-
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import permission_required
+from stables.models.horse import Horse
+from stables.forms.horse import HorseForm
 
 class HorseEditorMixin(object):
     @method_decorator(permission_required('stables.change_horse'))

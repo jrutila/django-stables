@@ -1,0 +1,187 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-05-29 00:10+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: backends.py:14
+msgid "Initiated"
+msgstr ""
+
+#: backends.py:15
+msgid "Activated"
+msgstr ""
+
+#: backends.py:16
+msgid "Failed"
+msgstr ""
+
+#: backends.py:17
+msgid "Canceled"
+msgstr ""
+
+#: backends.py:26
+msgid "Digital"
+msgstr ""
+
+#: models.py:24
+msgid "Amount of tickets included in this product."
+msgstr "Kertojen määrä tällä tuotteella."
+
+#: models.py:25
+msgid ""
+"Relative duration of the given product. For example 30 days, 90 days. If "
+"this is empty, you must insert expire date."
+msgstr ""
+"Tämän tuotteen kesto. Esim. '30 days' tai '90 days'. Jos jätät"
+"tämän tyhjäksi, täytä absoluuttinen vanhentumispäivämäärä."
+
+#: models.py:26
+msgid ""
+"Absolute expiration date for the given product. For example 2014-12-31. If "
+"this is empty, you must insert duration."
+msgstr ""
+"Absoluuttinen vanhenemispäivämäärä. Esim. '2014-12-31'. Jos jätätä tämän tyhjäksi"
+", täytä tuotteen kesto."
+
+#: models.py:33
+msgid "Ticket duration or absolute expire date must be set"
+msgstr ""
+
+#: modifiers.py:19
+msgid "VAT"
+msgstr "ALV"
+
+#: product.py:11
+msgid "The whole product price excluding VAT."
+msgstr "Koko tuotteen hinta ilman ALVia."
+
+#: views.py:150
+#, python-format
+msgid "User \"%s\" not found"
+msgstr "Ratsastajaa \"%s\" ei löytynyt."
+
+#: views.py:153
+#, python-format
+msgid "User \"%s\" is too ambiguous"
+msgstr "Liian epätarkka nimi: \"%s\""
+
+#: views.py:171
+msgid "Save"
+msgstr "Tallenna"
+
+#: stables_shop/views.py:231
+msgid "Name of the shop shown in left upper corner"
+msgstr "Kaupan nimi, mikä näkyy vasemmassa yläkulmassa"
+
+#: stables_shop/views.py:232
+msgid "Address for the main page (e.g. your homepage)"
+msgstr "Kotisivujesi osoite, mihin kaupasta voi palata."
+
+#: stables_shop/views.py:233
+msgid "Your bank account number"
+msgstr "Pankkitilisi numero"
+
+#: stables_shop/views.py:234
+msgid "Invoice receiver name"
+msgstr "Laskun vastaanottajan nimi"
+
+#: stables_shop/templates/stables_shop/index.html:7
+#, python-format
+msgid "You can visit your shop <a href='%(shopurl)s'>here</a>."
+msgstr "Voit mennä kauppaasi <a href='%(shopurl)s'>tästä</a>."
+
+#: stables_shop/templates/stables_shop/index.html:9
+msgid "Unfinished orders"
+msgstr "Keskeneräiset tilaukset"
+
+#: templates/stables_shop/index.html:13 templates/stables_shop/index.html:82
+#: templates/stables_shop/order_list.html:8
+msgid "Id"
+msgstr ""
+
+#: stables_shop/templates/stables_shop/index.html:14
+#: stables_shop/templates/stables_shop/order_list.html:9
+msgid "Status"
+msgstr "Tila"
+
+#: stables_shop/templates/stables_shop/index.html:15
+#: stables_shop/templates/stables_shop/order_list.html:10
+msgid "Target"
+msgstr "Kohde"
+
+#: stables_shop/templates/stables_shop/index.html:16
+#: stables_shop/templates/stables_shop/order_list.html:11
+msgid "Product"
+msgstr "Tuote"
+
+#: stables_shop/templates/stables_shop/index.html:17
+#: stables_shop/templates/stables_shop/order_list.html:13
+msgid "Total"
+msgstr "Summa"
+
+#: stables_shop/templates/stables_shop/index.html:18
+msgid "Is paid"
+msgstr "Maksettu?"
+
+#: stables_shop/templates/stables_shop/index.html:19
+msgid "Is shipped"
+msgstr "Toimitettu?"
+
+#: stables_shop/templates/stables_shop/index.html:20
+#: stables_shop/templates/stables_shop/order_list.html:12
+msgid "Transaction"
+msgstr "Tapahtuma"
+
+#: stables_shop/templates/stables_shop/index.html:21
+msgid "Actions"
+msgstr "Toiminnot"
+
+#: stables_shop/templates/stables_shop/index.html:60
+msgid "Paid"
+msgstr "Maksettu"
+
+#: stables_shop/templates/stables_shop/index.html:63
+msgid "Ship"
+msgstr "Toimita"
+
+#: stables_shop/templates/stables_shop/index.html:74
+#, python-format
+msgid "<a href='%(orderurl)s'>Finished orders</a>."
+msgstr "<a href='%(orderurl)s'>Valmiit tilaukset</a>."
+
+#: stables_shop/templates/stables_shop/index.html:78
+msgid "Products"
+msgstr "Tuotteet"
+
+#: stables_shop/templates/stables_shop/index.html:83
+msgid "Active"
+msgstr "Aktiivinen"
+
+#: stables_shop/templates/stables_shop/index.html:84
+msgid "Name"
+msgstr "Nimi"
+
+#: stables_shop/templates/stables_shop/index.html:85
+#: stables_shop/templates/stables_shop/index.html:94
+msgid "Edit"
+msgstr "Muokkaa"
+
+#: stables_shop/templates/stables_shop/index.html:100
+msgid "Add new ..."
+msgstr "Lisää uusi ..."
+

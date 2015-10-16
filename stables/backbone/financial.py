@@ -1,11 +1,12 @@
 from decimal import Decimal
 from tastypie.bundle import Bundle
+from stables.models.common import TicketType
 from stables.models.participations import Participation
 from tastypie import fields
 from stables.backbone import ParticipationPermissionAuthentication
 from tastypie.resources import Resource
 from stables.models import ATTENDING, SKIPPED
-from stables.models.financial import Ticket, pay_participation, TicketType
+from stables.models.financial import Ticket, pay_participation
 from django.utils.translation import ugettext as _
 from stables.utils import getPaymentLink
 from django.conf import settings
@@ -30,7 +31,7 @@ class ViewFinance:
                     self.tickets[u.type.id] = u.type.name
             self.participation_url = part.get_absolute_url()
             self.finance_hint = str(value)
-            if saldo < Decimal('0.00'):
+            if saldo and saldo < Decimal('0.00'):
                 self.finance_hint = str(saldo)
             else:
                 try:

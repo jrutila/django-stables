@@ -1,5 +1,4 @@
 from stables.models import part_move
-from stables.models.financial import CurrencyField
 
 __author__ = 'jorutila'
 

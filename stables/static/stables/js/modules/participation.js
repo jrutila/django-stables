@@ -198,49 +198,29 @@ var ParticipationView = Backbone.View.extend({
         return false
     },
     enroll: function(ev) {
-        var model = this.model
-        $.msgbox("Are you sure?", {
-            type: "confirm",
-            buttons: [
-                { type: 'submit', value: 'Yes' },
-                { type: 'cancel', value: 'Cancel' },
-            ],
-        }, function (result) {
-            if (result) {
-                var e = new Enroll({
-                    event: model.get('event_id'),
-                    rider: model.get('rider_id'),
-                })
-                e.save(null, {
-                    success: function() { model.fetch(); },
-                    // TODO: 201 is apparently error
-                    error: function() { model.fetch(); },
-                })
-            }
-        })
+        var model = this.model;
+        var e = new Enroll({
+            event: model.get('event_id'),
+            rider: model.get('rider_id')
+        });
+        e.save(null, {
+            success: function() { model.fetch(); },
+            // TODO: 201 is apparently error
+            error: function() { model.fetch(); }
+        });
     },
     denroll: function(ev) {
-        var model = this.model
-        $.msgbox("Are you sure?", {
-            type: "confirm",
-            buttons: [
-                { type: 'submit', value: 'Yes' },
-                { type: 'cancel', value: 'Cancel' },
-            ],
-        }, function (result) {
-            if (result) {
-                var e = new Enroll()
-                e.url = model.get('enroll')
-                // Id must be set so that Backbone does POST
-                e.id = parseInt(model.get('enroll').split('/')[4])
-                e.set('state', 3)
-                e.save(null, {
-                    success: function() { model.fetch(); },
-                    // TODO: 201 is apparently error
-                    error: function() { model.fetch(); },
-                })
-            }
-        })
+        var model = this.model;
+        var e = new Enroll();
+        e.url = model.get('enroll');
+        // Id must be set so that Backbone does POST
+        e.id = parseInt(model.get('enroll').split('/')[4]);
+        e.set('state', 3);
+        e.save(null, {
+            success: function() { model.fetch(); },
+            // TODO: 201 is apparently error
+            error: function() { model.fetch(); }
+        });
     },
     limitTopped: function(limit) {
         var horse = limit.get('horse')

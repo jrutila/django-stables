@@ -1,0 +1,371 @@
+{% load i18n staticfiles %}
+{% load stablestags %}
+{% load settings_tags %}
+
+<script type="text/html" id="ParticipationView">
+    <div class="note" title="<%= note %>">
+        <i
+    <% if (note != "" && note != null) { %>
+        class="fa fa-comment"
+    <% } else { %>
+        class="fa fa-comment-o"
+    <% } %>
+    ></i>
+    </div>
+    <select name="horse">
+        <option value="0">{% trans "--" %}</option>
+        <% horses.each(function(h) { %>
+        <option value="<%= h.get("id") %>"><%= h.get("name") %></option>
+        <% }) %>
+    </select>
+    <span class="ui-stbl-db-user alert alert-<%= alert_level %>"
+    <% if (state != 0 ) { %>
+        style="text-decoration: line-through;"
+    <% } %>
+    >
+    <% if (typeof(warning) != "undefined" && warning) { %>
+        <span title="<%= warning %>">!</span>
+    <% } %>
+    <% if (finance_url != null) { %>
+        <a class="detail_url" href="<%= finance_url %>" title="<%= finance_hint %>"><%= finance %></a>
+    <% } %>
+    <% if (accident_url != null) { %>
+        <a href="<%= accident_url %>">X</a>
+    <% } %>
+    <a href="<%= rider_url %>"><%= rider_name %></a>
+    </span>
+    <select name="state">
+        {% for s in states %}
+        <option value="{{ s.0 }}">{{ s.1 }}</option>
+        {% endfor %}
+    </select>
+    <% if (typeof id !== 'undefined' && id != null) { %>
+        <% if (state == 0 && enroll == null) { %>
+        <button class='enroll btn'>E</button>
+        <% } else if (state == 3 && enroll != null) { %>
+        <button class='denroll btn'>D</button>
+        <% } %>
+    <% } %>
+</script>
+
+<script type="text/html" id="DayHeaderView">
+    <span><%= date %></span>
+    <a href="<%= print_url %>"><i class='fa fa-print print-date'>P</i></a>
+    <a><i class='fa fa-plus add-course'>+</i></a>
+</script>
+
+<script type="text/html" id="FinancePopoverView">
+  <div class="">
+      <div class=""><%= finance_hint %>
+        {% gatekeeper merchant %}
+        <% if (finance_hint < 0) { %>
+            <a class="pay pay_email" title="{% trans "Send payment link with email" %}"><i class="fa fa-envelope"></i></a>
+            <a class="pay pay_mobile" title="{% trans "Send payment link with sms" %}"><i class="fa fa-mobile"></i></a>
+            <a class="pay pay_manual" title="{% trans "Copy payment link manually" %}"><i class="fa fa-link"></i></a>
+            <input name="phone_number" class="addinfo" type="text" style="display: none" />
+            <input name="email_address" class="addinfo" type="text" style="display: none" />
+            <div class="confirm_message" style="display: none">Oletko varma?</div>
+            <button class="confirm" style="display: none">Lähetä</button>
+        <% } %>
+        {% endgatekeeper %}
+      </div>
+
+      <div role="form">
+          <div class="input-group">
+              <div class="input-group-btn">
+                   <input type="hidden" name="method" value="<%= method %>" />
+                   <button type="button" data-title="{% trans "Cash" %}" data-method="" class="btn btn-default resolve">{% trans "Cash" %}</button>
+                   <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                       <span class="caret"></span>
+                       <span class="sr-only">{% trans "Select payment method" %}</span>
+                   </button>
+                   <ul class="dropdown-menu" role="menu">
+                        <li><a href="#" class="method" data-method="">{% trans "Cash" %}</a></li>
+                        {% for method in pay_types %}
+                        <li><a href="#" class="method" data-method="{{ method }}">{{ method|capfirst }}</a></li>
+                        {% endfor %}
+                        <li class="divider"></li>
+                        <li><input type="text" class="method" placeholder="{% trans "Other" %}" /></li>
+                   </ul>
+              </div>
+              <input type="text" class="form-control amount" value="<%= amount %>" placeholder="0.00"/>
+          </div>
+          <div class="input-group">
+              <% for (var t in tickets) { %>
+                <button type="button" class="btn btn-default resolve" data-method="<%= t %>"><%= tickets[t] %></button>
+              <% } %>
+          </div>
+      </div>
+  </div>
+
+
+    <div>
+    <div>
+
+    <textarea name="note"><%= note %></textarea>
+    </div>
+    <a href="<%= participation_url %>">{% trans "details" %}</a>
+    </div>
+  </div>
+</script>
+
+<script type="text/html" id="EventView">
+<div>
+    <a class="event title-link <% if (cancelled) { %>cancelled<% } %>"
+       href="<%= course_id %>"
+       title="<%= moment(start).format('l HH:mm') %>-<%= moment(end).format('HH:mm') %>">
+        <%= moment(start).format('dd HH:mm') %> <%= title %>
+    </a>
+    <a class="move title-link"><i class="fa fa-clock-o"></i></a>
+    <a class="message title-link"><i class="fa fa-mobile"></i></a>
+</div>
+    {% if instructors %}
+    <br/><select name="instructor">
+        <option value="0">{% trans "--" %}</option>
+        {% for i in instructors %}
+        <option value="{{ i.pk }}">{{ i }}</option>
+        {% endfor %}
+    </select>
+    {% endif %}
+    <!--<div class='comments'>
+    </div>-->
+    <ul class="rider-list">
+    </ul>
+</script>
+
+<script type="text/html" id="MessageSendView">
+    <div>
+    <table class="table-condensed">
+        <% var sms = "sms:"; %>
+        <% _.each(participations, function(part) { %>
+            <tr>
+                <td><input type="checkbox"
+                <% if (part.state != CANCELLED && part.rider_phone) { %>
+                    checked="checked"
+                    <% sms += part.rider_phone + ","; %>
+                <% } %>
+                <% if (!part.rider_phone) { %>
+                disabled="true"
+                <% } %>
+                    data-number="<%= part.rider_phone %>"
+                        /></td>
+                <td <% if (part.state == CANCELLED) { %>class="cancelled"<% } %>><%= part.rider_name %></td>
+                <td>
+                    <% if (part.rider_phone) { %>
+                        <%= part.rider_phone %>
+                    <% } else { %>
+                        <a href="<%= part.rider_url %>edit/">{% trans "Set" %}</a>
+                    <% } %>
+                </td>
+            </tr>
+        <% }); %>
+    </table>
+    <a href="<%= sms %>" class="sendSms btn btn-primary">{% trans "Send SMS" %}</a>
+    <a class="cancel btn btn-default" data-dismiss="modal">{% trans "Cancel" %}</a>
+    </div>
+</script>
+
+<script type="text/html" id="EventEditView">
+<form>
+    <label for="moveeventDate">{% trans "Date" %}</label>
+    <input name="date" id="moveeventDate" value="<%= moment(start).format('YYYY-MM-DD') %>" type="text" class="form-control" placeholder="{% trans "YYYY-MM-DD" %}"/>
+    <label for="moveeventStart">{% trans "Start" %}</label>
+    <input name="start" id="moveeventStart" value="<%= moment(start).format('HH:mm') %>" type="text" class="form-control" placeholder="{% trans "00:00" %}" />
+    <label for="moveeventEnd">{% trans "End" %}</label>
+    <input name="end" id="moveeventEnd" value="<%= moment(end).format('HH:mm') %>" type="text" class="form-control" placeholder="{% trans "00:00" %}" />
+
+    <div class="form-control" style="margin-top: 5px; margin-bottom: 5px">
+        <input <% if (cancelled) { %>checked="checked"<% } %> type="checkbox" name="cancel" id="cancelEvent"/> <label for="cancelEvent">Cancel</label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+    <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Cancel" %}</button>
+</form>
+</script>
+
+<script type="text/html" id="CommentsView">
+   <i class="fa fa-comment"></i>
+   <% if (last_comment != undefined) { %>
+    <span class='comment'><%= last_comment.get('comment') %></span>
+   <% } %>
+   <input type='text' name='newcomment'/>
+</script>
+
+<script type="text/html" id="WeekView">
+    <table class="timetable">
+      <thead>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+</script>
+
+<script type="text/html" id="EventLoadingView">
+    <img src="{% static 'stables/img/ajax-loader.gif' %}"/>
+</script>
+
+<script type="text/html" id="HorseLimitReachedMessage">
+    <h4>{% trans "Horse day limit reached" %}</h4>
+    <span>{% trans "Horse <%= name %> is riding over it's limit of <%= limit %>" %}</span>
+</script>
+
+<script type="text/javascript">
+    var courses = [
+        {% for c in courses %}
+            {
+                value: {{ c.id }},
+                label: "{{ c }}"
+            },
+        {% endfor %}
+    ];
+    var addNewCourse = { value: -1, label: "{% trans 'Add new...' %}"};
+</script>
+
+<script type="text/html" id="AddEventView" >
+<div class="modal fade" role="dialog" aria-labelledby="ModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <a class="close" data-dismiss="modal">&times;</a>
+                <h3 class="modal-title" id="ModalLabel">{% trans "Add new event" %}</h3>
+            </div>
+            <div class="modal-body">
+
+                <form role="form" id="addeventForm">
+                    <div class="form-group courseform ui-front">
+                        <input type="text" name="name" class="courseSelect form-control" placeholder="{% trans "Select event or start new" %}" />
+                        <div class="addEventCourseInfo form-group">
+
+                        </div>
+                        <a class="gotoCourseEdit">{% trans "I want to change above information" %}</a>
+                        <ul class="enrolls list-group">
+                        </ul>
+                    </div>
+                    <div class="form-group currentOccurrence">
+                        {% trans "Next events:" %}
+                        <ul class="currentRepeat">
+
+                        </ul>
+                    </div>
+                    <ul class="nav nav-tabs">
+                        <li class="active"><a href="#onetime-tab" data-toggle="tab">{% trans "One time event" %}</a></li>
+                        <li><a href="#repeating-tab" data-toggle="tab">{% trans "Repeating event" %}</a></li>
+                        <!--<li><a href="#ending-tab" data-toggle="tab">{% trans "End current events" %}</a></li>-->
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane form-group active" id="onetime-tab">
+                            <div class="form-group timeform">
+                                <label for="addeventDate">{% trans "Date" %}</label>
+                                <input name="date" id="addeventDate" type="text" class="form-control" placeholder="{% trans "2014-12-31" %}" value="<%= date %>"/>
+                                <label for="addeventStart">{% trans "Start" %}</label>
+                                <input name="start" id="addeventStart" type="text" class="form-control" placeholder="{% trans "00:00" %}" />
+                                <label for="addeventEnd">{% trans "End" %}</label>
+                                <input name="end" id="addeventEnd" type="text" class="form-control" placeholder="{% trans "00:00" %}" />
+
+                                <label for="addeventRepeat">{%  trans "Repeat?" %}</label>
+                                <input name="repeat" id="addeventRepeat" type="checkbox" class="form-control" />
+
+                                <label for="addeventRepeatUntil">{%  trans "Last weekly occurrence (optional)" %}</label>
+                                <input name="repeatUntil" id="addeventRepeatUntil" type="date" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="tab-pane form-group" id="repeating-tab">
+                        </div>
+                        <div class="tab-pane form-group" id="ending-tab">
+                        </div>
+                    </div>
+                </form>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Cancel" %}</button>
+                <button type="submit" form="addeventForm" class="btn btn-primary">{% trans "Save" %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+</script>
+
+<script type="text/html" id="AddEventCourseInfo" >
+    <% window.labelId = window.labelId == undefined ? 1 : window.labelId + 1; %>
+    <% if (typeof id == "undefined") { %>
+            <div class="addEventInfo">{% trans "Adding a new course" %}</div>
+    <% } %>
+    <label for="addeventCost<%= labelId %>">{%  trans "Cost" %}</label>
+    <input name="default_participation_fee" id="addeventCost<%= labelId %>" type="number" class="form-control" value="<%= typeof default_participation_fee != 'undefined' ? default_participation_fee : {% settings "default_event_cost" %} %>"/>
+
+    <label for="addeventParticipants<%= labelId %>">{%  trans "Max participants" %}</label>
+    <input name="max_participants" id="addeventParticipants<%= labelId %>" type="number" class="form-control" value="<%= typeof max_participants != 'undefined' ? max_participants : {% settings "default_participant_max" %} %>" />
+
+    <div class="form-group">
+        <label for="addeventDefaultTickets<%= labelId %>">{%  trans "Default tickets" %}</label>
+        <select class="form-control" id="addeventDefaultTickets<%= labelId %>" name="default_tickets" multiple>
+            {% for tt in ticket_types %}
+                <option value="{{ tt.id }}"
+                    <% if (typeof default_tickets != "undefined" && _.contains(default_tickets, {{ tt.id }})) { %>
+                        selected="selected"
+                    <% } %>
+                        >{{ tt }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-group">
+        <input name="api_hide" id="addeventApi<%= labelId %>" type="checkbox" <% if (typeof api_hide != 'undefined' && api_hide) { %>checked="checked"<% } %> />
+        <label for="addeventApi<%= labelId %>">{%  trans "Hidden from public website" %}</label>
+    </div>
+</script>
+
+<script type="text/html" id="EditCourseView" >
+    <div class="modal fade" role="dialog" aria-labelledby="ModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <a class="close" data-dismiss="modal">&times;</a>
+                    <h3 class="modal-title" id="ModalLabel">{% trans "Edit course" %}</h3>
+                </div>
+                <div class="modal-body">
+                    <form role="form" id="addeventForm">
+                        <div class="form-group courseform ui-front">
+                            <input type="text" name="name" class="form-control" value="<%= name %>" />
+                            <p class="help-block bg-warning" style="display: none">{% trans "The name will change on all past and future events" %}</p>
+                            <div class="addEventCourseInfo form-group">
+
+                            </div>
+                            <a class="gotoNewEvent">{% trans "I want to add a new event" %}</a>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" form="addeventForm" class="btn btn-primary">{% trans "Save" %}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script type="text/html" id="ShowEventCourseInfo" >
+        <label class="control-label">{% trans "Cost" %}</label>
+        <p class="form-control-static"><%= default_participation_fee %></p>
+        <label class="control-label">{%  trans "Max participants" %}</label>
+        <p class="form-control-static"><%= max_participants %></p>
+
+        <label >{%  trans "Default tickets" %}</label>
+        <ul class="list-inline">
+        {% for tt in ticket_types %}
+        <% if (typeof default_tickets != "undefined" && _.contains(default_tickets, {{ tt.id }})) { %>
+        <li>{{ tt }}</li>
+        <% } %>
+        {% endfor %}
+        </ul>
+
+        <% if (typeof api_hide != 'undefined' && api_hide) { %>
+            <label class="control-label">{%  trans "Hidden from public website" %}</label>
+        <% } %>
+</script>
+
+<script type="text/html" id="timeform" >
+</script>
+

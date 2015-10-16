@@ -1,0 +1,21 @@
+{% load i18n  %}
+
+<p style="display: inline">
+    {% trans "E-mail" %}: {{ object.user.email }}
+    {% if not object.user.is_active and perms.auth.edit_user %}
+        <form style="display: inline" method="POST" action="{% url 'user_activate' object.user.username %}">
+            {% csrf_token %}
+            <button name="activate" type="submit" class="btn">{% trans "Activate user login" %}</button>
+        </form>
+    {% elif perms.auth.edit_user %}
+        <span style="font-size: smaller">({% trans "User can login" %})</span>
+    {% endif %}
+</p>
+<p>
+    {% trans "phone number"|capfirst %}: {{ object.phone_number }}
+    {% if object.phone_number %}
+        <a href="tel:{{ object.phone_number }}">{% trans "Call" %}</a>
+        <a href="sms:{{ object.phone_number }}">{% trans "SMS" %}</a>
+    {% endif %}
+</p>
+

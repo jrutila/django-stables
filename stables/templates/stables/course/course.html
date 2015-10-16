@@ -47,7 +47,7 @@ Enrolled: {{ attending }}/{{ space }}
           {% if perms.stables.view_participation %}
               {{ part.short }}
           {% else %}
-            {% ifequal user.get_profile part.participant %}
+            {% ifequal user.userprofile part.participant %}
               {{ part.short }}
             {% else %}
               {{ part.state|state }}

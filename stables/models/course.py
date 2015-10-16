@@ -1,30 +1,16 @@
+import datetime
+
 from django.utils.formats import time_format
 from django.db import models
-from django.core.urlresolvers import reverse
 from django.db.models import Q
-from django.db.models import Count
-from django.db import IntegrityError, transaction
-from django.contrib.auth.models import User
-from django.contrib.contenttypes.models import ContentType
-import django_settings
 from schedule.models import Event, Occurrence, Rule
-from user import UserProfile, RiderLevel
-from financial import CurrencyField, TicketType
-import datetime
-from django.utils.translation import ugettext, ugettext_lazy as _
-from django.template.defaultfilters import date, time
-from django.core.exceptions import ObjectDoesNotExist
-import reversion
-from django.db.models.signals import post_save
-from django.db.models.signals import pre_save
-from django.dispatch import receiver
-from horse import Horse
-import django.dispatch
 from django.utils import timezone
+from django.utils.translation import ugettext as _
 from django.template.defaultfilters import date as _date
-from django.template.defaultfilters import time as _time
+
 from stables.models import *
-from django.conf import settings
+from stables.models.common import CurrencyField, TicketType
+from stables.models.user import RiderLevel, UserProfile
 
 __author__ = 'jorutila'
 
@@ -46,7 +32,7 @@ class Course(models.Model):
         permissions = (
             ('view_participations', "Can see detailed participations"),
         )
-    def __unicode__(self):
+    def __str__(self):
         try:
             ev = next(e for e in self.events.all() if e.rule != None)
             if ev:
@@ -69,13 +55,14 @@ class Course(models.Model):
     #def get_next_occurrence #TODO:
     def get_next_occurrences(self, amount=1, since=timezone.now()):
         #only_active = Q(end_recurring_period__gte=since) | Q(end_recurring_period__isnull=True)
+        since = timezone.localtime(since, timezone.get_current_timezone())
         evs = self.events.all() #.filter()
         starts = []
         for e in evs:
             if e.rule == None:
                 occ = None
                 try:
-                    occ = e.occurrences_after(since).next()
+                    occ = next(e.occurrences_after(since))
                 except StopIteration:
                     pass
                 if occ:
@@ -156,7 +143,7 @@ class Enroll(models.Model):
     class Meta:
         app_label = 'stables'
     def __unicode__(self):
-        return unicode(self.course) + ": " + unicode(self.participant)
+        return str(self.course) + ": " + str(self.participant)
     def short(self):
         return ugettext('%(name)s %(state)s') % {
             'name': self.participant,
@@ -169,41 +156,6 @@ class Enroll(models.Model):
 
     objects = EnrollManager()
 
-    def _get_actual_state(self):
-        if self.state == WAITFORPAY:
-            type = ContentType.objects.get_for_model(self)
-            from django.db.models import Sum
-            from financial import Transaction
-            sum = Transaction.objects.filter(object_id=self.id, content_type=type).aggregate(Sum('amount'))['amount__sum']
-            if sum >= 0:
-                return ATTENDING
-        return self.state
-    actual_state = property(_get_actual_state)
-
     def cancel(self):
         self.state = CANCELED
         self.save()
-
-class CourseParticipationActivator(models.Model):
-    class Meta:
-        app_label='stables'
-    enroll = models.ForeignKey(Enroll)
-    activate_before_hours = models.IntegerField()
-
-    def try_activate(self):
-        if self.enroll.state != ATTENDING:
-            self.delete()
-            return None
-        p = None
-        occ = self.enroll.course.get_next_occurrence()
-        if occ and occ.start-datetime.timedelta(hours=self.activate_before_hours) < timezone.now() and not Participation.objects.filter(participant=self.enroll.participant, start=occ.start):
-            p = Participation.objects.create_participation(self.enroll.participant, occ, self.enroll.state, force=True)
-            reversion.set_comment('Automatically created by activator')
-        return p
-
-@receiver(post_save, sender=Enroll)
-def handle_Enroll_save(sender, **kwargs):
-    enroll = kwargs['instance']
-    if enroll.state == ATTENDING and not CourseParticipationActivator.objects.filter(enroll=enroll).exists():
-        # TODO: get the 24 from somewhere else
-        CourseParticipationActivator.objects.create(enroll=enroll, activate_before_hours=24)

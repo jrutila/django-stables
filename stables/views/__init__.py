@@ -64,11 +64,3 @@ def confirm_required(template_name, context_creator, key='__confirm__'):
                 return render_to_response(template_name, context)
         return wraps(func)(inner)
     return decorator
-
-from stables.views.oldviews import *
-from stables.views.user import *
-from stables.views.participation import *
-from stables.views.horse import *
-from stables.views.financial import *
-from stables.views.accident import *
-

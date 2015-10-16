@@ -7,16 +7,16 @@ from django.contrib.auth.models import User
 #from django.utils.translation import ugettext_lazy as _
 from datetime import datetime
 from collections import defaultdict
-from stables.models.user import CustomerInfo
+from stables.forms.user import UserProfileForm
+from stables.models.common import Transaction
+from stables.models.participations import Participation
+from stables.models.user import CustomerInfo, UserProfile
 from django.core.urlresolvers import reverse
-
-from stables.forms import UserProfileForm
-from stables.models import UserProfile
-from stables.models import Participation
-from stables.models import Transaction
 
 from django.contrib.auth.decorators import permission_required, login_required
 from django.utils.decorators import method_decorator
+from stables_shop.models import TicketProductActivator
+
 
 class UserEditorMixin(object):
     @method_decorator(permission_required('stables.change_userprofile'))
@@ -64,13 +64,14 @@ class ActivateUser(FormView):
     def get_success_url(self):
         return reverse('view_user', kwargs=self.kwargs)
 
+
 class PlainViewUser(DetailView):
     template_name = 'stables/user/index.html'
     model = UserProfile
 
     def get_object(self, *args, **kwargs):
         user = User.objects.filter(username=self.kwargs['username'])[0]
-        user = user.get_profile()
+        user = user.userprofile
         CustomerInfo.objects.filter(id=user.customer.id).prefetch_related('transaction_set', 'transaction_set__ticket_set')
         pmore = self.request.GET.get('pmore', 5)
         tmore = int(self.request.GET.get('tmore', 3))
@@ -79,8 +80,7 @@ class PlainViewUser(DetailView):
         if user.rider:
             nxt = Participation.objects.get_next_participation(user, limit=tmore)
             user.next = nxt
-            from stables_shop.models import TicketProductActivator
-            tcks = TicketProductActivator.objects.filter(rider=user.rider).select_related('order', 'order__items')
+            tcks = TicketProductActivator.objects.filter(rider=user.rider).order_by("-order__created")
             ordrs = set()
             ordrs_add = ordrs.add
             o = [ t.order for t in tcks if not (t.order in ordrs or ordrs_add(t.order)) ]

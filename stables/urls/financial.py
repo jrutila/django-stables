@@ -1,8 +1,5 @@
 from django.conf.urls import *
-
-from stables.views import EditTransactionsView
-from stables.views import AddTicketsView
-from stables.views import EditTicketsView
+from stables.views.financial import EditTransactionsView, AddTicketsView, EditTicketsView
 
 urlpatterns = patterns('',
     url(r'^participation/(?P<pid>\d+)/transactions/$', EditTransactionsView.as_view(), name='modify_transactions'),

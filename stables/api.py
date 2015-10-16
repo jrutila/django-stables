@@ -27,7 +27,7 @@ class ParticipationViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        return Participation.objects.filter(participant=user.get_profile()).order_by('-start')
+        return Participation.objects.filter(participant=user.userprofile).order_by('-start')
 
     def get_serializer_class(self):
         if self.suffix != 'List' and self.get_object().start > datetime.datetime.now():

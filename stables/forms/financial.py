@@ -8,8 +8,8 @@ from crispy_forms.layout import Submit
 from crispy_forms.layout import HTML
 from crispy_forms.layout import Layout, Fieldset, ButtonHolder
 
-from stables.models import Transaction
-from stables.models import Ticket
+from stables.models.financial import Transaction
+from stables.models.financial import Ticket
 
 import datetime
 
@@ -120,8 +120,8 @@ class TransactionsForm(forms.Form):
     def _print_td(self, field, output):
         output.append('<td>')
         if self._errors and field in self._errors:
-            output.append(unicode(self._errors[field]))
-        output.append('%s' % unicode(self[field]))
+            output.append(str(self._errors[field]))
+        output.append('%s' % str(self[field]))
         output.append('</td>')
 
 from django.contrib.contenttypes.models import ContentType

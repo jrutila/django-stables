@@ -1,0 +1,22 @@
+{%  extends "shop/base.html" %}
+
+{%  block body %}
+
+    {% if not paid and total %}
+    Olet maksamassa seuraavaa osallistumista:
+        {{ object }}
+    Hinta: {{ total }}
+    <form method="POST" action="">
+        {%  csrf_token %}
+        {{  form.as_p }}
+        <button type="submit">Maksamaan</button>
+    </form>
+    {% elif paid %}
+    Maksoit seuraavaan osallistumisen:
+        {{ object }}
+    Kiitos!
+    {% elif not total %}
+        Osallistuminen {{ object }} on jo maksettu!
+    {%  endif %}
+
+{%  endblock body %}

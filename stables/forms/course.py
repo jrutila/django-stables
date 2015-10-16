@@ -1,6 +1,4 @@
 from django import forms
-from stables.models import Course
-from stables.models import Participation
 from schedule.models import Event
 from schedule.models import Calendar
 from schedule.models import Rule
@@ -13,6 +11,8 @@ from crispy_forms.layout import HTML
 from crispy_forms.layout import Layout, Fieldset, ButtonHolder
 
 from django.utils import timezone
+from stables.models.course import Course
+
 
 class CourseFormHelper(FormHelper):
     form_class = 'blueForms'

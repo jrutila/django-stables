@@ -1,0 +1,10 @@
+{% load i18n  %}
+
+<ul>
+    {% for p in object.next %}
+        <li>
+            {% include "stables/user/partials/_participation_partial.html" with p=p%}
+        </li>
+    {% endfor %}
+    <li><a href="{{ request.path }}?tmore={{ object.next|length|add:2 }}">{% trans "More..." %}</a></li>
+</ul>

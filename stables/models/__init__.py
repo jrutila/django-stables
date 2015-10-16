@@ -24,11 +24,3 @@ ENROLL_STATES = (
 
 def part_move(self, curr, prev):
     self.filter(event=prev.event, start=prev.start, end=prev.end).update(start=curr.start, end=curr.end)
-
-
-from stables.models.user import *
-from stables.models.financial import *
-from stables.models.participations import *
-#from stables.models.course import *
-from stables.models.horse import *
-from stables.models.accident import *

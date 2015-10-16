@@ -1,7 +1,6 @@
 from django.conf.urls import *
-
-from stables.views import CreateAccident
-from stables.views import EditAccident
+from stables.views.accident import CreateAccident
+from stables.views.accident import EditAccident
 
 urlpatterns = patterns('',
     url(r'^add/', CreateAccident.as_view(), name="add_accident"),

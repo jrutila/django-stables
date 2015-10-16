@@ -1,11 +1,8 @@
 from django.conf.urls import *
+from stables.views.dashboard import Newboard
+from stables.views.participation import ParticipationView, DeleteEnroll, CreateEnroll, CancelView, AttendView, \
+    DailyView
 
-from stables.views import ParticipationView
-from stables.views import Newboard
-from stables.views import CreateEnroll
-from stables.views import DeleteEnroll
-from stables.views import DailyView
-from stables.views import CancelView, AttendView
 
 datetime_regex = '\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}'
 

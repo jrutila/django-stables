@@ -1,0 +1,18 @@
+django_tastypie
+django-reportengine
+-e git+http://github.com/jrutila/django-reportengine.git#egg=django_reportengine
+django-contrib-comments
+django-crispy-forms
+django-sekizai
+isoweek
+-e git+http://github.com/jrutila/django-settings.git#egg=django-settings
+django-bower
+psycopg2
+django-tenant-schemas==1.5.5
+-e git+http://github.com/jrief/django-shop.git#egg=django-shop
+beautifulsoup4
+django-fsm
+post-office
+django-filer
+django-ipware
+django-cms

@@ -129,7 +129,7 @@ var DayView = Backbone.View.extend({
     },
     limitTopped: function(limit) {
         var content = $('<div></div>')
-        content.append(_.template($('#HorseLimitReachedMessage').html(), limit.attributes))
+        content.append(_.template($('#HorseLimitReachedMessage').html())(limit.attributes))
         $.msgGrowl({
             type: 'warning',
             title: content.find('h4').html(),
@@ -182,15 +182,22 @@ var WeekView = Backbone.View.extend({
     },
     render: function() {
         this.$el.html(this.template(this.model.attributes))
+        var headerTmpl = _.template($("#DayHeaderView").html());
         var $thead = $('<tr><th class="ui-time"></th></tr>')
         var that = this
         var $tbody = this.$el.find('tbody')
         var hours = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]
         this.model.get('days').each(function(day) {
-            var $header = $("<th>"+moment(day.get('date')).format('l')+"</th>").appendTo($thead)
-            $header.append("&nbsp;<a href='/p/daily/"+day.get('date')+"/'><i class='fa fa-print'></i></a>")
-            var ae = new AddEventButtonView({ model: new Backbone.Model({ date: day.get('date') }) })
-            ae.render()
+            var $header = $("<th></th>").appendTo($thead);
+            $header.append(headerTmpl({
+                date: moment(day.get('date')).format('l'),
+                print_url: '/p/daily/'+day.get('date')
+            }));
+            var ae = new AddEventButtonView({
+                model: new Backbone.Model({ date: day.get('date') }),
+                el: $header.find(".add-course")
+            });
+            ae.render();
             ae.on("eventAdded", function(start) {
                 var date = moment(start).format("YYYY-MM-DD");
                 if (_.has(that.dayViews, date))

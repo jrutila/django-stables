@@ -37,6 +37,14 @@ input[name$='participant']
   margin: 0px;
 }
 
+.ui-stbl-db-user.alert {
+    padding: 0px;
+}
+
+.rider-list li {
+    height: 35px;
+}
+
 .timetable ul.rider-list
 {
   padding-left: 0px;

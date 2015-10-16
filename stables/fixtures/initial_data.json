@@ -1,25 +1,67 @@
 [
     {
-      "model": "schedule.rule",
-      "pk": 1,
-      "fields": {
-        "name": "Weekly",
-        "frequency": "WEEKLY",
-        "params": ""
-      }
+        "pk": 1,
+        "fields": {
+            "slug": "main",
+            "name": "Main"
+        },
+        "model": "schedule.calendar"
     },
     {
-      "model": "stables.accidenttype",
-      "pk": 1,
-      "fields" : {
-          "name": "{ 'en': 'Small', 'fi': 'Pieni' }"
-      }
+        "model": "schedule.rule",
+        "pk": 1,
+        "fields": {
+            "name": "Weekly Course",
+            "frequency": "WEEKLY",
+            "params": "",
+            "description": "Weekly occurrences for riding events"
+        }
     },
     {
-      "model": "stables.accidenttype",
-      "pk": 2,
-      "fields" : {
-          "name": "{ 'en': 'Big', 'fi': 'Iso' }"
-      }
+        "model": "stables.accidenttype",
+        "pk": 1,
+        "fields": {
+            "name": "{ 'en': 'Small', 'fi': 'Pieni' }"
+        }
+    },
+    {
+        "model": "stables.accidenttype",
+        "pk": 2,
+        "fields": {
+            "name": "{ 'en': 'Big', 'fi': 'Iso' }"
+        }
+    },
+    {
+        "fields": {
+            "setting_id": 1,
+            "name": "default_event_cost",
+            "setting_type": ["django_settings", "positiveinteger"]
+        },
+        "model": "django_settings.setting",
+        "pk": 1
+    },
+    {
+        "fields": {
+            "setting_id": 2,
+            "name": "default_participant_max",
+            "setting_type": ["django_settings", "positiveinteger"]
+        },
+        "model": "django_settings.setting",
+        "pk": 2
+    },
+
+    {
+        "fields": {
+            "value": 30
+        },
+        "model": "django_settings.positiveinteger",
+        "pk": 1
+    },
+    {
+        "fields": {
+            "value": 5
+        },
+        "model": "django_settings.positiveinteger",
+        "pk": 2
     }
 ]

@@ -1,32 +1,23 @@
+import datetime
+from decimal import Decimal
+
 from django.db import models
 from django.db.models import Q
-from user import CustomerInfo, RiderInfo
-import datetime
-from django import forms
-from django.utils.translation import ugettext, ugettext_lazy as _
+from django.utils.translation import ugettext_lazy as _
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.db import connection
-from decimal import Decimal
+from schedule.models import Event
 
-from south.modelsinspector import add_introspection_rules
-add_introspection_rules([], ["^stables\.models\.financial\.CurrencyField"])
+from stables.models import ATTENDING, RESERVED, CANCELED, WAITFORPAY
+from stables.models.common import CurrencyField, TicketType, Transaction, _count_saldo
+from stables.models.course import Enroll
+from stables.models.event_metadata import EventMetaData
+from stables.models.participations import Participation
+from stables.models.user import CustomerInfo, RiderInfo
 
-class CurrencyField(models.DecimalField):
-    def __init__(self, *args, **kwargs):
-        kwargs['max_digits'] = 10
-        kwargs['decimal_places'] = 2
-        models.DecimalField.__init__(self, *args, **kwargs)
-
-class TicketType(models.Model):
-    class Meta:
-        app_label = 'stables'
-    def __unicode__(self):
-        return self.name
-    name = models.CharField(_("name"), max_length=32)
-    description = models.TextField(_("description"))
 
 class TicketManager(models.Manager):
     def get_ticketcounts(self, participations, limit=1):
@@ -46,12 +37,11 @@ class TicketManager(models.Manager):
     def get_unused_tickets(self, rider, dt):
         return _get_tickets(_get_rider_q(rider), _get_valid_q(dt))
 
-
 class Ticket(models.Model):
     class Meta:
         app_label = 'stables'
     def __unicode__(self):
-        s = self.type.__unicode__() + ' (' + unicode(self.owner) + ')'
+        s = self.type.__unicode__() + ' (' + str(self.owner) + ')'
         if isinstance(self.owner, CustomerInfo):
             s = s + " F "
         if self.transaction:
@@ -91,20 +81,6 @@ def _use_ticket(ticket_query, transaction):
         ticket = tickets.order_by('expires')[0]
         ticket.transaction = transaction
         ticket.save()
-
-def _count_saldo(transactions):
-    saldo = None
-    ticket_used = None
-    value = None
-    if transactions:
-        saldo = Decimal('0.00')
-        value = abs(transactions[0].amount)
-    for t in [t for t in transactions if t.active]:
-      if t.ticket_set.count() == 0:
-        saldo = saldo + t.amount
-      elif t.ticket_set.count() > 0:
-        ticket_used=t.ticket_set.all()[0]
-    return (saldo, ticket_used, value)
 
 def get_saldo(self):
     return _count_saldo(Transaction.objects.filter(active=True,
@@ -150,8 +126,6 @@ def _get_customer_valid_unused_tickets(self):
 def _get_customer_expired_unused_tickets(self):
     return _get_tickets(_get_customer_q(self), _get_expired_q())
 
-import participations
-from participations import Participation
 Participation.get_saldo = get_saldo
 Participation.get_pay_transaction = get_pay_transaction
 RiderInfo.unused_tickets = property(_get_rider_valid_unused_tickets)
@@ -160,7 +134,6 @@ CustomerInfo.unused_tickets = property(_get_customer_valid_unused_tickets)
 CustomerInfo.expired_tickets = property(_get_customer_expired_unused_tickets)
 CustomerInfo.saldo = property(get_customer_saldo)
 
-from schedule.models import Event
 def _get_default_fee(self):
     if self.course_set.count() > 0:
         return self.course_set.all()[0].default_participation_fee
@@ -241,7 +214,7 @@ class ParticipationTransactionActivator(TransactionActivator):
 
     def activate(self):
         t = None
-        if self.participation.state == participations.ATTENDING:
+        if self.participation.state == ATTENDING:
             t = Transaction()
             t.amount = self.fee*-1
             t.customer = self.participation.participant.rider.customer
@@ -260,11 +233,11 @@ def handle_Participation_save(sender, **kwargs):
         content_type=ContentType.objects.get_for_model(parti),
         object_id=parti.id
         )
-    if parti.state == participations.ATTENDING:
+    if parti.state == ATTENDING:
         # If there is deactivated stuff
         trans = trans.filter(active=False)
         course = parti.event.course #Course.objects.filter(events__in=[parti.event])
-        metadata = participations.EventMetaData.objects.filter(event=parti.event, start=parti.start, end=parti.end)
+        metadata = EventMetaData.objects.filter(event=parti.event, start=parti.start, end=parti.end)
         if course:
             #course = course[0]
             if trans:
@@ -279,68 +252,20 @@ def handle_Participation_save(sender, **kwargs):
         elif metadata:
             metadata = metadata[0]
             ParticipationTransactionActivator.objects.try_create(parti, metadata.default_participation_fee)
-    elif parti.state == participations.CANCELED or parti.state == participations.RESERVED:
+    elif parti.state == CANCELED or parti.state == RESERVED:
         ParticipationTransactionActivator.objects.filter(participation=parti).delete()
         trans.deactivate()
         for ticket in Ticket.objects.filter(transaction__in=trans):
           ticket.transaction = None
           ticket.save()
 
-class TransactionQuerySet(models.query.QuerySet):
-  def deactivate(self):
-    for t in self:
-      t.active = False
-      t.save()
 
-class TransactionManager(models.Manager):
-  def get_query_set(self):
-    return TransactionQuerySet(self.model, using=self._db)
+def _get_actual_state(self):
+    if self.state == WAITFORPAY:
+        type = ContentType.objects.get_for_model(self)
+        sum = Transaction.objects.filter(object_id=self.id, content_type=type).aggregate(Sum('amount'))['amount__sum']
+        if sum >= 0:
+            return ATTENDING
+    return self.state
+Enroll.actual_state = property(_get_actual_state)
 
-  def get_transactions(self, participations):
-    return self.filter(active=True, content_type=ContentType.objects.get_for_model(Participation), object_id__in=participations).order_by('object_id', 'created_on').select_related().prefetch_related('ticket_set__type', 'ticket_set__owner')
-
-  def get_saldos(self, participations):
-      ret = {}
-      trans = list(self.get_transactions(participations))
-      ids = participations
-      for (pid, tt) in [(x, [y for y in trans if y.object_id==x]) for x in ids]:
-          ret[pid] = _count_saldo(tt)
-      return ret
-
-class Transaction(models.Model):
-    objects = TransactionManager()
-    class Meta:
-        app_label = 'stables'
-        permissions = (
-            ('can_view_saldo', "Can see transactions and saldo"),
-        )
-    def __unicode__(self):
-        #if self.source:
-            #name = self.source.__unicode__() 
-        name = unicode(self.amount)
-        if self.ticket_set.count():
-          name = '(%s)' % unicode(self.ticket_set.all()[0].type)
-        name = name + ': ' + unicode(self.source)
-        return name
-    active = models.BooleanField(default=True)
-    customer = models.ForeignKey(CustomerInfo)
-    amount = CurrencyField()
-    created_on = models.DateTimeField(default = datetime.datetime.now)
-    content_type = models.ForeignKey(ContentType, null=True, blank=True)
-    object_id = models.PositiveIntegerField(null=True, blank=True)
-    source = generic.GenericForeignKey('content_type', 'object_id')
-    method = models.CharField(max_length=35, null=True, blank=True)
-
-    def delete(self):
-        self.ticket_set.clear()
-        super(Transaction, self).delete()
-
-    def getIncomeValue(self):
-        if self.ticket_set.count() == 1:
-            val = self.ticket_set.all()[0].value
-            if val != None:
-                return val
-            return self.amount*-1
-        if self.amount < 0:
-            return Decimal('0.00')
-        return self.amount

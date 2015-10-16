@@ -5,95 +5,26 @@
     <div class="widget-content">
 
 <h1>
-    <span
-        {% if object.inactive %}style="text-decoration:line-through"{% endif %}
-    >{{ object }}
-        {% if perms.auth.edit_user %}
-        &nbsp;<a href="{% url "edit_user" object.user %}"><i class="fa fa-edit"></i></a>
-        {% endif %}
-    </span>
-    {% ifnotequal object.customer object.rider.customer %}
-    <small>
-    (<a href="{{ object.rider.customer.user.get_absolute_url }}">{{ object.rider.customer.user }}</a>)
-    </small>
-    {% endifnotequal %}
+    {% include "stables/user/partials/_basic.html" %}
 </h1>
 
-{% if object.instructor %}
-<p>
-{% trans "Instructor" %}
-</p>
-{% endif %}
-
-<p style="display: inline">
-{% trans "E-mail" %}: {{ object.user.email }}
-    {% if not object.user.is_active and perms.auth.edit_user %}
-        <form style="display: inline" method="POST" action="{% url 'user_activate' object.user.username %}">
-            {% csrf_token %}
-            <button name="activate" type="submit" class="btn">{% trans "Activate user login" %}</button>
-        </form>
-    {% elif perms.auth.edit_user %}
-        <span style="font-size: smaller">({% trans "User can login" %})</span>
-    {% endif %}
-</p>
-<p>
-{% trans "phone number"|capfirst %}: {{ object.phone_number }}
-    {% if object.phone_number %}
-        <a href="tel:{{ object.phone_number }}">{% trans "Call" %}</a>
-        <a href="sms:{{ object.phone_number }}">{% trans "SMS" %}</a>
-    {% endif %}
-</p>
+    {% include "stables/user/partials/_contact.html" %}
 
 {% if object.next and object.next.count > 0 %}
 <h3>
   {% trans "Next event" %}
 </h3>
-  <ul>
-  {% for p in object.next %}
-    <li>
-        {% include "stables/user/_participation_partial.html" with p=p%}
-    </li>
-  {% endfor %}
-  <li><a href="{{ request.path }}?tmore={{ object.next|length|add:2 }}">{% trans "More..." %}</a></li>
-</ul>
+    {% include "stables/user/partials/_next.html" %}
 {% endif %}
 
 {% if object.participations %}
   <h3>
     {% trans "Previous participations" %}
   </h3>
-  <ul>
-    {% for p in object.participations %}
-    <li>
-        {% include "stables/user/_participation_partial.html" with p=p%}
-    </li>
-    {% endfor %}
-    <li><a href="{{ request.path }}?pmore={{ object.participations|length|add:10 }}">{% trans "More..." %}</a></li>
-  </ul>
+    {% include "stables/user/partials/_prev.html" %}
 {% endif %}
 
 <h3>{% trans "Saldo and tickets" %}</h3>
-{% if perms.stables.add_ticket %}
-<a href="{% url "add_tickets" username=object.user.username %}">{% trans "Add tickets" %}</a>
-<a href="{% url "edit_tickets" username=object.user.username %}">{% trans "Edit tickets" %}</a>
-{% endif %}
-{{ object.saldo }}
-<ul>
-{% for t, l in object.tickets.iteritems %}
-<li class="ticket_valid">
-{% blocktrans with name=t amount=l.0 expire_date=l.1 %}
-{{ name }}: {{ amount }} pcs (first expires: {{ expire_date }})
-{% endblocktrans %}
-</li>
-{% endfor %}
-{% for t, l in object.expired_tickets.iteritems %}
-<li class="ticket_expired">
-{% blocktrans with name=t amount=l.0 expire_date=l.1 %}
-Expired {{ name }}: {{ amount }} pcs (first expired: {{ expire_date }})
-{% endblocktrans %}
-</li>
-{% endfor %}
-</ul>
 
 <h3>{% trans "Orders" %}</h3>
     <table class="table">

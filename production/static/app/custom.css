@@ -1,0 +1,45 @@
+/*------------------------------------------------------------------
+
+[Custom Stylesheet]
+
+
+Last change:	03/25/2013
+Assigned to:	You
+
+-------------------------------------------------------------------*/
+.subnavbar-inner.fluid-height
+{
+    height: auto;
+    height: 123px;
+}
+
+.smalled
+{
+    height: 0px !important;
+}
+
+#dashboard-picker
+{
+    z-index: 999;
+    position: relative;
+    display: inline-block;
+}
+
+@media (max-width: 768px) {
+    .subnavbar .ui-datepicker {
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+.ui-autocomplete
+{
+    list-style: none;
+    padding-left: 10px;
+}
+
+#changelist ul
+{
+    list-style: none;
+    padding-left: 10px;
+}
