@@ -10,9 +10,9 @@ if [ ! -f "$OPENSHIFT_DATA_DIR"secrets.json ]; then
 fi
 
 # GETTING-STARTED: change 'myproject' to your project name:
-echo "Executing 'python $OPENSHIFT_REPO_DIR/manage.py migrate_schemas --noinput'"
+echo "Executing 'python $OPENSHIFT_REPO_DIR/manage.py migrate_schemas'"
 # GETTING-STARTED: change 'myproject' to your project name:
-python "$OPENSHIFT_REPO_DIR"manage.py migrate_schemas --noinput
+python "$OPENSHIFT_REPO_DIR"manage.py migrate_schemas
 
 # GETTING-STARTED: change 'myproject' to your project name:
 echo "Executing 'python $OPENSHIFT_REPO_DIR/manage.py collectstatic --noinput'"
