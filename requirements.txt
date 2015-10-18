@@ -15,3 +15,4 @@ django-fsm
 django-filer
 django-ipware
 django-cms
+requests==2.7.0
