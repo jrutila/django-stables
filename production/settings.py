@@ -46,7 +46,7 @@ SHARED_APPS = (
 )
 
 if DEBUG:
-  SHARED_APPS = list(set(SHARED_APPS + ('debug_toolbar',)))
+  SHARED_APPS = SHARED_APPS + ('debug_toolbar',)
   
 
 TENANT_APPS = (
