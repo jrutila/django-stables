@@ -10,6 +10,7 @@ psycopg2
 django-tenant-schemas==1.5.5
 -e git+http://github.com/jrutila/django-shop.git#egg=django-shop
 beautifulsoup4
+-e git+http://github.com/jrutila/django-scheduler.git#egg=django-scheduler
 django-fsm
 django-filer
 django-ipware
