@@ -8,7 +8,7 @@ isoweek
 django-bower
 psycopg2
 django-tenant-schemas==1.5.5
--e git+http://github.com/jrief/django-shop.git#egg=django-shop
+-e git+http://github.com/jrutila/django-shop.git#egg=django-shop
 beautifulsoup4
 django-fsm
 django-filer
