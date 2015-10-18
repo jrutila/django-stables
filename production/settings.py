@@ -36,8 +36,6 @@ SHARED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.staticfiles',
 
-    'debug_toolbar',
-
     'djangobower',
     'crispy_forms',
     'sekizai',
@@ -46,6 +44,10 @@ SHARED_APPS = (
     #'django.contrib.admin',
     'django.contrib.auth',
 )
+
+if DEBUG:
+  SHARED_APPS = list(set(SHARED_APPS + ('debug_toolbar',)))
+  
 
 TENANT_APPS = (
     # The following Django contrib apps must be in TENANT_APPS
