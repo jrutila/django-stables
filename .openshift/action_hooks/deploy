@@ -9,12 +9,17 @@ if [ ! -f "$OPENSHIFT_DATA_DIR"secrets.json ]; then
 	python "$OPENSHIFT_REPO_DIR"libs/secrets.py > "$OPENSHIFT_DATA_DIR"secrets.json
 fi
 
-# GETTING-STARTED: change 'myproject' to your project name:
 echo "Executing 'python $OPENSHIFT_REPO_DIR/manage.py migrate_schemas'"
-# GETTING-STARTED: change 'myproject' to your project name:
 python "$OPENSHIFT_REPO_DIR"manage.py migrate_schemas
 
-# GETTING-STARTED: change 'myproject' to your project name:
+echo "Installing bower"
+export HOME=$OPENSHIFT_REPO_DIR
+npm install bower --prefix $OPENSHIFT_REPO_DIR
+export HOME=$OPENSHIFT_HOMEDIR
+export OPENSHIFT_BOWER_PATH=$OPENSHIFT_REPO_DIR/node_modules/.bin/bower
+
+echo "Executing 'python $OPENSHIFT_REPO_DIR/manage.py bower_install'"
+python "$OPENSHIFT_REPO_DIR"manage.py bower_install
+
 echo "Executing 'python $OPENSHIFT_REPO_DIR/manage.py collectstatic --noinput'"
-# GETTING-STARTED: change 'myproject' to your project name:
 python "$OPENSHIFT_REPO_DIR"manage.py collectstatic --noinput

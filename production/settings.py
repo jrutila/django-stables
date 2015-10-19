@@ -92,6 +92,8 @@ BOWER_INSTALLED_APPS = (
 
     # Required for base admin
 )
+if ON_PAAS and 'OPENSHIFT_BOWER_PATH' in os.environ:
+    BOWER_PATH = os.environ['OPENSHIFT_BOWER_PATH']
 
 MIDDLEWARE_CLASSES = (
     'tenant_schemas.middleware.TenantMiddleware',
