@@ -28,11 +28,12 @@ echo "Installing bower"
 #(cd "${OPENSHIFT_REPO_DIR}"; export TMPDIR="/tmp"; npm install bower)
 export HOME=$OPENSHIFT_DATA_DIR
 npm install bower --prefix $OPENSHIFT_DATA_DIR
-export HOME=$OPENSHIFT_HOMEDIR
 export OPENSHIFT_BOWER_PATH=$OPENSHIFT_DATA_DIR/node_modules/.bin/bower
 
 echo "Executing 'python $OPENSHIFT_REPO_DIR/manage.py bower install'"
 python "$OPENSHIFT_REPO_DIR"manage.py bower_install
+
+export HOME=$OPENSHIFT_HOMEDIR
 
 echo "Executing 'python $OPENSHIFT_REPO_DIR/manage.py collectstatic --noinput'"
 python "$OPENSHIFT_REPO_DIR"manage.py collectstatic --noinput
