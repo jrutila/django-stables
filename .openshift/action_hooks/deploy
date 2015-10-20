@@ -25,11 +25,11 @@ _SHOW_SETUP_PATH_MESSAGES="true" setup_path_for_custom_node_version
 ensure_node_is_installed
 
 echo "Installing bower"
-(cd "${OPENSHIFT_REPO_DIR}"; export TMPDIR="/tmp"; npm install bower)
-#export HOME=$OPENSHIFT_DATA_DIR
-#npm install bower --prefix $OPENSHIFT_DATA_DIR
-#export HOME=$OPENSHIFT_HOMEDIR
-#export OPENSHIFT_BOWER_PATH=$OPENSHIFT_DATA_DIR/node_modules/.bin/bower
+#(cd "${OPENSHIFT_REPO_DIR}"; export TMPDIR="/tmp"; npm install bower)
+export HOME=$OPENSHIFT_DATA_DIR
+npm install bower --prefix $OPENSHIFT_DATA_DIR
+export HOME=$OPENSHIFT_HOMEDIR
+export OPENSHIFT_BOWER_PATH=$OPENSHIFT_DATA_DIR/node_modules/.bin/bower
 
 echo "Executing 'python $OPENSHIFT_REPO_DIR/manage.py bower install'"
 python "$OPENSHIFT_REPO_DIR"manage.py bower_install
