@@ -9,16 +9,29 @@ if [ ! -f "$OPENSHIFT_DATA_DIR"secrets.json ]; then
 	python "$OPENSHIFT_REPO_DIR"libs/secrets.py > "$OPENSHIFT_DATA_DIR"secrets.json
 fi
 
+# First migrate the schemas (No Node needed here)
 echo "Executing 'python $OPENSHIFT_REPO_DIR/manage.py migrate_schemas'"
 python "$OPENSHIFT_REPO_DIR"manage.py migrate_schemas
 
-echo "Installing bower"
-export HOME=$OPENSHIFT_REPO_DIR
-npm install bower --prefix $OPENSHIFT_REPO_DIR
-export HOME=$OPENSHIFT_HOMEDIR
-export OPENSHIFT_BOWER_PATH=$OPENSHIFT_REPO_DIR/node_modules/.bin/bower
+#  Source utility functions for custom nodejs.
+source "$OPENSHIFT_REPO_DIR/.openshift/lib/utils"
 
-echo "Executing 'python $OPENSHIFT_REPO_DIR/manage.py bower_install'"
+#  Setup path to include the custom Node[.js] version.
+_SHOW_SETUP_PATH_MESSAGES="true" setup_path_for_custom_node_version
+
+#  On slave/serving gears, need to do the install as part of deploy
+#  so check if its needed. Just ensure the custom Node[.js] version is
+#  installed.
+ensure_node_is_installed
+
+echo "Installing bower"
+(cd "${OPENSHIFT_REPO_DIR}"; export TMPDIR="/tmp"; npm install bower)
+#export HOME=$OPENSHIFT_DATA_DIR
+#npm install bower --prefix $OPENSHIFT_DATA_DIR
+#export HOME=$OPENSHIFT_HOMEDIR
+#export OPENSHIFT_BOWER_PATH=$OPENSHIFT_DATA_DIR/node_modules/.bin/bower
+
+echo "Executing 'python $OPENSHIFT_REPO_DIR/manage.py bower install'"
 python "$OPENSHIFT_REPO_DIR"manage.py bower_install
 
 echo "Executing 'python $OPENSHIFT_REPO_DIR/manage.py collectstatic --noinput'"

@@ -94,6 +94,8 @@ BOWER_INSTALLED_APPS = (
 )
 if ON_PAAS and 'OPENSHIFT_BOWER_PATH' in os.environ:
     BOWER_PATH = os.environ['OPENSHIFT_BOWER_PATH']
+if ON_PAAS:
+    BOWER_COMPONENTS_ROOT = os.path.join(os.environ['OPENSHIFT_DATA_DIR'], 'components')
 
 MIDDLEWARE_CLASSES = (
     'tenant_schemas.middleware.TenantMiddleware',
