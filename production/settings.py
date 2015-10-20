@@ -147,6 +147,14 @@ if ON_PAAS:
                 'PASSWORD': os.environ['OPENSHIFT_POSTGRESQL_DB_PASSWORD'],
                 'HOST':     os.environ['OPENSHIFT_POSTGRESQL_DB_HOST'],
                 'PORT':     os.environ['OPENSHIFT_POSTGRESQL_DB_PORT'],
+            },
+            'old': {
+                'ENGINE': 'tenant_schemas.postgresql_backend',
+                'NAME':     os.environ['OPENSHIFT_OLD_APP_NAME'],
+                'USER':     os.environ['OPENSHIFT_OLD_POSTGRESQL_DB_USERNAME'],
+                'PASSWORD': os.environ['OPENSHIFT_OLD_POSTGRESQL_DB_PASSWORD'],
+                'HOST':     os.environ['OPENSHIFT_OLD_POSTGRESQL_DB_HOST'],
+                'PORT':     os.environ['OPENSHIFT_OLD_POSTGRESQL_DB_PORT'],
             }
         }
         
