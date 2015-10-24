@@ -38,7 +38,7 @@ urlpatterns = patterns('',
 )
 
 from django.conf import settings
-if settings.DEBUG:
+if settings.DEBUG and not settings.ON_PAAS:
     import debug_toolbar
     urlpatterns += patterns('',
         url(r'^__debug__/', include(debug_toolbar.urls)),

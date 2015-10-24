@@ -45,7 +45,7 @@ SHARED_APPS = (
     'django.contrib.auth',
 )
 
-if DEBUG:
+if DEBUG and not ON_PAAS:
   SHARED_APPS = SHARED_APPS + ('debug_toolbar',)
   
 
