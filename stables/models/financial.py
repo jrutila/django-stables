@@ -40,8 +40,8 @@ class TicketManager(models.Manager):
 class Ticket(models.Model):
     class Meta:
         app_label = 'stables'
-    def __unicode__(self):
-        s = self.type.__unicode__() + ' (' + str(self.owner) + ')'
+    def __str__(self):
+        s = str(self.type) + ' (' + str(self.owner) + ')'
         if isinstance(self.owner, CustomerInfo):
             s = s + " F "
         if self.transaction:
