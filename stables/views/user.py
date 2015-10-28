@@ -73,7 +73,7 @@ class PlainViewUser(DetailView):
         user = User.objects.filter(username=self.kwargs['username'])[0]
         user = user.userprofile
         CustomerInfo.objects.filter(id=user.customer.id).prefetch_related('transaction_set', 'transaction_set__ticket_set')
-        pmore = self.request.GET.get('pmore', 5)
+        pmore = int(self.request.GET.get('pmore', 5))
         tmore = int(self.request.GET.get('tmore', 3))
 
         setattr(user, 'next', [])
