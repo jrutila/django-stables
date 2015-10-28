@@ -71,7 +71,7 @@ TENANT_APPS = (
     'django_settings'
 )
 
-INSTALLED_APPS = list(set(SHARED_APPS + TENANT_APPS))
+INSTALLED_APPS = list(set(TENANT_APPS + SHARED_APPS))
 
 TENANT_MODEL = "customers.Client"
 
