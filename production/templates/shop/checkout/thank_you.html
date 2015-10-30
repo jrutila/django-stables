@@ -1,0 +1,9 @@
+{% extends "shop/base.html" %}
+{% load i18n %}
+{% load url from future %}
+
+{% block body %}
+  <h1>Kiitos tilauksestasi!</h1>
+  <p>Käsittelemme tilauksen pian</p>
+  <a href="{% url 'shop_welcome' %}">Takaisin kaupan etusivulle</a>
+{% endblock %}

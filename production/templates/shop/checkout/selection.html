@@ -1,0 +1,30 @@
+{% extends "shop/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block body %}
+  <h1>Toimitus- ja laskutustiedot</h1>
+  <div class="well well-lg">
+  <form method="POST" class="form-horizontal">
+
+  {% csrf_token %}
+  <fieldset>
+  <legend>Ratsastajan tiedot</legend>
+  {% crispy shipping_address %}
+  </fieldset>
+  <fieldset>
+  <legend>Laskutustiedot</legend>
+  {% crispy billing_address %}
+  </fieldset>
+  <fieldset>
+  <legend>Maksutapa</legend>
+  {% crispy billing_shipping_form %}
+  </fieldset>
+  <fieldset>
+  <legend>Lisätietoja</legend>
+  {% crispy extra_info_form %}
+  </fieldset>
+  <button type="submit" class="btn btn-primary">Maksamaan</button>
+
+  </form>
+  </div>
+{% endblock %}

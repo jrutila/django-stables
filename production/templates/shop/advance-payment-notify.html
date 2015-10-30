@@ -1,0 +1,44 @@
+{% extends "shop/base.html" %}
+{% load url from future %}
+{% load i18n %}
+{% load stables_shop_tags settings_tags %}
+
+{% block body %}
+<div class="panel">
+    <div class="panel-heading">
+        <h3>Tilauksen maksu</h3>
+    </div>
+    <div class="panel-body">
+        <div>
+<p class="row col-xs-12">
+Voit nyt maksaa tilauksesi tilisiirrolla.
+</p>
+<p class="row">
+<b class="text-primary col-xs-4">Tilinumero</b><span class="col-xs-8">{% settings "payment_account_number" %}</span>
+</p>
+<p class="row">
+<b class="text-primary col-xs-4">Vastaanottaja</b><span class="col-xs-8">{% settings "payment_receiver" %}</span>
+</p>
+<p class="row">
+<b class="text-primary col-xs-4">Määrä</b><span class="col-xs-8">{{ amount }}</span>
+</p>
+<p class="row">
+<b class="text-primary col-xs-4">Viitenumero</b><span class="col-xs-8">{{ transaction_id|bank_reference }}</span>
+</p>
+        </div>
+
+<div class="well well-sm text-warning">
+    Maksu tarkistetaan käsin. Tilaus vahvistuu ajallaan.
+</div>
+
+<p>
+<a href="{{ next_url }}" class="btn btn-primary">
+    Selvä, maksoin
+</a>
+</p>
+
+    </div>
+
+</div>
+
+{% endblock %}

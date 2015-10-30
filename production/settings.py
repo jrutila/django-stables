@@ -39,6 +39,7 @@ SHARED_APPS = (
     'djangobower',
     'crispy_forms',
     'sekizai',
+    'rest_framework',
 
     # everything below here is optional
     #'django.contrib.admin',
@@ -113,7 +114,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            os.path.join(BASE_DIR, 'templates'),
+            os.path.join(BASE_DIR, 'production', 'templates'),
         ],
         'APP_DIRS': True,
         'OPTIONS': {
