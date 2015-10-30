@@ -3,11 +3,11 @@ from rest_framework import serializers
 from rest_framework import views
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
-from stables.models import Participation
-from stables.models import InstructorParticipation
-from stables.models import Course
 from stables.models import CANCELED
 from datetime import datetime, date, timedelta
+from stables.models.course import Course
+from stables.models.participations import Participation, InstructorParticipation
+
 
 class UserAllowedParticipationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -40,8 +40,8 @@ class TimetableView(views.APIView):
     permission_classes = (AllowAny,)
 
     def get(self, request, format=None):
-        start = datetime.strptime(request.QUERY_PARAMS.get('start', str(date.today())), "%Y-%m-%d").date()
-        end = datetime.strptime(request.QUERY_PARAMS.get('end', str(start)), "%Y-%m-%d").date()
+        start = datetime.strptime(request.query_params.get('start', str(date.today())), "%Y-%m-%d").date()
+        end = datetime.strptime(request.query_params.get('end', str(start)), "%Y-%m-%d").date()
 
         dates = {}
         d = start
@@ -51,7 +51,12 @@ class TimetableView(views.APIView):
             endtime = timezone.make_aware(datetime.combine(d, datetime.max.time()), timezone.get_current_timezone())
             events = list(Course.objects.get_course_occurrences(starttime, endtime))
             instructors = InstructorParticipation.objects.filter(event__in=events, start__gte=starttime, end__lte=endtime).select_related()
-            slots = Participation.objects.generate_participations(starttime, endtime)[1]
+            xslots = Participation.objects.generate_participations(starttime, endtime)[1]
+            slots = {}
+            key = lambda occ: "%s %s %s" % (occ.event_id, occ.start, occ.end)
+            for s in xslots:
+                occ = s[0]
+                slots[key(occ)] = s
             dates[str(d)] = []
             for e in events:
                 if e.course.api_hide:
@@ -68,14 +73,15 @@ class TimetableView(views.APIView):
                         if o.original_end != o.end:
                             eh['original_end'] = o.original_end
                         eh['cancelled'] = o.cancelled
-                        eh['instructor'] = [ unicode(i.instructor) for i in instructors if i.event_id == e.id and i.start == o.start and i.end == o.end ]
+                        eh['instructor'] = [ str(i.instructor) for i in instructors if i.event_id == e.id and i.start == o.start and i.end == o.end ]
                         if eh['instructor']:
                             eh['instructor'] = eh['instructor'][0]
                         else:
                             eh['instructor'] = None
-                        if slots[o][0]:
-                            eh['free_amount'] = slots[o][0].max_participants - len([ p for p in slots[o][1] if p.state != CANCELED ])
-                            eh['free_slots'] = slots[o][0].max_participants > len([ p for p in slots[o][1] if p.state != CANCELED ])
+                        if key(o) in slots:
+                            ko = key(o)
+                            eh['free_amount'] = slots[ko][1].max_participants - len([ p for p in slots[ko][2] if p.state != CANCELED ])
+                            eh['free_slots'] = slots[ko][1].max_participants > len([ p for p in slots[ko][2] if p.state != CANCELED ])
                         dates[str(d)].append(eh)
 
             d += timedelta(days=1)
