@@ -1,4 +1,4 @@
-(function ($target) {
+(function (target) {
 
         function loadScript(url, callback) {
             var script = document.createElement("script")
@@ -28,6 +28,7 @@ $('head').append("<script type='text/javascript' src='http://cdnjs.cloudflare.co
 
 var eventTemplate = '<span style="font-weight: bold; <% if (cancelled) { %>text-decoration: line-through; color: red;<% } %>"><% if (typeof original_start !== "undefined") { %> <%= original_start.format("HH:mm") %> &#8658; <%= start.format("dd DoM HH:mm") %>-<%= end.format("HH:mm") %> <% } else { %> <%= start.format("dd DoM HH:mm") %>-<%= end.format("HH:mm") %> <% } %> <%= title %></span> <% if (!cancelled && typeof free_slots !== "undefined") { %><div><%= free_amount %> paikka<% if (free_amount > 1) { %>a<% } %> vapaana</div><% } else if (cancelled) { %>Peruttu!<% } %>';
 
+var $target = $(target);
 var url = $target.attr('data-url');
 var start = moment().format("YYYY-MM-DD");
 var end = moment().add('days', $target.attr('data-days')).format("YYYY-MM-DD");
@@ -65,4 +66,4 @@ $.ajax(url+'api/timetable/?start='+start+'&end='+end)
         });
         });
 
-})((typeof(target) != "undefined" && $(target)) || $('#stables-timetable'));
+})((typeof(target) != "undefined" && target) || '#stables-timetable');
