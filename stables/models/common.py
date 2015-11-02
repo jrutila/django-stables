@@ -28,9 +28,9 @@ class TicketType(models.Model):
 class CustomerInfo(models.Model):
     class Meta:
         app_label = 'stables'
-    def __unicode__(self):
+    def __str__(self):
         try:
-            return self.user.__unicode__()
+            return str(self.user)
         except:
             return self.address
     address = models.CharField(max_length=500)
@@ -53,9 +53,7 @@ class Transaction(models.Model):
         permissions = (
             ('can_view_saldo', "Can see transactions and saldo"),
         )
-    def __unicode__(self):
-        #if self.source:
-            #name = self.source.__unicode__()
+    def __str__(self):
         name = str(self.amount)
         if self.ticket_set.count():
           name = '(%s)' % str(self.ticket_set.all()[0].type)
