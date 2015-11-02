@@ -45,7 +45,7 @@ class ViewFinance:
                 if value:
                     self.amount = value
                 self.method = ticket.type.id
-                self.finance_hint = unicode(ticket)
+                self.finance_hint = str(ticket)
             else:
                 if value == None or saldo < Decimal('0.00'):
                     self.amount = value

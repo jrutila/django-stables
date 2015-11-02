@@ -144,6 +144,6 @@ class PartShortUrl(models.Model):
     participation = models.ForeignKey(Participation, unique=True)
     hash = models.CharField(unique=True, max_length=12, default=generate_hash)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s - %s" % (self.hash, self.participation)
 

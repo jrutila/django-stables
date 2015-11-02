@@ -318,7 +318,7 @@ class ModifyParticipationForm(forms.Form):
       states = course.get_possible_states(participant, occurrence)
       for s in PARTICIPATION_STATES:
         if s[0] != -1:
-          items.append({'value': s[0], 'text': ('(*) %s' % unicode(s[1])) if s[0] in states else s[1] , 'allowed': s[0] in states })
+          items.append({'value': s[0], 'text': ('(*) %s' % str(s[1])) if s[0] in states else s[1] , 'allowed': s[0] in states })
 
       # Put allowed items on top
       items.sort(key=lambda x: x['allowed'], reverse=True)

@@ -305,7 +305,7 @@ class InstructorParticipationManager(models.Manager):
 class InstructorParticipation(models.Model):
     class Meta:
       app_label = 'stables'
-    def __unicode__(self):
+    def __str__(self):
       return ugettext('%(firstname)s %(lastname)s') % { 'firstname': self.instructor.user.first_name, 'lastname': self.instructor.user.last_name }
     instructor = models.ForeignKey(UserProfile)
     event = models.ForeignKey(Event)

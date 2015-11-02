@@ -21,7 +21,7 @@ class LocalizedText():
                 d[l[0]] = ""
         self.texts = d
 
-    def __unicode__(self):
+    def __str__(self):
         lang = django.utils.translation.get_language()
         return self.texts.get(lang, self.texts.get(lang.split('-')[0]))
 
@@ -75,7 +75,7 @@ class AccidentType(models.Model):
     class Meta:
         app_label = "stables"
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.name)
 
     name = I18NCharField(max_length=20)
@@ -89,7 +89,7 @@ class Accident(models.Model):
             ('view_accidents', "Can see detailed accident reports"),
         )
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.rider)+" "+str(self.type)
 
     def get_absolute_url(self):

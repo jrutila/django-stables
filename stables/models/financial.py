@@ -199,8 +199,8 @@ from django.utils import timezone
 class ParticipationTransactionActivator(TransactionActivator):
     class Meta:
         app_label = 'stables'
-    def __unicode__(self):
-        return self.participation.__unicode__() + ': ' + str(self.fee)
+    def __str__(self):
+        return str(self.participation) + ': ' + str(self.fee)
     participation = models.ForeignKey(Participation)
     activate_before_hours = models.IntegerField()
     fee = CurrencyField()

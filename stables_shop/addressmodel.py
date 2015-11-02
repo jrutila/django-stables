@@ -24,7 +24,7 @@ class Address(models.Model):
         verbose_name = _('Address')
         verbose_name_plural = _("Addresses")
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s (%s, %s)' % (self.name, self.zip_code, self.city)
 
     def clone(self):
