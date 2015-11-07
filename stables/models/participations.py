@@ -65,10 +65,10 @@ class ParticipationManager(models.Manager):
         if course:
             course = course[0]
         enroll = Enroll.objects.filter(participant=rider, course=course)
-        parts = self.filter(participant=rider,
+        parts = list(self.filter(participant=rider,
                             event=occurrence.event,
                             start=occurrence.start,
-                            end=occurrence.end)
+                            end=occurrence.end))
         if not parts:
             parti = Participation()
             parti.participant = rider

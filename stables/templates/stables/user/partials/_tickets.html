@@ -6,18 +6,34 @@
 {% endif %}
 {{ object.saldo }}
 <ul>
-    {% for t, l in object.tickets.iteritems %}
+    {% for t, l in object.tickets.items %}
         <li class="ticket_valid">
-            {% blocktrans with name=t amount=l.0 expire_date=l.1 %}
-                {{ name }}: {{ amount }} pcs (first expires: {{ expire_date }})
-            {% endblocktrans %}
+            {% with name=t amount=l.0 expire_date=l.1 family=l.2 %}
+                {% if family %}
+                    {% blocktrans %}
+                        {{ name }} (F): {{ amount }} pcs (first expires: {{ expire_date }})
+                    {% endblocktrans %}
+                {% else %}
+                    {% blocktrans %}
+                        {{ name }}: {{ amount }} pcs (first expires: {{ expire_date }})
+                    {% endblocktrans %}
+                {% endif %}
+            {% endwith %}
         </li>
     {% endfor %}
-    {% for t, l in object.expired_tickets.iteritems %}
+    {% for t, l in object.expired_tickets.items %}
         <li class="ticket_expired">
-            {% blocktrans with name=t amount=l.0 expire_date=l.1 %}
-                Expired {{ name }}: {{ amount }} pcs (first expired: {{ expire_date }})
-            {% endblocktrans %}
+            {% with name=t amount=l.0 expire_date=l.1 family=l.2 %}
+                {% if family %}
+                    {% blocktrans %}
+                        {{ name }} (F): {{ amount }} pcs (expired: {{ expire_date }})
+                    {% endblocktrans %}
+                {% else %}
+                    {% blocktrans %}
+                        {{ name }}: {{ amount }} pcs (expired: {{ expire_date }})
+                    {% endblocktrans %}
+                {% endif %}
+            {% endwith %}
         </li>
     {% endfor %}
 </ul>

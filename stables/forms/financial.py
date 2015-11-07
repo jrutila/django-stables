@@ -1,3 +1,4 @@
+from crispy_forms.bootstrap import FormActions
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import ugettext
@@ -7,16 +8,12 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 from crispy_forms.layout import HTML
 from crispy_forms.layout import Layout, Fieldset, ButtonHolder
+from stables.forms import GenericFormHelper
 
 from stables.models.financial import Transaction
 from stables.models.financial import Ticket
 
 import datetime
-
-class FinancialFormHelper(FormHelper):
-    form_class = 'blueForms'
-    form_method = 'post'
-
 
 class TransactionsForm(forms.Form):
     transactions = []
@@ -136,13 +133,13 @@ class EditTicketsForm(forms.Form):
           self.owner = kwargs.pop('owner')
           super(forms.Form, self).__init__(*args, **kwargs)
           self.fields['group'].choices = groups
-          self.helper = FinancialFormHelper()
+          self.helper = GenericFormHelper()
           self.helper.layout = Layout(
                 HTML("""
                 Choose one of actions: delete, change expire date or convert to family tickets
                     """),
                 'group', 'delete', 'expires', 'make_family',
-                ButtonHolder(
+                FormActions(
                   Submit('submit', 'Submit')
                   )
               )
@@ -189,10 +186,10 @@ class AddTicketsForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
       super(AddTicketsForm, self).__init__(*args, **kwargs)
-      self.helper = FinancialFormHelper()
+      self.helper = GenericFormHelper()
       self.helper.layout = Layout(
             'type', 'expires', 'to_customer', 'amount', 'owner_type', 'owner_id', 'value',
-            ButtonHolder(
+            FormActions(
               Submit('submit', 'Submit')
               )
           )

@@ -44,7 +44,7 @@ class TransactionQuerySet(models.query.QuerySet):
 
 class TransactionManager(models.Manager):
     def get_queryset(self):
-        return TransactionQuerySet(self.model, using=self._db)
+        return TransactionQuerySet(self.model, using=self._db).prefetch_related('ticket_set')
 
 
 class Transaction(models.Model):

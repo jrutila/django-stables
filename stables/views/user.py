@@ -110,12 +110,14 @@ class PlainViewUser(DetailView):
             if hasattr(user, attr):
               ticketamount = defaultdict(int)
               ticketexp = dict()
-              for t in getattr(user, attr):
+              ticketfm = dict()
+              for t in getattr(user, attr).prefetch_related('type'):
                 ticketamount[t.type] = ticketamount[t.type] + 1
                 ticketexp[t.type] = t.expires if not t.type in ticketexp or ticketexp[t.type] is None or (t.expires and ticketexp[t.type] > t.expires) else ticketexp[t.type]
+                ticketfm[t.type] = t.is_family
               setattr(user, attr, dict())
               for tt in ticketexp.keys():
-                getattr(user, attr)[tt] = (ticketamount[tt], ticketexp[tt])
+                getattr(user, attr)[tt] = (ticketamount[tt], ticketexp[tt], ticketfm[tt])
 
         return user
 

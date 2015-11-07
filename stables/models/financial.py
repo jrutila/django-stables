@@ -56,6 +56,11 @@ class Ticket(models.Model):
     expires = models.DateTimeField(_("Expires"), null=True, blank=True)
     value = CurrencyField(_("Value"), null=True, blank=True, help_text=_("Sell value of one ticket. Can be used when calculating user revenue."))
 
+    @property
+    def is_family(self):
+        return self.owner_type_id == ContentType.objects.get_for_model(CustomerInfo).id
+
+
 class TransactionActivator(models.Model):
     class Meta:
         app_label = 'stables'
