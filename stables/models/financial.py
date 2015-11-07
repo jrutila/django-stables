@@ -182,7 +182,7 @@ def pay_participation(participation, value=None, ticket=None, method=None):
     saldo, ticket_used, rvalue = _count_saldo(transactions.all())
 
     if saldo != 0:
-        if value > 0:
+        if value != None and value > 0:
             t = Transaction.objects.create(
                 active=True,
                 content_type=ContentType.objects.get_for_model(Participation),
