@@ -9,7 +9,7 @@ from shop.models import Product
 from shop.models.defaults.order import Order
 from shop.models.defaults.orderitem import OrderItem
 from shop.shipping.backends.flat_rate import FlatRateShipping
-from shop.shop_api import ShopAPI
+from shop.payment.api import PaymentAPI
 from shop.util.decorators import on_method, order_required
 from stables_shop import paytrail
 
@@ -130,5 +130,5 @@ class PayTrailBackend(object):
         method = request.GET.get('METHOD')
         order_number = self._check_authcode(request)
         order = Order.objects.get(pk=order_number)
-        ShopAPI.PaymentAPI().confirm_payment(order, order.order_total, order.id, method)
+        PaymentAPI().confirm_payment(order, order.order_total, order.id, method)
         return HttpResponse("ok")

@@ -31,3 +31,9 @@ def add_vat(value):
 @register.filter
 def orderproducts(products):
     return sorted(products, key=lambda p: p.name.lower())
+
+@register.simple_tag(takes_context=True)
+def notify_link(context):
+    request = context["request"]
+    referer = request.META["HTTP_REFERER"]
+    return referer.replace("success", "notify")

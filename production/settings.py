@@ -26,6 +26,11 @@ if ON_PAAS:
 else:
     ALLOWED_HOSTS = []
 
+if not ON_PAAS:
+    MERCHANT_ID="13466"
+    MERCHANT_PASS="6pKF4jkv97zmqBJ3ZL8gUw5DfT2NMQ"
+
+
 # Application definition
 SHARED_APPS = (
     'tenant_schemas',  # mandatory

@@ -1,9 +1,13 @@
 {% extends "shop/base.html" %}
 {% load i18n %}
 {% load url from future %}
+{% load stables_shop_tags %}
 
 {% block body %}
   <h1>Kiitos tilauksestasi!</h1>
   <p>Käsittelemme tilauksen pian</p>
   <a href="{% url 'shop_welcome' %}">Takaisin kaupan etusivulle</a>
+    {% if debug %}
+        <br/><a href="{% notify_link %}">Notify payment (DEBUG only)</a>
+    {% endif %}
 {% endblock %}

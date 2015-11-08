@@ -46,7 +46,7 @@ def calcAuthCode(order_number, timestamp, paid, method):
     if paid: auth += "|"+paid
     if method: auth += "|"+method
     auth += "|"+getattr(settings, 'MERCHANT_PASS', django_settings.get('merchant_pass', default=None))
-    return hashlib.md5(auth).hexdigest()
+    return hashlib.md5(auth.encode('utf-8')).hexdigest()
 
 if __name__ == "__main__":
     import sys
