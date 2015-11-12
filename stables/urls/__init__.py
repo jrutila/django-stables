@@ -1,4 +1,6 @@
 from django.conf.urls import *
+from django.core.urlresolvers import reverse_lazy
+from django.views.generic import RedirectView
 
 from tastypie.api import Api
 from stables.backbone.course import CourseResource
@@ -9,6 +11,7 @@ from stables.backbone.horse import HorseResource
 from stables.backbone.occurrence import CommentResource, EventMetaDataResource
 from stables.backbone.participation import ParticipationResource
 from stables.backbone.user import UserResource
+from stables.views import DefaultRedirectView
 
 v1_api = Api(api_name="v1")
 v1_api.register(UserResource())
@@ -27,13 +30,14 @@ reportengine.autodiscover()
 
 urlpatterns = patterns('',
     #url(r'^', include('stables.urls.old')),
-    url(r'^u/', include('stables.urls.user')),
-    url(r'^p/', include('stables.urls.participation')),
-    url(r'^h/', include('stables.urls.horse')),
-    url(r'^f/', include('stables.urls.financial')),
-    url(r'^a/', include('stables.urls.accident')),
-    url(r'^r/', include('reportengine.urls')),
-    url(r'^backbone/', include(v1_api.urls)),
+    url('^$', RedirectView.as_view(url=reverse_lazy('newboard'))),
+    url('^u/', include('stables.urls.user')),
+    url('^p/', include('stables.urls.participation')),
+    url('^h/', include('stables.urls.horse')),
+    url('^f/', include('stables.urls.financial')),
+    url('^a/', include('stables.urls.accident')),
+    url('^r/', include('reportengine.urls')),
+    url('^backbone/', include(v1_api.urls)),
     #url(r'^api/', include('stables.urls.api')),
 )
 

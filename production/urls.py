@@ -15,9 +15,11 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
+from django.http import HttpResponse
 from production.common.forms import EmailAuthenticationForm
 
 urlpatterns = [
+    url('^robots\.txt$', lambda r: HttpResponse("User-agent: *\nDisallow: /", content_type="text/plain")),
     url('^admin/', include(admin.site.urls)),
     url('^', include("stables.urls")),
     url('^s/', include("stables_shop.urls")),
