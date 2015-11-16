@@ -15,10 +15,13 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
+from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse
+from django.views.generic import RedirectView
 from production.common.forms import EmailAuthenticationForm
 
 urlpatterns = [
+    url('^$', RedirectView.as_view(url=reverse_lazy('newboard'))),
     url('^robots\.txt$', lambda r: HttpResponse("User-agent: *\nDisallow: /", content_type="text/plain")),
     url('^admin/', include(admin.site.urls)),
     url('^', include("stables.urls")),
@@ -26,6 +29,6 @@ urlpatterns = [
     url('^shop/', include("stables_shop.shop_urls")),
     url('^api/', include('stables.urls.api')),
     url('^api-help/', 'production.common.views.api', name='api-help'),
+    url('^login/$', 'django.contrib.auth.views.login', { 'authentication_form': EmailAuthenticationForm }, name='login'),
     url('^', include('django.contrib.auth.urls')),
-    url('^accounts/login/$', 'django.contrib.auth.views.login', { 'authentication_form': EmailAuthenticationForm }, name='login'),
 ]

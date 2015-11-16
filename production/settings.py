@@ -113,6 +113,8 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
+AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend', 'customers.auth_backends.MasterUserBackend')
+
 ROOT_URLCONF = 'production.urls'
 
 TEMPLATES = [
@@ -242,6 +244,9 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR,"static"),
     os.path.join(BASE_DIR,"production","static"),
 )
+
+LOGIN_REDIRECT_URL = '/'
+LOGIN_URL = '/login'
 
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

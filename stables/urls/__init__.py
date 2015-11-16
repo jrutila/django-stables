@@ -30,7 +30,6 @@ reportengine.autodiscover()
 
 urlpatterns = patterns('',
     #url(r'^', include('stables.urls.old')),
-    url('^$', RedirectView.as_view(url=reverse_lazy('newboard'))),
     url('^u/', include('stables.urls.user')),
     url('^p/', include('stables.urls.participation')),
     url('^h/', include('stables.urls.horse')),
