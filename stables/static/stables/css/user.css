@@ -1,5 +1,27 @@
 li.inactive {
     display: none;
+    color: darkred;
+    font-weight: bold;
+}
+
+ul.show_inactive li {
+    display: none;
+}
+
+ul.show_inactive li.inactive {
+    display: block;
+}
+
+ul.show_zero li {
+    display: none;
+}
+
+ul.show_zero li.saldo {
+    display: block;
+}
+
+#rider_list li:not(.hit) {
+    display: none !important;
 }
 
 .list-group .item {
@@ -10,7 +32,7 @@ li.inactive {
     height: 50px;
 }
 
-.saldo {
+span.saldo {
     display: block;
     color: red;
 }

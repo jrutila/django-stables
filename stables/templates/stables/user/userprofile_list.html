@@ -5,28 +5,37 @@
         <link href="{% static 'stables/css/user.css' %}" rel="stylesheet" type="text/css" />
     {% endaddtoblock %}
     {% addtoblock "js" %}
+        <script type='text/javascript' src="{% static 'stables/js/plugins/string_score/string_score.min.js' %}"></script>
+    {% endaddtoblock %}
+    {% addtoblock "js" %}
+        <script type='text/javascript' src="{% static 'stables/js/plugins/jquery.livesearch/jquery.livesearch.js' %}"></script>
+    {% endaddtoblock %}
+    {% addtoblock "js" %}
         <script type="text/javascript">
         $("#hide_zero").click(function(el) {
             if ($(el.currentTarget).is(":checked"))
             {
-                $("#rider_list .item:not(.inactive)").show();
-                $("#rider_list .item:not(:has(.saldo))").hide();
+                $("#rider_list").removeClass("show_inactive");
+                $("#rider_list").addClass("show_zero");
                 $("#show_inactive").removeAttr("checked");
             }
-            else
-                $("#rider_list .item:not(.inactive)").show();
+            else {
+                $("#rider_list").removeClass("show_inactive");
+                $("#rider_list").removeClass("show_zero");
+            }
         });
         $("#show_inactive").click(function(el) {
             if ($(el.currentTarget).is(":checked"))
             {
-                $("#rider_list .item").hide();
-                $("#rider_list .item.inactive").show();
+                $("#rider_list").addClass("show_inactive");
+                $("#rider_list").removeClass("show_zero");
                 $("#hide_zero").removeAttr("checked");
             } else {
-                $("#rider_list .item").hide();
-                $("#rider_list .item:not(.inactive)").show();
+                $("#rider_list").removeClass("show_inactive");
+                $("#rider_list").removeClass("show_zero");
             }
         });
+        $(".search-query").liveUpdate("#rider_list")
         </script>
     {% endaddtoblock %}
 
@@ -45,7 +54,7 @@
     <div class="widget-content">
         <ul class="row list-group" id="rider_list">
             {% for user in object_list %}
-            <li class="item list-group-item col-md-2 col-sm-6 col-xs-12 {% if user.inactive %} inactive {% endif %}">
+            <li class="item list-group-item col-md-2 col-sm-6 col-xs-12 hit {% if user.inactive %} inactive {% endif %} {% if user.saldo %} saldo {% endif %}">
                 <div>
                     <a href="{{ user.get_absolute_url }}">{{ user }}</a>
                     {% if user.saldo %}
