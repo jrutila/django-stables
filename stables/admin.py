@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib import admin
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponseRedirect
 from django.utils.translation import ugettext_lazy as _
 from django.db.models import Q
@@ -143,7 +143,7 @@ class UserProfileAdmin(admin.ModelAdmin):
 
     def update_riderlevels(self, request, queryset):
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
-        return HttpResponseRedirect(reverse('stables.views.update_rider_levels') + '?ids=' + ','.join(selected))
+        return HttpResponseRedirect(reverse_lazy('stables.views.update_rider_levels') + '?ids=' + ','.join(selected))
 
 
 class InstructorParticipationAdminForm(forms.ModelForm):
