@@ -153,9 +153,13 @@ class EditTicketsForm(forms.Form):
             oid = self.owner.customer.id
         tickets = Ticket.objects.filter(
                 type__id=tt,
-                expires=exp,
                 owner_id=oid,
-                owner_type=ot).order_by('id').select_related('type')
+                owner_type=ot)
+        if exp and exp != 'None':
+            tickets = tickets.filter(expires=exp)
+        else:
+            tickets = tickets.filter(expires__isnull=True)
+        tickets = tickets.order_by('id').select_related('type')
         if self.cleaned_data['expires']:
             new_expires = datetime.datetime.combine(
                     self.cleaned_data['expires'], datetime.time(23,59,59))
