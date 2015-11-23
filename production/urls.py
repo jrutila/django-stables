@@ -17,6 +17,7 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse
+from django.shortcuts import redirect
 from django.views.generic import RedirectView
 from production.common.forms import EmailAuthenticationForm
 from production.forms import UnusablePasswordUserPasswordResetForm
@@ -27,6 +28,7 @@ urlpatterns = [
     url('^admin/', include(admin.site.urls)),
     url('^', include("stables.urls")),
     url('^s/', include("stables_shop.urls")),
+    url('^shop/', lambda r: redirect('product_list')),
     url('^shopper/', include("stables_shop.shop_urls")),
     url('^api/', include('stables.urls.api')),
     url('^api-help/', 'production.common.views.api', name='api-help'),
