@@ -336,7 +336,7 @@ class OrderCancelMixin(object):
         return super(OrderCancelMixin, self).dispatch(request, *args, **kwargs)
 
 class PayView(ShopEditorMixin, OrderCancelMixin, FormView):
-    template_name = 'stables_shop/generic_form.html'
+    template_name = 'stables/generic_form.html'
     success_url = '/s' #TODO: Bad!
     form_class = PayForm
 

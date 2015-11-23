@@ -35,5 +35,7 @@ def orderproducts(products):
 @register.simple_tag(takes_context=True)
 def notify_link(context):
     request = context["request"]
-    referer = request.META["HTTP_REFERER"]
-    return referer.replace("success", "notify")
+    if "HTTP_REFERER" in request.META:
+        referer = request.META["HTTP_REFERER"]
+        return referer.replace("success", "notify")
+    return ""
