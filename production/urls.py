@@ -19,6 +19,7 @@ from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse
 from django.views.generic import RedirectView
 from production.common.forms import EmailAuthenticationForm
+from production.forms import UnusablePasswordUserPasswordResetForm
 
 urlpatterns = [
     url('^$', RedirectView.as_view(url=reverse_lazy('newboard'))),
@@ -30,5 +31,6 @@ urlpatterns = [
     url('^api/', include('stables.urls.api')),
     url('^api-help/', 'production.common.views.api', name='api-help'),
     url('^login/$', 'django.contrib.auth.views.login', { 'authentication_form': EmailAuthenticationForm }, name='login'),
+    url('^password_reset$', 'django.contrib.auth.views.password_reset', { 'password_reset_form': UnusablePasswordUserPasswordResetForm }),
     url('^', include('django.contrib.auth.urls')),
 ]
