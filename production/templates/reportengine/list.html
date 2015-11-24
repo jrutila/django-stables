@@ -1,7 +1,8 @@
 {% extends "reportengine/base.html" %}
-{% load staticfiles i18n %}
+{% load staticfiles i18n sekizai_tags %}
 
 {% block content %}
+
 <form method="POST" action="{% url "report-request" %}">
     <div class="widget">
         <div class="widget-content">

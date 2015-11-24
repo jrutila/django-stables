@@ -28,7 +28,7 @@ urlpatterns = [
     url('^admin/', include(admin.site.urls)),
     url('^', include("stables.urls")),
     url('^s/', include("stables_shop.urls")),
-    url('^shop/', lambda r: redirect('product_list')),
+    url('^shop/', lambda r: redirect('product_list'), name='shop-in'),
     url('^shopper/', include("stables_shop.shop_urls")),
     url('^api/', include('stables.urls.api')),
     url('^api-help/', 'production.common.views.api', name='api-help'),

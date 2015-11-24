@@ -4,10 +4,9 @@
 {% block extra %}
     {% addtoblock "js" %}
     <script type="text/javascript">
-        alert(1)
         $(function() {
             $( "#id_start" ).datepicker({
-                defaultDate: "+1w",
+                defaultDate: "-1w",
                 changeMonth: true,
                 numberOfMonths: 1, dateFormat: "yy-mm-dd", firstDay: 1,
                 onClose: function( selectedDate ) {
@@ -15,7 +14,7 @@
                 }
             });
             $( "#id_end" ).datepicker({
-                defaultDate: "+1w",
+                defaultDate: "-1w",
                 changeMonth: true,
                 numberOfMonths: 1, dateFormat: "yy-mm-dd", firstDay: 1,
                 onClose: function( selectedDate ) {
