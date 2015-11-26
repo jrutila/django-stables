@@ -244,7 +244,7 @@ class EventResource(Resource):
         occ = ev.get_occurrence(id_data['start'])
         if not occ:
             gen = ev.occurrences_after(id_data['start'])
-            occ = gen.next()
+            occ = next(gen)
 
         if not occ.cancelled and 'cancelled' in data and data['cancelled']:
             occ.cancel()

@@ -113,12 +113,12 @@ class Course(models.Model):
             if curEv:
                 gen = curEv.occurrences_after(at)
                 try:
-                    nextOcc = gen.next()
+                    nextOcc = next(gen)
                     # Find first occurrence that is not moved
                     while (nextOcc.original_start != nextOcc.start or nextOcc.original_end != nextOcc.end):
                         nextOcc.title = self.name
                         nextOcc.save()
-                        nextOcc = gen.next()
+                        nextOcc = next(gen)
 
                     self.setRecurrentEvent(
                         start=nextOcc.start,
