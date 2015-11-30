@@ -60,7 +60,6 @@ class ViewEvent:
                         setattr(p, "enroll", enroll[0])
                 self.participations.append(ViewParticipation(p))
         if course:
-            #self.course = course.get_absolute_url()
             self.course_id = course.id
         elif occ and occ.event.course_set.count() > 0:
             self.course_id = occ.event.course_set.all()[0].id
@@ -109,7 +108,7 @@ class EventResource(Resource):
     last_comment_user = fields.CharField(attribute='last_comment_user', null=True)
     last_comment_date = fields.DateField(attribute='last_comment_date', null=True)
     last_comment = fields.CharField(attribute='last_comment', null=True)
-    course_url = fields.CharField(attribute='course', null=True)
+    #course_url = fields.CharField(attribute='course', null=True)
 
     def prepend_urls(self):
         return [
@@ -199,11 +198,20 @@ class EventResource(Resource):
                 ))
         return occs
 
+    def _occ_stuff_(self, occ):
+        parts = Participation.objects.get_participations(occ)
+        saldos = dict(_get_saldos([p.id for p in parts ]))
+        accidents = dict([ (a.rider.pk, a) for a in Accident.objects.filter(at__gte=occ.start, at__lte=occ.end)])
+        instr = list(InstructorParticipation.objects.filter(start__gte=occ.start, end__lte=occ.end))
+        instr = dict((i.event.pk, i) for i in instr)
+        return { "parts": parts, "saldos": saldos, "accidents": accidents, "instr": instr }
+
     def obj_get(self, bundle, **kwargs):
         id_data = self._get_id_data(kwargs['pk'])
         ev = Event.objects.get(id=id_data['id'])
         occ = ev.get_occurrence(id_data['start'])
-        return ViewEvent(occ=occ)
+        stuff = self._occ_stuff_(occ)
+        return ViewEvent(occ=occ, **stuff)
 
     def obj_create(self, bundle, **kwargs):
         data = bundle.data
@@ -246,15 +254,19 @@ class EventResource(Resource):
             gen = ev.occurrences_after(id_data['start'])
             occ = next(gen)
 
+        stuff = {}
         if not occ.cancelled and 'cancelled' in data and data['cancelled']:
             occ.cancel()
+        elif occ.cancelled and 'cancelled' in data and not data['cancelled']:
+            occ.uncancel()
+            stuff = self._occ_stuff_(occ)
         elif not occ.cancelled and 'start' in data and 'end' in data:
             tz = timezone.get_current_timezone()
             new_start = timezone.make_aware(datetime.datetime.strptime(data['start'], '%Y-%m-%dT%H:%M'), tz)
             new_end = timezone.make_aware(datetime.datetime.strptime(data['end'], '%Y-%m-%dT%H:%M'), tz)
             occ.move(new_start, new_end)
 
-        obj = ViewEvent(occ=occ)
+        obj = ViewEvent(occ=occ, **stuff)
         bundle = self.build_bundle(obj=obj, request=request)
         bundle = self.full_dehydrate(bundle)
         bundle = self.alter_detail_data_to_serialize(request, bundle)

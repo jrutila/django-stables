@@ -175,7 +175,7 @@
     <input name="end" id="moveeventEnd" value="<%= moment(end).format('HH:mm') %>" type="text" class="form-control" placeholder="{% trans "00:00" %}" />
 
     <div class="form-control" style="margin-top: 5px; margin-bottom: 5px">
-        <input <% if (cancelled) { %>checked="checked"<% } %> type="checkbox" name="cancel" id="cancelEvent"/> <label for="cancelEvent">Cancel</label>
+        <input <% if (cancelled) { %>checked="checked"<% } %> type="checkbox" name="cancel" id="cancelEvent"/> <label for="cancelEvent">{% trans "Cancel event" %}</label>
     </div>
 
     <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>

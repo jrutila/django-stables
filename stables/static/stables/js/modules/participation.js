@@ -357,14 +357,14 @@ var ParticipationCollection = Backbone.Collection.extend({
         return _.map(data, function(d) {
             if (d.id == undefined)
             {
-                delete d.id
-                delete d.resource_uri
+                delete d.id;
+                delete d.resource_uri;
             }
             return new Participation(d);
         })
     },
     comparator: 'state',
-})
+});
 
 var Event = Backbone.Model.extend({
     initialize: function(attrs, options) {
@@ -375,26 +375,31 @@ var Event = Backbone.Model.extend({
                 comment: this.get('last_comment'),
             })
         })
-        )
+        );
         if (options != undefined)
         {
             if ('limits' in options)
             {
                 this.limits = options['limits'];
-                this.get('participations').each(function (p) {
-                    p.limits = options['limits'];
-                    p.handleHorseLimit();
-                });
             }
             if ('horses' in options)
             {
                 this.horses = options['horses'];
-                this.get('participations').each(function (p) {
-                    p.horses = options['horses'];
-                });
             }
+            this._setStuff();
         }
         Backbone.Do(this);
+    },
+    _setStuff: function(partColl) {
+        var hh = this.horses;
+        var ll = this.limits;
+        if (partColl == undefined) partColl = this.get('participations');
+        partColl.each(function (p) {
+            p.horses = hh;
+            p.limits = ll;
+            if (ll)
+                p.handleHorseLimit();
+        });
     },
     idAttribute: "id", /*function() {
         // Use this so that there can be multiple occurrences from the same event
@@ -414,8 +419,9 @@ var Event = Backbone.Model.extend({
     },
     parse: function(data) {
         if ('participations' in data)
-            data['participations'] = new ParticipationCollection(ParticipationCollection.prototype.parse(data['participations']))
-        return data
+            data['participations'] = new ParticipationCollection(ParticipationCollection.prototype.parse(data['participations']));
+        this._setStuff(data['participations']);
+        return data;
     },
     getHour: function() {
         return parseInt(this.get('start').match(/T(\d{2})/)[1])
@@ -426,6 +432,13 @@ var Event = Backbone.Model.extend({
             method: "create",
             data: function() {
                 return { cancelled: true }
+            }
+        },
+        uncancel: {
+            url: "move/",
+            method: "create",
+            data: function() {
+                return { cancelled: false }
             }
         },
         move: {
@@ -453,6 +466,7 @@ var EventView = Backbone.View.extend({
     initialize: function() {
         this.listenTo(this.model.get('participations'), "sort", this.render);
         this.listenTo(this.model, "action:cancel", this.render);
+        this.listenTo(this.model, "action:uncancel", this.render);
         this.listenTo(this.model, "sync", this.notifyChanged);
     },
     events: {
@@ -464,30 +478,30 @@ var EventView = Backbone.View.extend({
         return false;
     },
     render: function() {
-        this.$el.html(this.template(this.model.attributes))
-        $('select[name="instructor"]', this.$el).val(this.model.get('instructor_id'))
-        var ul = this.$el.find('ul')
+        this.$el.html(this.template(this.model.attributes));
+        $('select[name="instructor"]', this.$el).val(this.model.get('instructor_id'));
+        var ul = this.$el.find('ul');
         var that = this;
         var model = this.model;
         this.model.get('participations')
           .each(function(p) {
-            var view = undefined
-            view = new ParticipationView({model: p})
-            view.render()
+            var view = undefined;
+            view = new ParticipationView({model: p});
+            view.render();
             if (that.model.get('course_id') == null)
               view.$el.find('button').hide();
             ul.append(view.$el)
-        }, this)
+        }, this);
         if (!this.model.get('cancelled'))
-            this.renderAdder()
-        this.renderComments()
+            this.renderAdder();
+        this.renderComments();
 
         var editTemplate = _.template($('#EventEditView').html());
 
         this.$el.find("a.event").click(function() {
             var course = new Course({id: that.model.get("course_id")});
             course.fetch().success(function() {
-                var d = moment(that.model.get("start")).format("YYYY-MM-DD")
+                var d = moment(that.model.get("start")).format("YYYY-MM-DD");
                 var v = new EditCourseView({ model: course, date: d });
                 v.render();
                 v.$el.modal("show");
@@ -509,7 +523,7 @@ var EventView = Backbone.View.extend({
                 {
                     if ($target.is(":checked"))
                         $target.parent().siblings(":not(button)").hide();
-                    else
+                    else if (!that.model.get("cancelled"))
                         $target.parent().siblings().show();
                 };
                 $el.find("#cancelEvent").change(function(ev) {
@@ -525,7 +539,10 @@ var EventView = Backbone.View.extend({
                         if (that.model.get("cancelled") == false) {
                             that.model.cancel();
                         }
-                    } else {
+                    } else if (!$("#cancelEvent").is(":checked") && that.model.get("cancelled")) {
+                        that.model.uncancel();
+                    }
+                     else {
                         var date = $el.find("#moveeventDate").val();
                         var start = $el.find("#moveeventStart").val();
                         var end = $el.find("#moveeventEnd").val();
@@ -589,7 +606,7 @@ var EventView = Backbone.View.extend({
     renderComments: function() {
         if (this.comments == undefined)
             this.comments = new CommentsView({ model: this.model.get('comments') })
-        this.comments.render()
+        this.comments.render();
         this.$el.find('.comments').html(this.comments.$el)
     },
     renderAdder: function() {
@@ -599,10 +616,10 @@ var EventView = Backbone.View.extend({
                 start: this.model.get('start'),
                 end: this.model.get('end'),
             }, { limits: this.model.limits, horses: this.model.horses })
-        })
-        adder.render()
-        this.$el.find("ul").append(adder.$el)
-        var that = this
+        });
+        adder.render();
+        this.$el.find("ul").append(adder.$el);
+        var that = this;
         adder.model.once("sync", function() {
             /*
             var view = new ParticipationView({model: adder.model})
@@ -610,8 +627,8 @@ var EventView = Backbone.View.extend({
             view.$el.find("select, span").addClass("changed")
             that.$el.find("ul").append(view.$el)
             */
-            adder.remove()
-            that.model.get("participations").add(this)
+            adder.remove();
+            that.model.get("participations").add(this);
         })
     },
     notifyChanged: function(ev) {
