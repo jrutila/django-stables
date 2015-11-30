@@ -8,3 +8,4 @@ components/
 build/
 *.db
 bower_components/
+wsgi/static/
