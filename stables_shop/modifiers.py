@@ -14,7 +14,7 @@ class FixedVATRate(BaseCartModifier):
 
     def get_extra_cart_price_field(self, cart, request):
         getcontext().rounding = ROUND_HALF_UP
-        taxes = settings.SHOP_VAT * cart.subtotal_price
+        taxes = settings.SHOP_VAT * cart.current_total
         taxes = Decimal(format(taxes, '.2f'))
         to_append = (_('VAT'), taxes)
         return to_append

@@ -30,6 +30,7 @@ urlpatterns = [
     url('^s/', include("stables_shop.urls")),
     url('^shop/', lambda r: redirect('product_list'), name='shop-in'),
     url('^shopper/', include("stables_shop.shop_urls")),
+    url('^shopper/discount/', include('discount.urls')),
     url('^api/', include('stables.urls.api')),
     url('^api-help/', 'production.common.views.api', name='api-help'),
     url('^login/$', 'django.contrib.auth.views.login', { 'authentication_form': EmailAuthenticationForm }, name='login'),

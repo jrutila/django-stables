@@ -73,6 +73,8 @@ TENANT_APPS = (
 
     'shop',
     'stables_shop',
+    'discount',
+    'discount.default_discounts',
 
     'django_settings'
 )
@@ -221,7 +223,7 @@ SHOP_APP_LABEL = 'stables_shop'
 SHOP_ADDRESS_MODEL = 'stables_shop.addressmodel.Address'
 SHOP_SHIPPING_BACKENDS = ['stables_shop.backends.DigitalShipping',]
 SHOP_PAYMENT_BACKENDS = ['stables_shop.backends.PayTrailBackend', 'shop.payment.backends.prepayment.ForwardFundBackend']
-SHOP_CART_MODIFIERS = ['stables_shop.modifiers.FixedVATRate',]
+SHOP_CART_MODIFIERS = ['discount.cart_modifiers.DiscountCartModifier','stables_shop.modifiers.FixedVATRate',]
 SHOP_PRODUCT_MODEL = ('stables_shop.product.Product', 'stables_shop')
 from decimal import Decimal
 SHOP_VAT = Decimal('0.10')
