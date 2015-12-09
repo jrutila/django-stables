@@ -9,5 +9,6 @@ class Product(BaseProduct):
     long_description = models.TextField(blank=True, null=True)
 
 Product._meta.get_field('unit_price').help_text = _("The whole product price excluding VAT.")
+Product._meta.get_field('unit_price').decimal_places = 3
 
 
