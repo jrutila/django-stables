@@ -138,6 +138,10 @@ select.warning {
     background-color: orange;
 }
 
+.print-date, .add-course, .gotoNewEvent {
+  cursor: pointer;
+}
+
 a.pay, a.message, a.move {
     cursor: pointer;
     margin-right: 7px;

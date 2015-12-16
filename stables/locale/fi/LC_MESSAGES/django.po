@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-08-28 07:53+0300\n"
+"POT-Creation-Date: 2015-12-15 20:54+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,61 +17,46 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: admin.py:23 forms/course.py:35 forms/horse.py:27 forms/user.py:51
+#: admin.py:22 forms/course.py:35 forms/horse.py:27 forms/user.py:46
 msgid "Basic information"
 msgstr "Perustiedot"
 
-#: admin.py:26 forms/course.py:45
+#: admin.py:25 forms/course.py:45
 msgid "Payment information"
 msgstr "Maksutiedot"
 
-#: admin.py:29 forms/course.py:39
+#: admin.py:28 forms/course.py:39
 msgid "Recurring information"
 msgstr "Toistuvien tapahtumien tiedot"
 
-#: admin.py:30 forms/course.py:40
+#: admin.py:29 forms/course.py:40
 msgid "Do NOT input anything here if you have one time events."
 msgstr "Älä syötä tähän mitään, jos sinulla on yksittäistapahtumia."
 
-#: admin.py:33
+#: admin.py:32
 msgid "Advanced"
 msgstr "Kehittyneet"
 
-#: admin.py:53 forms/user.py:27
+#: admin.py:56 forms/user.py:22
 msgid "Customer"
 msgstr "Asiakastieto"
 
-#: admin.py:145 templates/stables/user/index.html:24
+#: admin.py:154
 msgid "Instructor"
 msgstr "Opettaja"
 
-#: reports.py:63 backbone/financial.py:37 backbone/financial.py:40
-#: backbone/participation.py:53 backbone/participation.py:56
-#: templates/stables/_templates.html:70 templates/stables/_templates.html:76
-#: templatetags/stablestags.py:54
-msgid "Cash"
-msgstr "Käteinen"
-
-#: reports.py:136
-msgid "At"
-msgstr ""
-
-#: reports.py:136
-msgid "Horse"
-msgstr "Hevonen"
-
-#: reports.py:136
-msgid "Rider name"
-msgstr "Ratsastajan nimi"
-
-#: reports.py:136
-msgid "Type"
-msgstr "Tyyppi"
-
-#: backbone/event.py:52 backbone/participation.py:123
+#: backbone/event.py:54 backbone/participation.py:123
 #, python-format
 msgid "%d tickets remaining"
 msgstr "%d korttia jäljellä"
+
+#: backbone/financial.py:38 backbone/financial.py:41
+#: backbone/participation.py:53 backbone/participation.py:56 reports.py:64
+#: templates/stables/dashboard/_templates.html:77
+#: templates/stables/dashboard/_templates.html:83
+#: templatetags/stablestags.py:48
+msgid "Cash"
+msgstr "Käteinen"
 
 #: forms/course.py:26
 msgid "Start time"
@@ -98,39 +83,43 @@ msgstr "Tämän ajan pitää olla %s jälkeen"
 msgid "You cannot change start time or end time on ended course"
 msgstr "Et voi muuttaa päättyneen tunnin aikoja"
 
+#: forms/course.py:97
+msgid "Course end must be after course start"
+msgstr "Loppumisajankohdan pitää olla alun jälkeen"
+
 #: forms/course.py:116
 msgid "Event information"
 msgstr "Tapahtuman tiedot"
 
-#: forms/course.py:145
+#: forms/course.py:145 templates/stables/dashboard/_templates.html:178
 msgid "Cancel event"
 msgstr "Peru tapahtuma"
 
-#: forms/financial.py:46
+#: forms/financial.py:43
 msgid "Invalid ticket id, choose from the list"
 msgstr "Väärä kortti-id, valitse listasta"
 
-#: forms/financial.py:111
+#: forms/financial.py:108
 msgid "New"
 msgstr "Uusi"
 
-#: forms/financial.py:130
+#: forms/financial.py:127
 msgid "Amount of tickets to delete"
 msgstr "Poistettavien kertojen määrä"
 
-#: forms/financial.py:131
+#: forms/financial.py:128
 msgid "New expire date for selected tickets"
 msgstr "Uusi vanhenemispäivä valituille kerroille"
 
-#: forms/financial.py:132
+#: forms/financial.py:129
 msgid "Turn selected tickets to family tickets"
 msgstr "Muuta valitut perhekorteiksi"
 
-#: forms/financial.py:183
+#: forms/financial.py:184
 msgid "Family ticket"
 msgstr "Perhekortti"
 
-#: forms/financial.py:184
+#: forms/financial.py:185
 msgid "Amount"
 msgstr "Määrä"
 
@@ -138,35 +127,35 @@ msgstr "Määrä"
 msgid "Expire information"
 msgstr "Vanhenemistiedot"
 
-#: forms/user.py:24
+#: forms/user.py:19
 msgid "first name"
 msgstr "etunimi"
 
-#: forms/user.py:25
+#: forms/user.py:20
 msgid "last name"
 msgstr "sukunimi"
 
-#: forms/user.py:26
+#: forms/user.py:21
 msgid "levels"
 msgstr "tasot"
 
-#: forms/user.py:27
+#: forms/user.py:22
 msgid "If you are adding new rider, you can leave this empty."
 msgstr "Jos lisäät uutta ratsastajaa, voit jättää tämän tyhjäksi"
 
-#: forms/user.py:28
+#: forms/user.py:23
 msgid "instructor"
 msgstr "Opettaja"
 
-#: forms/user.py:29
+#: forms/user.py:24
 msgid "email address"
 msgstr ""
 
-#: forms/user.py:32
+#: forms/user.py:27
 msgid "inactive"
 msgstr ""
 
-#: forms/user.py:32
+#: forms/user.py:27
 msgid ""
 "Inactive rider is not shown in any lists. If you mark the rider as inactive "
 "you cannot edit it anymore!"
@@ -174,15 +163,15 @@ msgstr ""
 "Passivoitu ratsastaja ei näy enää missään. Et pääse muokkaamaan tätä "
 "ratsastajaa enää!"
 
-#: forms/user.py:55
+#: forms/user.py:50
 msgid "Levels "
 msgstr "tasot"
 
-#: forms/user.py:59
+#: forms/user.py:54
 msgid "Extra"
 msgstr ""
 
-#: forms/user.py:96
+#: forms/user.py:91
 #, python-format
 msgid "Existing user %s! Change first and last names"
 msgstr "Olemassa oleva ratsastaja %s! Vaihda etu- tai sukunimi"
@@ -211,72 +200,72 @@ msgstr "Hylätty"
 msgid "Waiting for payment"
 msgstr "Odottaa maksua"
 
-#: models/accident.py:38
+#: models/accident.py:40
 msgid "Localizable String"
 msgstr "Lokalisoituva teksti"
 
-#: models/accident.py:86
+#: models/accident.py:85
 msgid "accident"
 msgstr "vahinko"
 
-#: models/accident.py:87
+#: models/accident.py:86
 msgid "accidents"
 msgstr "vahingot"
 
-#: models/course.py:43
-msgid "course"
-msgstr "kurssi"
-
-#: models/course.py:44
-msgid "courses"
-msgstr "tunnit"
-
-#: models/course.py:58 models/financial.py:28 models/horse.py:11
+#: models/common.py:25 models/course.py:44 models/horse.py:11
 msgid "name"
 msgstr "nimi"
 
-#: models/course.py:61
+#: models/common.py:26
+msgid "description"
+msgstr "kuvaus"
+
+#: models/course.py:29
+msgid "course"
+msgstr "kurssi"
+
+#: models/course.py:30
+msgid "courses"
+msgstr "tunnit"
+
+#: models/course.py:47
 msgid "maximum participants"
 msgstr "maksimi osallistujamäärä"
 
-#: models/course.py:62
+#: models/course.py:48
 msgid "default participation fee"
 msgstr "tunnin oletushinta"
 
-#: models/course.py:63
+#: models/course.py:49
 msgid "Default ticket type"
 msgstr "oletuskortti"
 
-#: models/course.py:64
+#: models/course.py:50
 msgid "Allowed rider levels"
 msgstr "sallitut ratsastajien tasot"
 
-#: models/course.py:65
+#: models/course.py:51
 msgid "Hide from api"
 msgstr ""
 
-#: models/course.py:161 models/participations.py:184
+#: models/course.py:148 models/participations.py:180
 #, python-format
 msgid "%(name)s %(state)s"
 msgstr ""
 
-#: models/financial.py:29
-msgid "description"
-msgstr "kuvaus"
-
-#: models/financial.py:61
+#: models/financial.py:51
 msgid "Ticket type"
 msgstr "Kortin tyyppi"
 
-#: models/financial.py:66
+#: models/financial.py:56
 msgid "Expires"
 msgstr "Vanhenee"
 
-#: models/financial.py:67
+#: models/financial.py:57
 msgid "Value"
 msgstr "Arvo"
 
-#: models/financial.py:67
+#: models/financial.py:57
 msgid "Sell value of one ticket. Can be used when calculating user revenue."
 msgstr ""
 "Yksittäisen kerran myyntiarvo. Myyntiarvoa voidaan käyttää asiakaskohtaisen "
@@ -302,243 +291,48 @@ msgstr ""
 msgid "Last usage date can't be before last participation"
 msgstr "Viimeinen käyttöpäivä ei voi olla ennen viimeistä tapahtumaa"
 
-#: models/participations.py:168
+#: models/participations.py:164
 msgid "DATE_FORMAT"
 msgstr "l d.m.Y"
 
-#: models/participations.py:169
+#: models/participations.py:165
 msgid "TIME_FORMAT"
 msgstr "H:i"
 
-#: models/participations.py:172
+#: models/participations.py:168
 #, python-format
 msgid "%(name)s %(state)s No Occurrence"
 msgstr "%(name)s %(state)s Ei tapahtumaa"
 
-#: models/participations.py:175
+#: models/participations.py:171
 #, python-format
 msgid "%(name)s %(state)s %(event)s: %(start)s %(starttime)s - %(endtime)s"
 msgstr ""
 
-#: models/participations.py:311
+#: models/participations.py:309
 #, python-format
 msgid "%(firstname)s %(lastname)s"
 msgstr ""
 
-#: models/user.py:52 templates/stables/user/index.html:40
+#: models/user.py:52 templates/stables/user/partials/_contact.html:15
 msgid "phone number"
 msgstr "puhelinnumero"
 
-#: templates/stables/_templates.html:15 templates/stables/_templates.html:117
-msgid "--"
+#: reports.py:137
+msgid "At"
 msgstr ""
 
-#: templates/stables/_templates.html:55
-msgid "Send payment link with email"
-msgstr ""
+#: reports.py:137
+msgid "Horse"
+msgstr "Hevonen"
 
-#: templates/stables/_templates.html:56
-msgid "Send payment link with sms"
-msgstr ""
+#: reports.py:137
+msgid "Rider name"
+msgstr "Ratsastajan nimi"
 
-#: templates/stables/_templates.html:57
-msgid "Copy payment link manually"
-msgstr ""
-
-#: templates/stables/_templates.html:73
-msgid "Select payment method"
-msgstr ""
-
-#: templates/stables/_templates.html:81
-msgid "Other"
-msgstr ""
-
-#: templates/stables/_templates.html:100
-msgid "details"
-msgstr "lisätiedot"
-
-#: templates/stables/_templates.html:150
-msgid "Set"
-msgstr ""
-
-#: templates/stables/_templates.html:156
-msgid "Send SMS"
-msgstr ""
-
-#: templates/stables/_templates.html:157 templates/stables/_templates.html:175
-#: templates/stables/_templates.html:274 templates/stables/_templates.html:334
-#: templatetags/stablestags.py:86
-msgid "Cancel"
-msgstr "Peru"
-
-#: templates/stables/_templates.html:163 templates/stables/_templates.html:251
-msgid "Date"
-msgstr "Pvm"
-
-#: templates/stables/_templates.html:164
-msgid "YYYY-MM-DD"
-msgstr ""
-
-#: templates/stables/_templates.html:165 templates/stables/_templates.html:253
-msgid "Start"
-msgstr "alkaa"
-
-#: templates/stables/_templates.html:166 templates/stables/_templates.html:168
-#: templates/stables/_templates.html:254 templates/stables/_templates.html:256
-msgid "00:00"
-msgstr ""
-
-#: templates/stables/_templates.html:167 templates/stables/_templates.html:255
-msgid "End"
-msgstr "päättyy"
-
-#: templates/stables/_templates.html:174 templates/stables/_templates.html:275
-#: templates/stables/_templates.html:335
-#: templates/stables/user/edit_user.html:7
-msgid "Save"
-msgstr "Tallenna"
-
-#: templates/stables/_templates.html:201
-msgid "Horse day limit reached"
-msgstr "Hevosen päiväraja ylitetty"
-
-#: templates/stables/_templates.html:202
-#, python-format
-msgid "Horse <%%= name %%> is riding over it's limit of <%%= limit %%>"
-msgstr "<%%= name %%> on ylittänyt päivärajansa <%%= limit %%>"
-
-#: templates/stables/_templates.html:214
-msgid "Add new..."
-msgstr "Lisää uusi..."
-
-#: templates/stables/_templates.html:223
-msgid "Add new event"
-msgstr "Lisää uusi tapahtuma/tunti"
-
-#: templates/stables/_templates.html:229
-msgid "Select event or start new"
-msgstr "Valitse tunti listasta tai kirjoita uuden tunnin nimi"
-
-#: templates/stables/_templates.html:233
-msgid "I want to change above information"
-msgstr "Haluan muuttaa yllä olevia tietoja"
-
-#: templates/stables/_templates.html:238
-msgid "Next events:"
-msgstr "Seuraavat tapahtumat"
-
-#: templates/stables/_templates.html:244
-msgid "One time event"
-msgstr "Lisää kertatapahtuma"
-
-#: templates/stables/_templates.html:245
-msgid "Repeating event"
-msgstr "Aseta toisto"
-
-#: templates/stables/_templates.html:246
-msgid "End current events"
-msgstr "Lopeta nykyinen toisto"
-
-#: templates/stables/_templates.html:252
-msgid "2014-12-31"
-msgstr ""
-
-#: templates/stables/_templates.html:258
-msgid "Repeat?"
-msgstr "Toista?"
-
-#: templates/stables/_templates.html:261
-msgid "Last weekly occurrence (optional)"
-msgstr "Viimeinen viikottainen tapahtuma (valinnainen)"
-
-#: templates/stables/_templates.html:285
-msgid "Adding a new course"
-msgstr "Olet lisäämässä uutta tuntia"
-
-#: templates/stables/_templates.html:287 templates/stables/_templates.html:343
-msgid "Cost"
-msgstr "Hinta"
-
-#: templates/stables/_templates.html:290 templates/stables/_templates.html:345
-msgid "Max participants"
-msgstr "Maksimi osallistujamäärä"
-
-#: templates/stables/_templates.html:294 templates/stables/_templates.html:348
-msgid "Default tickets"
-msgstr "Automaattisesti kuluva kortti"
-
-#: templates/stables/_templates.html:309 templates/stables/_templates.html:358
-msgid "Hidden from public website"
-msgstr "Nämä tunnit piilotetaan omilta kotisivuilta"
-
-#: templates/stables/_templates.html:319
-msgid "Edit course"
-msgstr "Muokkaa tuntia"
-
-#: templates/stables/_templates.html:325
-msgid "The name will change on all past and future events"
-msgstr "Nimi muuttuu tulevissa JA menneissä tapahtumissa"
-
-#: templates/stables/_templates.html:329
-msgid "I want to add a new event"
-msgstr "Haluan lisätä uuden tapahtuman tälle tunnille"
-
-#: templates/stables/courselist.html:10
-msgid "Select week"
-msgstr "Valitse viikko"
-
-#: templates/stables/daily.html:16
-msgid "Print"
-msgstr "Tulosta"
-
-#: templates/stables/daily.html:17
-msgid "You can type custom message below"
-msgstr "Voit kirjoittaa vapaan viestin alle"
-
-#: templates/stables/daily.html:48
-msgid "hide"
-msgstr "piilota"
-
-#: templates/stables/daily.html:72
-msgid "cancelled"
-msgstr "peruttu"
-
-#: templates/stables/horse_info.html:7
-#, python-format
-msgid ""
-"\n"
-"\"%(nickname)s\"\n"
-msgstr ""
-
-#: templates/stables/horse_info.html:17
-#, python-format
-msgid ""
-"\n"
-"Birth: %(birthday)s\n"
-msgstr ""
-"\n"
-"Synt: %(birthday)s\n"
-
-#: templates/stables/horse_info.html:24
-#, python-format
-msgid ""
-"\n"
-"Withers: ca. %(withers)s cm.\n"
-msgstr ""
-"\n"
-"Säkä: ca. %(withers)s cm.\n"
-
-#: templates/stables/participations.html:11
-msgid "Save changes"
-msgstr "Tallenna muutokset"
-
-#: templates/stables/participations.html:13
-msgid "Participant"
-msgstr "Osallistuja"
-
-#: templates/stables/participations.html:13
-msgid "State"
-msgstr "Tila"
+#: reports.py:137
+msgid "Type"
+msgstr "Tyyppi"
 
 #: templates/stables/accident/done.html:4
 msgid "New accident report created!"
@@ -607,13 +401,225 @@ msgstr "Lisää tunti"
 msgid "Edit"
 msgstr "Muokkaa"
 
-#: templates/stables/horse/horselist.html:5
+#: templates/stables/courselist.html:10
+msgid "Select week"
+msgstr "Valitse viikko"
+
+#: templates/stables/daily.html:16
+msgid "Print"
+msgstr "Tulosta"
+
+#: templates/stables/daily.html:17
+msgid "You can type custom message below"
+msgstr "Voit kirjoittaa vapaan viestin alle"
+
+#: templates/stables/daily.html:48
+msgid "hide"
+msgstr "piilota"
+
+#: templates/stables/daily.html:72
+msgid "cancelled"
+msgstr "peruttu"
+
+#: templates/stables/dashboard/_templates.html:16
+#: templates/stables/dashboard/_templates.html:124
+msgid "--"
+msgstr ""
+
+#: templates/stables/dashboard/_templates.html:62
+msgid "Send payment link with email"
+msgstr ""
+
+#: templates/stables/dashboard/_templates.html:63
+msgid "Send payment link with sms"
+msgstr ""
+
+#: templates/stables/dashboard/_templates.html:64
+msgid "Copy payment link manually"
+msgstr ""
+
+#: templates/stables/dashboard/_templates.html:80
+msgid "Select payment method"
+msgstr ""
+
+#: templates/stables/dashboard/_templates.html:88
+msgid "Other"
+msgstr ""
+
+#: templates/stables/dashboard/_templates.html:107
+msgid "details"
+msgstr "lisätiedot"
+
+#: templates/stables/dashboard/_templates.html:157
+msgid "Set"
+msgstr ""
+
+#: templates/stables/dashboard/_templates.html:163
+msgid "Send SMS"
+msgstr ""
+
+#: templates/stables/dashboard/_templates.html:164
+#: templates/stables/dashboard/_templates.html:182
+#: templates/stables/dashboard/_templates.html:281
+#: templates/stables/dashboard/_templates.html:341
+#: templatetags/stablestags.py:80
+msgid "Cancel"
+msgstr "Peru"
+
+#: templates/stables/dashboard/_templates.html:170
+#: templates/stables/dashboard/_templates.html:258
+msgid "Date"
+msgstr "Pvm"
+
+#: templates/stables/dashboard/_templates.html:171
+msgid "YYYY-MM-DD"
+msgstr ""
+
+#: templates/stables/dashboard/_templates.html:172
+#: templates/stables/dashboard/_templates.html:260
+msgid "Start"
+msgstr "alkaa"
+
+#: templates/stables/dashboard/_templates.html:173
+#: templates/stables/dashboard/_templates.html:175
+#: templates/stables/dashboard/_templates.html:261
+#: templates/stables/dashboard/_templates.html:263
+msgid "00:00"
+msgstr ""
+
+#: templates/stables/dashboard/_templates.html:174
+#: templates/stables/dashboard/_templates.html:262
+msgid "End"
+msgstr "päättyy"
+
+#: templates/stables/dashboard/_templates.html:181
+#: templates/stables/dashboard/_templates.html:282
+#: templates/stables/dashboard/_templates.html:342
+#: templates/stables/user/edit_user.html:7
+msgid "Save"
+msgstr "Tallenna"
+
+#: templates/stables/dashboard/_templates.html:208
+msgid "Horse day limit reached"
+msgstr "Hevosen päiväraja ylitetty"
+
+#: templates/stables/dashboard/_templates.html:209
+#, python-format
+msgid "Horse <%%= name %%> is riding over it's limit of <%%= limit %%>"
+msgstr "<%%= name %%> on ylittänyt päivärajansa <%%= limit %%>"
+
+#: templates/stables/dashboard/_templates.html:221
+msgid "Add new..."
+msgstr "Lisää uusi..."
+
+#: templates/stables/dashboard/_templates.html:230
+msgid "Add new event"
+msgstr "Lisää uusi tapahtuma/tunti"
+
+#: templates/stables/dashboard/_templates.html:236
+msgid "Select event or start new"
+msgstr "Valitse tunti listasta tai kirjoita uuden tunnin nimi"
+
+#: templates/stables/dashboard/_templates.html:240
+msgid "I want to change above information"
+msgstr "Haluan muuttaa yllä olevia tietoja"
+
+#: templates/stables/dashboard/_templates.html:245
+msgid "Next events:"
+msgstr "Seuraavat tapahtumat"
+
+#: templates/stables/dashboard/_templates.html:251
+msgid "One time event"
+msgstr "Lisää kertatapahtuma"
+
+#: templates/stables/dashboard/_templates.html:252
+msgid "Repeating event"
+msgstr "Aseta toisto"
+
+#: templates/stables/dashboard/_templates.html:253
+msgid "End current events"
+msgstr "Lopeta nykyinen toisto"
+
+#: templates/stables/dashboard/_templates.html:259
+msgid "2014-12-31"
+msgstr ""
+
+#: templates/stables/dashboard/_templates.html:265
+msgid "Repeat?"
+msgstr "Toista?"
+
+#: templates/stables/dashboard/_templates.html:268
+msgid "Last weekly occurrence (optional)"
+msgstr "Viimeinen viikottainen tapahtuma (valinnainen)"
+
+#: templates/stables/dashboard/_templates.html:292
+msgid "Adding a new course"
+msgstr "Olet lisäämässä uutta tuntia"
+
+#: templates/stables/dashboard/_templates.html:294
+#: templates/stables/dashboard/_templates.html:350
+msgid "Cost"
+msgstr "Hinta"
+
+#: templates/stables/dashboard/_templates.html:297
+#: templates/stables/dashboard/_templates.html:352
+msgid "Max participants"
+msgstr "Maksimi osallistujamäärä"
+
+#: templates/stables/dashboard/_templates.html:301
+#: templates/stables/dashboard/_templates.html:355
+msgid "Default tickets"
+msgstr "Automaattisesti kuluva kortti"
+
+#: templates/stables/dashboard/_templates.html:316
+#: templates/stables/dashboard/_templates.html:365
+msgid "Hidden from public website"
+msgstr "Nämä tunnit piilotetaan omilta kotisivuilta"
+
+#: templates/stables/dashboard/_templates.html:326
+msgid "Edit course"
+msgstr "Muokkaa tuntia"
+
+#: templates/stables/dashboard/_templates.html:332
+msgid "The name will change on all past and future events"
+msgstr "Nimi muuttuu tulevissa JA menneissä tapahtumissa"
+
+#: templates/stables/dashboard/_templates.html:336
+msgid "I want to add a new event"
+msgstr "Haluan lisätä uuden tapahtuman tälle tunnille"
+
+#: templates/stables/horse/horselist.html:11
 msgid "Horses"
 msgstr "hevoset"
 
-#: templates/stables/horse/horselist.html:7
+#: templates/stables/horse/horselist.html:27
 msgid "Add horse"
 msgstr "Lisää hevonen"
+
+#: templates/stables/horse_info.html:7
+#, python-format
+msgid ""
+"\n"
+"\"%(nickname)s\"\n"
+msgstr ""
+
+#: templates/stables/horse_info.html:17
+#, python-format
+msgid ""
+"\n"
+"Birth: %(birthday)s\n"
+msgstr ""
+"\n"
+"Synt: %(birthday)s\n"
+
+#: templates/stables/horse_info.html:24
+#, python-format
+msgid ""
+"\n"
+"Withers: ca. %(withers)s cm.\n"
+msgstr ""
+"\n"
+"Säkä: ca. %(withers)s cm.\n"
 
 #: templates/stables/horsereport/filter.html:17
 msgid "Filter"
@@ -625,7 +631,7 @@ msgid "Back"
 msgstr "Takaisin"
 
 #: templates/stables/horsereport/report.html:6
-#: templates/stables/user/index.html:105
+#: templates/stables/user/index.html:37
 msgid "Total"
 msgstr "Yhteensä"
 
@@ -633,17 +639,25 @@ msgstr "Yhteensä"
 msgid "Modify transactions"
 msgstr "Muokkaa maksutapahtumia"
 
-#: templates/stables/participation/participation.html:40
+#: templates/stables/participation/participation.html:28
 msgid "Accidents"
 msgstr "vahingot"
 
-#: templates/stables/participation/participation.html:49
+#: templates/stables/participation/participation.html:37
 msgid "Report accident"
 msgstr "Raportoi vahinko"
 
-#: templates/stables/user/_participation_partial.html:6
-msgid "Pay participation"
-msgstr "Maksa osallistuminen"
+#: templates/stables/participations.html:11
+msgid "Save changes"
+msgstr "Tallenna muutokset"
+
+#: templates/stables/participations.html:13
+msgid "Participant"
+msgstr "Osallistuja"
+
+#: templates/stables/participations.html:13
+msgid "State"
+msgstr "Tila"
 
 #: templates/stables/user/account.html:4
 msgid "Logout"
@@ -669,119 +683,173 @@ msgstr "Vaihda salasana"
 msgid "Add"
 msgstr "Lisää"
 
-#: templates/stables/user/index.html:29
-msgid "E-mail"
-msgstr "Sähköposti"
-
-#: templates/stables/user/index.html:33
-msgid "Activate user login"
-msgstr "Aktivoi kirjautumismahdollisuus"
-
-#: templates/stables/user/index.html:36
-msgid "User can login"
-msgstr "Voi kirjautua"
-
-#: templates/stables/user/index.html:42
-msgid "Call"
-msgstr "Soita"
-
-#: templates/stables/user/index.html:43
-msgid "SMS"
-msgstr ""
-
-#: templates/stables/user/index.html:49
+#: templates/stables/user/index.html:15
 msgid "Next event"
 msgstr "Seuraava tapahtuma"
 
-#: templates/stables/user/index.html:57 templates/stables/user/index.html:71
-msgid "More..."
-msgstr "Lisää..."
-
-#: templates/stables/user/index.html:63
+#: templates/stables/user/index.html:22
 msgid "Previous participations"
 msgstr "Edelliset tapahtumat"
 
-#: templates/stables/user/index.html:75
+#: templates/stables/user/index.html:27
 msgid "Saldo and tickets"
 msgstr "Saldo ja kortit"
 
-#: templates/stables/user/index.html:77
-msgid "Add tickets"
-msgstr "Lisää kortteja"
-
-#: templates/stables/user/index.html:78
-msgid "Edit tickets"
-msgstr "Muokkaa kortteja"
-
-#: templates/stables/user/index.html:84
-#, python-format
-msgid ""
-"\n"
-"%(name)s: %(amount)s pcs (first expires: %(expire_date)s)\n"
-msgstr ""
-"\n"
-"%(name)s: %(amount)s kpl (ensimmäinen vanhenee: %(expire_date)s)\n"
-
-#: templates/stables/user/index.html:91
-#, python-format
-msgid ""
-"\n"
-"Expired %(name)s: %(amount)s pcs (first expired: %(expire_date)s)\n"
-msgstr ""
-"\n"
-"Vanhentunut %(name)s: %(amount)s kpl (vanhentunut: %(expire_date)s)\n"
-
-#: templates/stables/user/index.html:98
+#: templates/stables/user/index.html:30
 msgid "Orders"
 msgstr "Tilaukset"
 
-#: templates/stables/user/index.html:101
+#: templates/stables/user/index.html:33
 msgid "Id"
 msgstr ""
 
-#: templates/stables/user/index.html:102
+#: templates/stables/user/index.html:34
 msgid "Created"
 msgstr "Luotu"
 
-#: templates/stables/user/index.html:103
+#: templates/stables/user/index.html:35
 msgid "Status"
 msgstr "Tila"
 
-#: templates/stables/user/index.html:104
+#: templates/stables/user/index.html:36
 msgid "Product"
 msgstr "Tuote"
 
-#: templates/stables/user/userprofile_list.html:33
+#: templates/stables/user/partials/_basic.html:6
+msgid "(I)"
+msgstr ""
+
+#: templates/stables/user/partials/_contact.html:4
+msgid "E-mail"
+msgstr "Sähköposti"
+
+#: templates/stables/user/partials/_contact.html:8
+msgid "Activate user login"
+msgstr "Aktivoi kirjautumismahdollisuus"
+
+#: templates/stables/user/partials/_contact.html:11
+msgid "User can login"
+msgstr "Voi kirjautua"
+
+#: templates/stables/user/partials/_contact.html:17
+msgid "Call"
+msgstr "Soita"
+
+#: templates/stables/user/partials/_contact.html:18
+msgid "SMS"
+msgstr ""
+
+#: templates/stables/user/partials/_next.html:9
+#: templates/stables/user/partials/_prev.html:9
+msgid "More..."
+msgstr "Lisää..."
+
+#: templates/stables/user/partials/_tickets.html:4
+msgid "Add tickets"
+msgstr "Lisää kortteja"
+
+#: templates/stables/user/partials/_tickets.html:5
+msgid "Edit tickets"
+msgstr "Muokkaa kortteja"
+
+#: templates/stables/user/partials/_tickets.html:13
+msgid "%(name)s (F): %(amount)s pcs (first expires: %(expire_date)s)"
+msgstr "%(name)s (P): %(amount)s kpl (vanhentuu: %(expire_date)s)"
+
+#: templates/stables/user/partials/_tickets.html:15
+msgid "%(name)s: %(amount)s pcs (first expires: %(expire_date)s)"
+msgstr "%(name)s: %(amount)s kpl (vanhentuu: %(expire_date)s)"
+
+#: templates/stables/user/partials/_tickets.html:24
+msgid "%(name)s (F): %(amount)s pcs (expired: %(expire_date)s)"
+msgstr "Vanhentunut %(name)s (P): %(amount)s kpl (vanhentunut: %(expire_date)s)"
+
+#: templates/stables/user/partials/_tickets.html:26
+msgid "%(name)s: %(amount)s pcs (expired: %(expire_date)s)"
+msgstr "Vanhentunut %(name)s: %(amount)s kpl (vanhentunut: %(expire_date)s)"
+
+#: templates/stables/user/userprofile_list.html:50
+msgid "Riders"
+msgstr "Ratsastajat"
+
+#: templates/stables/user/userprofile_list.html:51
+msgid "Search"
+msgstr "Etsi"
+
+#: templates/stables/user/userprofile_list.html:70
+msgid "Amount of all users:"
+msgstr "Ratsastajia kaikkiaan"
+
+#: templates/stables/user/userprofile_list.html:80
 msgid "Add user"
 msgstr "Lisää käyttäjä"
 
-#: templates/stables/user/userprofile_list.html:34
+#: templates/stables/user/userprofile_list.html:80
+msgid "Add rider"
+msgstr "Lisää ratsastaja"
+
+#: templates/stables/user/userprofile_list.html:82
 msgid "Show only riders with saldo"
-msgstr ""
+msgstr "Näytä vain negatiivisella olevat"
 
-#: templates/stables/user/userprofile_list.html:35
+#: templates/stables/user/userprofile_list.html:83
 msgid "Show only inactive riders"
-msgstr ""
+msgstr "Näytä vain passivoidut"
 
-#: templates/stables/user/userprofile_list.html:46
-msgid "Amount of all users:"
-msgstr ""
-
-#: templatetags/stablestags.py:83
+#: templatetags/stablestags.py:77
 msgid "Attend"
 msgstr "Osallistu"
 
-#: templatetags/stablestags.py:95
+#: templatetags/stablestags.py:89
 msgid "Reserve"
 msgstr "Varaa"
 
-#: views/oldviews.py:121
+#: views/oldviews.py:123
 msgid "Space"
 msgstr "Tilaa"
 
-#: views/oldviews.py:123
+#: views/oldviews.py:125
 msgid "Full"
 msgstr "Täynnä"
+
+#~ msgid ""
+#~ "\n"
+#~ "                        %(name)s (F): %(amount)s pcs (first expires: "
+#~ "%(expire_date)s)\n"
+#~ "                    "
+#~ msgstr ""
+#~ "\n"
+#~ "%(name)s: %(amount)s kpl (ensimmäinen vanhenee: %(expire_date)s)\n"
+
+#~ msgid ""
+#~ "\n"
+#~ "                        %(name)s: %(amount)s pcs (first expires: "
+#~ "%(expire_date)s)\n"
+#~ "                    "
+#~ msgstr ""
+#~ "\n"
+#~ "%(name)s: %(amount)s kpl (ensimmäinen vanhenee: %(expire_date)s)\n"
+
+#~ msgid ""
+#~ "\n"
+#~ "                        %(name)s (F): %(amount)s pcs (expired: "
+#~ "%(expire_date)s)\n"
+#~ "                    "
+#~ msgstr ""
+#~ "\n"
+#~ "%(name)s: %(amount)s kpl (ensimmäinen vanhenee: %(expire_date)s)\n"
+
+#~ msgid ""
+#~ "\n"
+#~ "                        %(name)s: %(amount)s pcs (expired: "
+#~ "%(expire_date)s)\n"
+#~ "                    "
+#~ msgstr ""
+#~ "\n"
+#~ "%(name)s: %(amount)s kpl (ensimmäinen vanhenee: %(expire_date)s)\n"
+
+#~ msgid "Pay participation"
+#~ msgstr "Maksa osallistuminen"
 
 #~ msgid "start"
 #~ msgstr "alkaa"

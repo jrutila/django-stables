@@ -1,0 +1,297 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-12-15 21:00+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: common/templates/api-help/apihelp.html:6
+msgid "API information"
+msgstr "Tietoa kotisivuille"
+
+#: common/templates/api-help/apihelp.html:10
+#, python-format
+msgid ""
+"\n"
+"You can find your live api from <a href=\"%(api_url)s\">%(api_url)s</a>.\n"
+msgstr ""
+"\n"
+"Löydät apin täältä: <a href=\"%(api_url)s\">%(api_url)s</a>.\n"
+
+#: common/templates/api-help/apihelp.html:31
+msgid ""
+"\n"
+"You can insert following snippet to your site:\n"
+msgstr ""
+"\n"
+"Lisää joku näistä koodeista sivuillesi:\n"
+
+#: common/views.py:11
+msgid "Timetable"
+msgstr "Aikataulu"
+
+#: common/views.py:12
+msgid "Free slots"
+msgstr "Vapaat ajat"
+
+#: templates/base.html:91
+msgid "Settings"
+msgstr "Asetukset"
+
+#: templates/base.html:95
+msgid "Shop settings"
+msgstr "Kaupan asetukset"
+
+#: templates/base.html:96
+msgid "Website integration"
+msgstr "Tietoja kotisivuille"
+
+#: templates/base.html:107 templates/registration/password_change_form.html:4
+#: templates/registration/password_reset_form.html:4
+msgid "Change password"
+msgstr "Vaihda salasanaa"
+
+#: templates/base.html:108
+msgid "Logout"
+msgstr "Kirjaudu ulos"
+
+#: templates/base.html:115 templates/registration/login.html:34
+#: templates/registration/login.html:51
+#: templates/registration/password_reset_complete.html:23
+msgid "Log in"
+msgstr "Kirjaudu sisään"
+
+#: templates/base.html:136
+msgid "Calendar"
+msgstr "Kalenteri"
+
+#: templates/base.html:139
+msgid "Riders"
+msgstr "Ratsastajat"
+
+#: templates/base.html:142
+msgid "Horses"
+msgstr "Hevoset"
+
+#: templates/base.html:145
+msgid "Reports"
+msgstr "Raportit"
+
+#: templates/base.html:148
+msgid "shop"
+msgstr "kauppa"
+
+#: templates/registration/logged_out.html:12
+msgid "Logged out!"
+msgstr "Olet kirjautunut ulos!"
+
+#: templates/registration/logged_out.html:14
+#, python-format
+msgid ""
+"You succesfully logged out. You can <a href=\"%(login_url)s\">login</a> "
+"again."
+msgstr ""
+"Kirjauduit onnistuneesti ulos. Voit <a href=\"%(login_url)s\">kirjautua</a> "
+"uudelleen."
+
+#: templates/registration/login.html:48
+msgid "Forgotten your password or username?"
+msgstr "Unohditko käyttäjätunnuksesi tai salasanan?"
+
+#: templates/registration/password_change_done.html:4
+#: templates/registration/password_change_done.html:10
+msgid "Password change successful"
+msgstr "Vaihdoit salasanan onnistuneesti"
+
+#: templates/registration/password_change_done.html:14
+msgid "Your password was changed."
+msgstr "Salasanasi on vaihdettu."
+
+#: templates/registration/password_change_form.html:4
+#: templates/registration/password_reset_form.html:4
+msgid "Documentation"
+msgstr "Dokumentaatio"
+
+#: templates/registration/password_change_form.html:4
+#: templates/registration/password_reset_form.html:4
+msgid "Log out"
+msgstr "Kirjaudu ulos"
+
+#: templates/registration/password_change_form.html:7
+#: templates/registration/password_reset_complete.html:6
+#: templates/registration/password_reset_confirm.html:6
+#: templates/registration/password_reset_done.html:6
+#: templates/registration/password_reset_form.html:7
+msgid "Home"
+msgstr "Koti"
+
+#: templates/registration/password_change_form.html:8
+#: templates/registration/password_change_form.html:12
+#: templates/registration/password_change_form.html:20
+#: templates/registration/password_reset_form.html:8
+msgid "Password change"
+msgstr ""
+
+#: templates/registration/password_change_form.html:29
+msgid "Please correct the error below."
+msgid_plural "Please correct the errors below."
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/registration/password_change_form.html:33
+msgid ""
+"Please enter your old password, for security's sake, and then enter your new "
+"password twice so we can verify you typed it in correctly."
+msgstr ""
+
+#: templates/registration/password_change_form.html:38
+msgid "Old password"
+msgstr ""
+
+#: templates/registration/password_change_form.html:46
+msgid "New password"
+msgstr ""
+
+#: templates/registration/password_change_form.html:54
+msgid "Password (again)"
+msgstr ""
+
+#: templates/registration/password_change_form.html:61
+#: templates/registration/password_reset_confirm.html:34
+msgid "Change my password"
+msgstr ""
+
+#: templates/registration/password_reset_complete.html:7
+#: templates/registration/password_reset_confirm.html:11
+#: templates/registration/password_reset_done.html:7
+#: templates/registration/password_reset_form.html:12
+#: templates/registration/password_reset_form.html:20
+msgid "Password reset"
+msgstr ""
+
+#: templates/registration/password_reset_complete.html:11
+#: templates/registration/password_reset_complete.html:19
+msgid "Password reset complete"
+msgstr ""
+
+#: templates/registration/password_reset_complete.html:21
+msgid "Your password has been set.  You may go ahead and log in now."
+msgstr ""
+
+#: templates/registration/password_reset_confirm.html:7
+msgid "Password reset confirmation"
+msgstr ""
+
+#: templates/registration/password_reset_confirm.html:22
+msgid "Enter new password"
+msgstr ""
+
+#: templates/registration/password_reset_confirm.html:27
+msgid ""
+"Please enter your new password twice so we can verify you typed it in "
+"correctly."
+msgstr ""
+
+#: templates/registration/password_reset_confirm.html:31
+msgid "New password:"
+msgstr ""
+
+#: templates/registration/password_reset_confirm.html:33
+msgid "Confirm password:"
+msgstr ""
+
+#: templates/registration/password_reset_confirm.html:42
+msgid "Password reset unsuccessful"
+msgstr ""
+
+#: templates/registration/password_reset_confirm.html:44
+msgid ""
+"The password reset link was invalid, possibly because it has already been "
+"used.  Please request a new password reset."
+msgstr ""
+
+#: templates/registration/password_reset_done.html:11
+#: templates/registration/password_reset_done.html:18
+msgid "Password reset successful"
+msgstr ""
+
+#: templates/registration/password_reset_done.html:20
+msgid ""
+"We've emailed you instructions for setting your password to the email "
+"address you submitted. You should be receiving it shortly."
+msgstr ""
+
+#: templates/registration/password_reset_email.html:2
+#, python-format
+msgid ""
+"You're receiving this email because you requested a password reset for your "
+"user account at %(site_name)s."
+msgstr ""
+
+#: templates/registration/password_reset_email.html:4
+msgid "Please go to the following page and choose a new password:"
+msgstr ""
+
+#: templates/registration/password_reset_email.html:9
+msgid "Thanks for using our site!"
+msgstr ""
+
+#: templates/registration/password_reset_form.html:27
+msgid ""
+"Forgotten your password? Enter your email address below, and we'll email "
+"instructions for setting a new one."
+msgstr ""
+
+#: templates/registration/password_reset_form.html:34
+msgid "Email address:"
+msgstr ""
+
+#: templates/registration/password_reset_form.html:41
+msgid "Reset my password"
+msgstr ""
+
+#: templates/registration/password_reset_subject.txt:2
+#, python-format
+msgid "Password reset on %(site_name)s"
+msgstr ""
+
+#: templates/reportengine/list.html:12
+msgid "Start"
+msgstr ""
+
+#: templates/reportengine/list.html:16
+msgid "End"
+msgstr ""
+
+#: templates/reportengine/report.html:39
+msgid "Description"
+msgstr ""
+
+#: templates/reportengine/report.html:47
+msgid "Data"
+msgstr ""
+
+#: templates/reportengine/report.html:77
+msgid "Filters"
+msgstr ""
+
+#: templates/reportengine/report.html:84
+msgid "Request Report"
+msgstr ""
+
+#: templates/reportengine/report.html:93
+msgid "Alternate Formats"
+msgstr ""

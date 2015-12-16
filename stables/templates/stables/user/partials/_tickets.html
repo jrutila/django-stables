@@ -10,13 +10,9 @@
         <li class="ticket_valid">
             {% with name=t amount=l.0 expire_date=l.1 family=l.2 %}
                 {% if family %}
-                    {% blocktrans %}
-                        {{ name }} (F): {{ amount }} pcs (first expires: {{ expire_date }})
-                    {% endblocktrans %}
+                    {% blocktrans %}{{ name }} (F): {{ amount }} pcs (first expires: {{ expire_date }}){% endblocktrans %}
                 {% else %}
-                    {% blocktrans %}
-                        {{ name }}: {{ amount }} pcs (first expires: {{ expire_date }})
-                    {% endblocktrans %}
+                    {% blocktrans %}{{ name }}: {{ amount }} pcs (first expires: {{ expire_date }}){% endblocktrans %}
                 {% endif %}
             {% endwith %}
         </li>
@@ -25,13 +21,9 @@
         <li class="ticket_expired">
             {% with name=t amount=l.0 expire_date=l.1 family=l.2 %}
                 {% if family %}
-                    {% blocktrans %}
-                        {{ name }} (F): {{ amount }} pcs (expired: {{ expire_date }})
-                    {% endblocktrans %}
+                    {% blocktrans %}{{ name }} (F): {{ amount }} pcs (expired: {{ expire_date }}){% endblocktrans %}
                 {% else %}
-                    {% blocktrans %}
-                        {{ name }}: {{ amount }} pcs (expired: {{ expire_date }})
-                    {% endblocktrans %}
+                    {% blocktrans %}{{ name }}: {{ amount }} pcs (expired: {{ expire_date }}){% endblocktrans %}
                 {% endif %}
             {% endwith %}
         </li>
