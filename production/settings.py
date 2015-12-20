@@ -49,6 +49,8 @@ SHARED_APPS = (
     # everything below here is optional
     #'django.contrib.admin',
     'django.contrib.auth',
+
+    'corsheaders',
 )
 
 if DEBUG and not ON_PAAS:
@@ -103,7 +105,10 @@ if ON_PAAS and 'OPENSHIFT_BOWER_PATH' in os.environ:
 if ON_PAAS:
     BOWER_COMPONENTS_ROOT = os.path.join(os.environ['OPENSHIFT_DATA_DIR'], 'components')
 
+CORS_ORIGIN_ALLOW_ALL = True
+
 MIDDLEWARE_CLASSES = (
+    'corsheaders.middleware.CorsMiddleware',
     'tenant_schemas.middleware.TenantMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
