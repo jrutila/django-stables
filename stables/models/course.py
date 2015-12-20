@@ -152,7 +152,7 @@ class Enroll(models.Model):
     course = models.ForeignKey(Course)
     participant = models.ForeignKey(UserProfile)
     state = models.IntegerField(choices=ENROLL_STATES, default=WAITFORPAY)
-    last_state_change_on = models.DateTimeField(default=datetime.datetime.now())
+    last_state_change_on = models.DateTimeField(default=datetime.datetime.now)
 
     objects = EnrollManager()
 
