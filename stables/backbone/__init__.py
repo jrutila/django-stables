@@ -25,9 +25,9 @@ class ShortClientCache(SimpleCache):
         return control
 
     def get(self, key, **kwargs):
-        key = connection.schema_name +  ":" + key
+        key = connection.get_schema() +  ":" + key
         return super().get(key, **kwargs)
 
     def set(self, key, value, timeout=None):
-        key = connection.schema_name +  ":" + key
+        key = connection.get_schema() +  ":" + key
         super().set(key, value, timeout)
