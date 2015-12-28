@@ -236,16 +236,18 @@ class TicketAdminForm(forms.ModelForm):
 class TicketAdmin(admin.ModelAdmin):
     form = TicketAdminForm
     actions = ['make_familyticket']
+    search_fields = ("name",)
 
-    def queryset(self, request):
-        qs = super(TicketAdmin, self).queryset(request)
-        q = request.GET.get('q')
-        if q:
-            users = UserProfile.objects.filter(Q(user__first_name__icontains=q) | Q(user__last_name__icontains=q))
+    def get_search_results(self, request, queryset, search_term):
+        if search_term == '':
+            queryset, use_distinct = super(TicketAdmin,self).get_search_results(request, queryset, search_term)
+        else:
+            users = UserProfile.objects.filter(Q(user__first_name__icontains=search_term) | Q(user__last_name__icontains=search_term))
             custid = [u.customer.id for u in users]
             rideid = [u.rider.id for u in users]
-            qs = qs.filter(Q(owner_id__in=custid) | Q(owner_id__in=rideid))
-        return qs
+            queryset = queryset.filter(Q(owner_id__in=custid) | Q(owner_id__in=rideid))
+            use_distinct = False
+        return queryset, use_distinct
 
     def make_familyticket(self, request, queryset):
         for ticket in queryset:
