@@ -106,6 +106,8 @@ if ON_PAAS and 'OPENSHIFT_BOWER_PATH' in os.environ:
 if ON_PAAS:
     BOWER_COMPONENTS_ROOT = os.path.join(os.environ['OPENSHIFT_DATA_DIR'], 'components')
 
+DJANGO_SETTINGS_CACHE_KEYMAKER = 'production.django_settings_keymaker.TenantKeyMaker'
+
 CORS_ORIGIN_ALLOW_ALL = True
 
 MIDDLEWARE_CLASSES = (
