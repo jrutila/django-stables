@@ -28,6 +28,10 @@ class EnrollResource(ModelResource):
         bundle.obj = enroll
         return bundle
 
+    # Also accept POSTs
+    def post_detail(self, request, **kwargs):
+        return self.put_detail(request, **kwargs)
+
     def obj_update(self, bundle, request=None, **kwargs):
         enroll = Enroll.objects.get(pk=kwargs['pk'])
         enroll.state = bundle.data['state']
