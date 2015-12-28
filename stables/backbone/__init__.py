@@ -39,6 +39,7 @@ class ShortClientCache(SimpleCache):
                 logger.debug(val.__dict__)
                 parts = getattr(val, "participations", [])
                 for p in parts:
+                    logger.debug(getattr(p, "rider_name", "NO NAME"))
                     logger.debug(p.__dict__)
                     pickld = pickle.dumps(p, pickle.HIGHEST_PROTOCOL)
                 pickled = pickle.dumps(val, pickle.HIGHEST_PROTOCOL)
