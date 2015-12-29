@@ -31,16 +31,4 @@ class ShortClientCache(SimpleCache):
 
     def set(self, key, value, timeout=None):
         key = connection.get_schema() +  ":" + key
-        logger.debug("ShortClientCache save %s" % key)
-        if isinstance(value, list):
-            logger.debug("Iterate over value")
-            for val in value:
-                logger.debug(getattr(val, "title", "NO TITLE"))
-                logger.debug(val.__dict__)
-                parts = getattr(val, "participations", [])
-                for p in parts:
-                    logger.debug(getattr(p, "rider_name", "NO NAME"))
-                    logger.debug(p.__dict__)
-                    pickld = pickle.dumps(p, pickle.HIGHEST_PROTOCOL)
-                pickled = pickle.dumps(val, pickle.HIGHEST_PROTOCOL)
         super().set(key, value, timeout)
