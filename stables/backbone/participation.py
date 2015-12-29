@@ -75,7 +75,7 @@ class ViewParticipation:
             if part.id:
                 self.finance_url = part.get_absolute_url()
             if hasattr(part, 'accident'):
-                self.accident_url = part.accident.get_absolute_url
+                self.accident_url = part.accident.get_absolute_url()
             if hasattr(part, 'enroll') and part.enroll.state == ATTENDING:
                 self.enroll = EnrollResource().get_resource_uri(part.enroll)
             else:
