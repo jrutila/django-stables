@@ -3,7 +3,7 @@
 {% if p.horse %}{{ p.horse }}{% endif %}
 {% if p.saldo %}
     <span class="saldo">({{ p.saldo }})</span>
-{% else %}
+{% elif p.state != 3 %}
     {% with p.get_saldo as s %}
         {% if s.0 %}
             <span class="saldo">({{ s.0 }})</span>
