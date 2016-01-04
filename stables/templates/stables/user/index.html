@@ -1,6 +1,9 @@
 {% extends "base.html" %}
-{% load i18n stablestags %}
+{% load i18n stablestags sekizai_tags static %}
 {% block content %}
+    {% addtoblock "css" %}
+        <link href="{% static 'stables/css/user.css' %}" rel="stylesheet" type="text/css" />
+    {% endaddtoblock %}
 <div class="widget">
     <div class="widget-content">
 

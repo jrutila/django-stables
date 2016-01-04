@@ -26,15 +26,25 @@ ul.show_zero li.saldo {
 
 .list-group .item {
     margin-left: 5px;
+    height: 77px;
+    margin-bottom: 6px;
 }
 
 .list-group .item > div {
     height: 50px;
 }
 
-span.saldo {
+#rider_list .saldo {
     display: block;
+}
+
+span.saldo {
     color: red;
+}
+
+.state-3, .state-2 {
+    /* Canceled or Skipped*/
+    color: darkgray;
 }
 
 .search-query {
