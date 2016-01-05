@@ -153,12 +153,12 @@ def pay_participation(participation, value=None, ticket=None, method=None):
         object_id=participation.id)
     customer = participation.participant.rider.customer
 
-    saldo, ticket_used, rvalue = _count_saldo(transactions)
+    saldo, ticket_used, rvalue, method = _count_saldo(transactions)
 
     if ticket_used:
         ticket_used.transaction=None
         ticket_used.save()
-        saldo, ticket_used, rvalue = _count_saldo(transactions)
+        saldo, ticket_used, rvalue, method = _count_saldo(transactions)
 
     dvalue = value
     if dvalue == None and participation.event.course_set.count() > 0:
@@ -184,7 +184,7 @@ def pay_participation(participation, value=None, ticket=None, method=None):
             customer=customer,
             method=method)
 
-    saldo, ticket_used, rvalue = _count_saldo(transactions.all())
+    saldo, ticket_used, rvalue, method = _count_saldo(transactions.all())
 
     if saldo != 0:
         if value != None and value > 0:
