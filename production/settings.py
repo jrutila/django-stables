@@ -298,11 +298,6 @@ LOGGING = {
         # Might as well log any errors anywhere else in Django
         'django': {
             'handlers': ['logfile'],
-            'level': 'ERROR',
-            'propagate': False,
-        },
-        'django.core.cache.backends.locmem': {
-            'handlers': ['logfile'],
             'level': 'DEBUG',
             'propagate': False,
         },
