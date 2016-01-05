@@ -2,9 +2,14 @@
 
 <ul>
     {% for p in object.participations %}
+        {% if forloop.counter0 == pmore %}
+            {% trans "Below are all participations with negative saldo" %}
+        {% endif %}
         <li>
             {% include "stables/user/partials/_participation_partial.html" with p=p%}
         </li>
+        {% if forloop.counter == pmore %}
+            <li><a href="{{ request.path }}?pmore={{ pmore|add:10 }}">{% trans "More..." %}</a></li>
+        {% endif %}
     {% endfor %}
-    <li><a href="{{ request.path }}?pmore={{ object.participations|length|add:10 }}">{% trans "More..." %}</a></li>
 </ul>

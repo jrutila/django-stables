@@ -18,3 +18,4 @@ django-cms
 requests==2.7.0
 django_phonenumber_field
 djangorestframework
+django-cors-headers

@@ -10,3 +10,7 @@ os.environ['PYTHON_EGG_CACHE'] = get_python_lib()
 
 import django.core.wsgi
 application = django.core.wsgi.get_wsgi_application()
+
+import newrelic.agent
+newrelic.agent.initialize(os.path.join(os.environ['OPENSHIFT_DATA_DIR'], 'newrelic.ini'))
+application = newrelic.agent.wsgi_application()(application)

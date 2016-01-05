@@ -25,7 +25,12 @@ class TicketType(models.Model):
     name = models.CharField(_("name"), max_length=32)
     description = models.TextField(_("description"))
 
+class CustomerInfoManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().prefetch_related("user", "user__user")
+
 class CustomerInfo(models.Model):
+    objects = CustomerInfoManager()
     class Meta:
         app_label = 'stables'
     def __str__(self):
@@ -88,12 +93,15 @@ def _count_saldo(transactions):
     saldo = None
     ticket_used = None
     value = None
+    payment_method = None
     if transactions:
         saldo = Decimal('0.00')
         value = abs(transactions[0].amount)
     for t in [t for t in transactions if t.active]:
       if t.ticket_set.count() == 0:
         saldo = saldo + t.amount
+        if t.method:
+            payment_method = t.method
       elif t.ticket_set.count() > 0:
         ticket_used=t.ticket_set.all()[0]
-    return (saldo, ticket_used, value)
+    return (saldo, ticket_used, value, payment_method)

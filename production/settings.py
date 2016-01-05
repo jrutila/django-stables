@@ -16,15 +16,16 @@ else:
 # SECURITY WARNING: don't run with debug turned on in production!
 # adjust to turn off when on Openshift, but allow an environment variable to override on PAAS
 DEBUG = not ON_PAAS
-DEBUG = DEBUG or os.getenv("debug","false").lower() == "true"
+DEBUG = DEBUG or (os.getenv("debug","false").lower() == "true")
 
 if ON_PAAS and DEBUG:
     print("*** Warning - Debug mode is on ***")
 
 if ON_PAAS:
     ALLOWED_HOSTS = [os.environ['OPENSHIFT_APP_DNS'], socket.gethostname()]
+    ALLOWED_HOSTS = ["*"]
 else:
-    ALLOWED_HOSTS = []
+    ALLOWED_HOSTS = ["*"]
 
 if not ON_PAAS:
     MERCHANT_ID="13466"
@@ -49,6 +50,8 @@ SHARED_APPS = (
     # everything below here is optional
     #'django.contrib.admin',
     'django.contrib.auth',
+
+    'corsheaders',
 )
 
 if DEBUG and not ON_PAAS:
@@ -105,7 +108,12 @@ if ON_PAAS and 'OPENSHIFT_BOWER_PATH' in os.environ:
 if ON_PAAS:
     BOWER_COMPONENTS_ROOT = os.path.join(os.environ['OPENSHIFT_DATA_DIR'], 'components')
 
+DJANGO_SETTINGS_CACHE_KEYMAKER = 'production.django_settings_keymaker.TenantKeyMaker'
+
+CORS_ORIGIN_ALLOW_ALL = True
+
 MIDDLEWARE_CLASSES = (
+    'corsheaders.middleware.CorsMiddleware',
     'tenant_schemas.middleware.TenantMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -187,7 +195,7 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'tenant_schemas.postgresql_backend',
-            'NAME': 'tenant',
+            'NAME': 'devel',
             'USER': 'talli',
             'PASSWORD': '',
             'HOST': '127.0.0.1',
@@ -258,3 +266,48 @@ if DEBUG:
     #EMAIL_FILE_PATH = '/tmp/app-messages'
 
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'detailed': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+        }
+    },
+    'handlers': {
+        # Include the default Django email handler for errors
+        # This is what you'd get without configuring logging at all.
+        'mail_admins': {
+            'class': 'django.utils.log.AdminEmailHandler',
+            'level': 'ERROR',
+             # But the emails are plain text by default - HTML is nicer
+            'include_html': True,
+        },
+        # Log to a text file that can be rotated by logrotate
+        'logfile': {
+            'class': 'logging.handlers.WatchedFileHandler',
+            'filename': os.path.join(os.getenv("OPENSHIFT_LOG_DIR", "/tmp/"), 'stables.log'),
+            'formatter': 'detailed',
+        },
+    },
+    'loggers': {
+        # Again, default Django configuration to email unhandled exceptions
+        'django.request': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        # Might as well log any errors anywhere else in Django
+        'django': {
+            'handlers': ['logfile'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        # Your own app - this assumes all your logger names start with "myapp."
+        'stables': {
+            'handlers': ['logfile'],
+            'level': 'INFO' if ON_PAAS else 'DEBUG',
+            'propagate': False,
+        },
+    },
+}

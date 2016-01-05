@@ -3,22 +3,10 @@
 
 {% block dashboard_header %}
 {% addtoblock "js" %}
-<script type='text/javascript' src="{% static 'jquery/dist/jquery.js' %}"></script>
-{%  endaddtoblock %}
-{% addtoblock "js" %}
-<script type='text/javascript' src="{% static 'jquery-ui/jquery-ui.js' %}"></script>
-{%  endaddtoblock %}
-{% addtoblock "js" %}
 <script type='text/javascript' src="{% static 'jquery.cookie/jquery.cookie.js' %}"></script>
 {%  endaddtoblock %}
 {% addtoblock "js" %}
 <script type='text/javascript' src="{% static 'underscore/underscore.js' %}"></script>
-{%  endaddtoblock %}
-{% addtoblock "js" %}
-<script type='text/javascript' src="{% static 'bootstrap/dist/js/bootstrap.js' %}"></script>
-{%  endaddtoblock %}
-{% addtoblock "css" %}
-<link href="{% static 'bootstrap/dist/css/bootstrap.css' %}" rel="stylesheet" type="text/css" />
 {%  endaddtoblock %}
 {% addtoblock "js" %}
 <script type='text/javascript' src="{% static 'backbone/backbone.js' %}"></script>

@@ -1,14 +1,26 @@
 {% load i18n stablestags %}
-{{ p }}
+<span class="state-{{ p.state }}">{{ p }}</span>
 {% if p.horse %}{{ p.horse }}{% endif %}
-{% with p.get_saldo as s %}
-    {% if s.0 %}
-    {% elif s.1 %}
-        ({{ s.1.type }})
-    {%  elif s.0 == None and not request.user.is_staff %}
-        {% participate_button p %}
-    {% endif %}
-    {% if perms.stables.change_participation and p.id %}
-        <a href="{% url "view_participation" p.id %}">edit</a>
-    {% endif %}
-{% endwith %}
+{% if p.saldo %}
+    <span class="saldo">({{ p.saldo }})</span>
+{% elif p.state != 3 %}
+    {% with p.get_saldo as s %}
+        {% if s.0 %}
+            <span class="saldo">({{ s.0 }})</span>
+        {% elif s.1 %}
+            <span class="saldo_ok">({{ s.1.type }})</span>
+        {% elif s.2 == None %}
+            <span class="saldo">({% trans "missing" %})</span>
+        {% else %}
+            <span class="saldo_ok">({{ s.2 }}{% if s.3 %} {{ s.3 }}{% endif %})</span>
+        {% endif %}
+    {% endwith %}
+{% endif %}
+
+{% if not request.user.is_staff %}
+    {% participate_button p %}
+{% endif %}
+
+{% if perms.stables.change_participation and p.id %}
+    <a href="{% url "view_participation" p.id %}">edit</a>
+{% endif %}
