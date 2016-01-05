@@ -19,3 +19,4 @@ requests==2.7.0
 django_phonenumber_field
 djangorestframework
 django-cors-headers
+-e git+http://github.com/jrutila/django-shop-discounts.git#egg=django-shop-discounts
