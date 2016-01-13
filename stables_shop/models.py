@@ -1,6 +1,8 @@
 #from shop.models import Product
 from django.db import models
 from django.db.models import DurationField
+
+from discount.default_discounts.models import CartItemAbsoluteDiscount, CartItemPercentDiscount
 from shop.models import Product
 from shop.models_bases import BaseProduct
 from stables.models.course import Course, Enroll
@@ -146,4 +148,19 @@ class PartShortUrl(models.Model):
 
     def __str__(self):
         return "%s - %s" % (self.hash, self.participation)
+
+class ProductAbsoluteDiscount(CartItemAbsoluteDiscount):
+    products = models.ManyToManyField(Product)
+    product_filters = []
+
+    def get_products(self):
+        return self.products.all()
+
+class ProductPercentDiscount(CartItemPercentDiscount):
+    products = models.ManyToManyField(Product)
+    product_filters = []
+
+    def get_products(self):
+        return self.products.all()
+
 

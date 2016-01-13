@@ -2,6 +2,9 @@ from django.conf.urls import patterns, url
 # Uncomment the next two lines to enable the admin:
 #from django.contrib import admin
 #admin.autodiscover()
+from django.core.urlresolvers import reverse_lazy
+
+from discount.views import CartDiscountCodeCreateView, CartDiscountCodeDeleteView
 from stables_shop.views import HomePageView, PayView, ShipView, EditProduct, CreateProduct, FinishedOrderList, \
     SettingsView
 
@@ -15,3 +18,5 @@ urlpatterns = patterns('',
     url(r'^settings/', SettingsView.as_view(), name='shop-settings'),
 )
 
+CartDiscountCodeCreateView.success_url = reverse_lazy('cart')
+CartDiscountCodeDeleteView.success_url = reverse_lazy('cart')
