@@ -251,6 +251,12 @@ class DefaultModelForm(forms.ModelForm):
         self.helper.form_tag = True
         self.helper.disable_csrf = False
 
+class DefaultProductModelForm(DefaultModelForm):
+    unit_price = forms.DecimalField(decimal_places=3, help_text=_("The whole product price excluding VAT."))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args,**kwargs)
+
 def _getAddressText(data):
     addr = AddressModel()
     addr.name = data['name']
@@ -286,7 +292,7 @@ class ShipForm(DefaultForm):
 
 
 def prodform(prodmodel):
-    class ProductForm(DefaultModelForm):
+    class ProductForm(DefaultProductModelForm):
         class Meta:
             exclude = []
             model = prodmodel
