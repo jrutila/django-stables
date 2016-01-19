@@ -176,4 +176,4 @@ class ProductPercentDiscount(CartItemPercentDiscount):
 
 class WholePercentDiscount(PercentDiscount):
     def __str__(self):
-        return "Prosenttialennus (%s prosenttia)" % (self.amount)
+        return "%s (%s prosenttia)" % (self.name, self.amount)
