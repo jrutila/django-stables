@@ -3,6 +3,9 @@ from django.forms import HiddenInput
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.shortcuts import redirect
 import django_settings
+from django.utils import timezone
+
+from discount.models import DiscountBase
 from stables.models.financial import pay_participation
 from shop.util.order import add_order_to_request
 from shop.views.checkout import CheckoutSelectionView
@@ -204,6 +207,16 @@ def products():
                 _products[ct.model_class()] = ct
     return _products
 
+_discounts = None
+def discounts():
+    global _discounts
+    if _discounts == None:
+        _discounts = {}
+        for ct in ContentType.objects.filter(app_label='stables_shop'):
+            if issubclass(ct.model_class(), DiscountBase):
+                _discounts[ct.model_class()] = ct
+    return _discounts
+
 from django.contrib.auth.decorators import permission_required
 from django.utils.decorators import method_decorator
 
@@ -232,7 +245,9 @@ class HomePageView(ShopEditorMixin, ShopSettingsSetMixin, TemplateView):
             orders[o].ship_help = val.shipping_address_text.split('\n') if val.shipping_address_text else []
         context['orders'] = orders
         context['products'] = Product.objects.all().order_by('-active', 'name')
+        context['discounts'] = DiscountBase.objects.exclude(valid_until__lt=timezone.now())
         context['newproducts'] = products()
+        context['newdiscounts'] = discounts()
         return context
 
 class DefaultForm(forms.Form):
@@ -254,6 +269,10 @@ class DefaultModelForm(forms.ModelForm):
 class DefaultProductModelForm(DefaultModelForm):
     unit_price = forms.DecimalField(decimal_places=3, help_text=_("The whole product price excluding VAT."))
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args,**kwargs)
+
+class DefaultDiscountModelForm(DefaultModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args,**kwargs)
 
@@ -299,6 +318,13 @@ def prodform(prodmodel):
 
     return ProductForm
 
+def discform(discmodel):
+    class DiscountForm(DefaultDiscountModelForm):
+        class Meta:
+            exclude = []
+            model = discmodel
+
+    return DiscountForm
 
 class EditProduct(ShopEditorMixin, UpdateView):
     model = Product
@@ -318,6 +344,25 @@ class CreateProduct(ShopEditorMixin, CreateView):
         if not issubclass(klass, Product):
             raise Http404("Give Product type not found")
         return prodform(klass)
+
+class EditDiscount(ShopEditorMixin, UpdateView):
+    model = DiscountBase
+    template_name = "stables/generic_form.html"
+    success_url = '/s' #TODO: Bad!
+    def get_form_class(self):
+        return discform(self.object.__class__)
+
+class CreateDiscount(ShopEditorMixin, CreateView):
+    model = DiscountBase
+    template_name = "stables/generic_form.html"
+    success_url = '/s' #TODO: Bad!
+
+    def get_form_class(self):
+        ct = ContentType.objects.get(pk=self.kwargs['content_type_id'])
+        klass = ct.model_class()
+        if not issubclass(klass, DiscountBase):
+            raise Http404("Give Product type not found")
+        return discform(klass)
 
 class FinishedOrderList(ShopEditorMixin, ListView):
     model = Order

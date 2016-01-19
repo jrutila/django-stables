@@ -48,6 +48,9 @@
             <td>
                 {% for i in o.items.all %}
                 {{ i.product_name }}{% if i.quantity > 1 %} ({{ i.quantity }} kpl){% endif %}<br/>
+                    {% for e in i.extraorderitempricefield_set.all %}
+                        {{ e.label }}<br/>
+                    {% endfor %}
                 {% endfor %}
             </td>
             <td>{{ o.order_total }}</td>
@@ -104,4 +107,42 @@
 {% for p, ct in newproducts.items %}
 <a href="{% url "product-add" ct.id %}">{{ ct.name|capfirst }}</a>
 {% endfor %}
+
+
+<h3>{% trans "Discounts" %}</h3>
+    <table class="table">
+    <thead>
+    <tr>
+        <th>{% trans "Name" %}</th>
+        <th>{% trans "Code" %}</th>
+        <th>{% trans "Is active?" %}</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for d in discounts %}
+        <tr>
+        <td>
+            <a href="{% url "discount-edit" pk=d.id %}">{{ d }}</a>
+        </td>
+        <td>
+            {{ d.code }}
+        </td>
+        <td>
+            {% if d.is_active_now %}
+                <input type="checkbox" checked="checked" disabled="disabled" />
+            {% else %}
+                <input type="checkbox" disabled="disabled" />
+            {% endif %}
+        </td>
+        </tr>
+    {% endfor %}
+
+    </tbody>
+    </table>
+
+    {% trans "Add new ..." %}
+    {% for p, ct in newdiscounts.items %}
+        <a href="{% url "discount-add" ct.id %}">{{ ct.name|capfirst }}</a>
+    {% endfor %}
+
 {% endblock %}

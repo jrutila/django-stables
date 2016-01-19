@@ -1,8 +1,11 @@
 #from shop.models import Product
+from decimal import Decimal
+
+from django.conf import settings
 from django.db import models
 from django.db.models import DurationField
 
-from discount.default_discounts.models import CartItemAbsoluteDiscount, CartItemPercentDiscount
+from discount.default_discounts.models import CartItemAbsoluteDiscount, CartItemPercentDiscount, PercentDiscount
 from shop.models import Product
 from shop.models_bases import BaseProduct
 from stables.models.course import Course, Enroll
@@ -18,6 +21,8 @@ from django_settings.models import registry
 from django.core.urlresolvers import reverse
 from stables_shop.backends import ProductActivator
 from stables_shop.markov_passwords import MarkovChain, finnish
+from stables_shop.templatetags.stables_shop_tags import add_vat
+
 
 class LongString(SettingsModel):
    value = models.TextField()
@@ -156,6 +161,9 @@ class ProductAbsoluteDiscount(CartItemAbsoluteDiscount):
     def get_products(self):
         return self.products.all()
 
+    def __str__(self):
+        return "%s (%s e)" % (self.name, str(add_vat(self.amount))) # str(Decimal(self.amount*(1+settings.SHOP_VAT)).quantize(Decimal('0.00'))))
+
 class ProductPercentDiscount(CartItemPercentDiscount):
     products = models.ManyToManyField(Product)
     product_filters = []
@@ -163,4 +171,9 @@ class ProductPercentDiscount(CartItemPercentDiscount):
     def get_products(self):
         return self.products.all()
 
+    def __str__(self):
+        return "%s (%s prosenttia)" % (self.name, self.amount)
 
+class WholePercentDiscount(PercentDiscount):
+    def __str__(self):
+        return "Prosenttialennus (%s prosenttia)" % (self.amount)

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from stables_shop.models import TicketProduct, EnrollProduct, EnrollProductActivator, PartShortUrl, \
-    ProductAbsoluteDiscount, ProductPercentDiscount
+    ProductAbsoluteDiscount, ProductPercentDiscount, WholePercentDiscount
 from stables_shop.models import TicketProductActivator
 
 
@@ -15,3 +15,4 @@ admin.site.register(EnrollProductActivator)
 admin.site.register(PartShortUrl, PartShortUrlAdmin)
 admin.site.register(ProductAbsoluteDiscount)
 admin.site.register(ProductPercentDiscount)
+admin.site.register(WholePercentDiscount)
