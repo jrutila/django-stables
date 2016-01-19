@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-05-29 00:10+0300\n"
+"POT-Creation-Date: 2016-01-19 23:12+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,49 +18,77 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: backends.py:14
+#: addressmodel.py:9
+#, python-format
+msgid ""
+"%(name)s\n"
+"%(phone)s"
+msgstr ""
+
+#: addressmodel.py:20 templates/stables_shop/index.html:91
+#: templates/stables_shop/index.html:119
+msgid "Name"
+msgstr "Nimi"
+
+#: addressmodel.py:21
+msgid "Phone number"
+msgstr "Puhelinnumero"
+
+#: addressmodel.py:24
+msgid "Address"
+msgstr "Osoite"
+
+#: addressmodel.py:25
+msgid "Addresses"
+msgstr "Osoitteet"
+
+#: backends.py:23
 msgid "Initiated"
 msgstr ""
 
-#: backends.py:15
+#: backends.py:24
 msgid "Activated"
 msgstr ""
 
-#: backends.py:16
+#: backends.py:25
 msgid "Failed"
 msgstr ""
 
-#: backends.py:17
+#: backends.py:26
 msgid "Canceled"
 msgstr ""
 
-#: backends.py:26
+#: backends.py:35
 msgid "Digital"
 msgstr ""
 
-#: models.py:24
+#: backends.py:74
+msgid "Paytrail payment"
+msgstr ""
+
+#: models.py:46
 msgid "Amount of tickets included in this product."
 msgstr "Kertojen määrä tällä tuotteella."
 
-#: models.py:25
+#: models.py:47
 msgid ""
 "Relative duration of the given product. For example 30 days, 90 days. If "
 "this is empty, you must insert expire date."
 msgstr ""
-"Tämän tuotteen kesto. Esim. '30 days' tai '90 days'. Jos jätät"
-"tämän tyhjäksi, täytä absoluuttinen vanhentumispäivämäärä."
+"Tämän tuotteen kesto. Esim. '30 00:00:00' tai '90 00:00:00'. Jos jätät tämän "
+"tyhjäksi, täytä absoluuttinen vanhentumispäivämäärä."
 
-#: models.py:26
+#: models.py:48
 msgid ""
 "Absolute expiration date for the given product. For example 2014-12-31. If "
 "this is empty, you must insert duration."
 msgstr ""
-"Absoluuttinen vanhenemispäivämäärä. Esim. '2014-12-31'. Jos jätätä tämän tyhjäksi"
-", täytä tuotteen kesto."
+"Absoluuttinen vanhenemispäivämäärä. Esim. '2014-12-31'. Jos jätätä tämän "
+"tyhjäksi, täytä tuotteen kesto."
 
-#: models.py:33
+#: models.py:55
 msgid "Ticket duration or absolute expire date must be set"
-msgstr ""
+msgstr "Tuotteen kesto tai absoluuttinen vanhenemispäivämäärä pitää asettaa"
 
 #: modifiers.py:19
 msgid "VAT"
@@ -70,118 +98,173 @@ msgstr "ALV"
 msgid "The whole product price excluding VAT."
 msgstr "Koko tuotteen hinta ilman ALVia."
 
-#: views.py:150
-#, python-format
-msgid "User \"%s\" not found"
-msgstr "Ratsastajaa \"%s\" ei löytynyt."
-
-#: views.py:153
-#, python-format
-msgid "User \"%s\" is too ambiguous"
-msgstr "Liian epätarkka nimi: \"%s\""
-
-#: views.py:171
-msgid "Save"
-msgstr "Tallenna"
-
-#: stables_shop/views.py:231
-msgid "Name of the shop shown in left upper corner"
-msgstr "Kaupan nimi, mikä näkyy vasemmassa yläkulmassa"
-
-#: stables_shop/views.py:232
-msgid "Address for the main page (e.g. your homepage)"
-msgstr "Kotisivujesi osoite, mihin kaupasta voi palata."
-
-#: stables_shop/views.py:233
-msgid "Your bank account number"
-msgstr "Pankkitilisi numero"
-
-#: stables_shop/views.py:234
-msgid "Invoice receiver name"
-msgstr "Laskun vastaanottajan nimi"
-
-#: stables_shop/templates/stables_shop/index.html:7
+#: templates/stables_shop/index.html:8
 #, python-format
 msgid "You can visit your shop <a href='%(shopurl)s'>here</a>."
 msgstr "Voit mennä kauppaasi <a href='%(shopurl)s'>tästä</a>."
 
-#: stables_shop/templates/stables_shop/index.html:9
+#: templates/stables_shop/index.html:10
 msgid "Unfinished orders"
 msgstr "Keskeneräiset tilaukset"
 
-#: templates/stables_shop/index.html:13 templates/stables_shop/index.html:82
+#: templates/stables_shop/index.html:14 templates/stables_shop/index.html:89
 #: templates/stables_shop/order_list.html:8
 msgid "Id"
 msgstr ""
 
-#: stables_shop/templates/stables_shop/index.html:14
-#: stables_shop/templates/stables_shop/order_list.html:9
+#: templates/stables_shop/index.html:15
+#: templates/stables_shop/order_list.html:9
+msgid "Order date"
+msgstr "Tilauspvm"
+
+#: templates/stables_shop/index.html:16
+#: templates/stables_shop/order_list.html:10
 msgid "Status"
 msgstr "Tila"
 
-#: stables_shop/templates/stables_shop/index.html:15
-#: stables_shop/templates/stables_shop/order_list.html:10
+#: templates/stables_shop/index.html:17
+#: templates/stables_shop/order_list.html:11
 msgid "Target"
 msgstr "Kohde"
 
-#: stables_shop/templates/stables_shop/index.html:16
-#: stables_shop/templates/stables_shop/order_list.html:11
+#: templates/stables_shop/index.html:18
+#: templates/stables_shop/order_list.html:12
 msgid "Product"
 msgstr "Tuote"
 
-#: stables_shop/templates/stables_shop/index.html:17
-#: stables_shop/templates/stables_shop/order_list.html:13
+#: templates/stables_shop/index.html:19
+#: templates/stables_shop/order_list.html:14
 msgid "Total"
 msgstr "Summa"
 
-#: stables_shop/templates/stables_shop/index.html:18
+#: templates/stables_shop/index.html:20
 msgid "Is paid"
 msgstr "Maksettu?"
 
-#: stables_shop/templates/stables_shop/index.html:19
+#: templates/stables_shop/index.html:21
 msgid "Is shipped"
 msgstr "Toimitettu?"
 
-#: stables_shop/templates/stables_shop/index.html:20
-#: stables_shop/templates/stables_shop/order_list.html:12
+#: templates/stables_shop/index.html:22
+#: templates/stables_shop/order_list.html:13
 msgid "Transaction"
 msgstr "Tapahtuma"
 
-#: stables_shop/templates/stables_shop/index.html:21
+#: templates/stables_shop/index.html:23
 msgid "Actions"
 msgstr "Toiminnot"
 
-#: stables_shop/templates/stables_shop/index.html:60
+#: templates/stables_shop/index.html:67
 msgid "Paid"
 msgstr "Maksettu"
 
-#: stables_shop/templates/stables_shop/index.html:63
+#: templates/stables_shop/index.html:70
 msgid "Ship"
 msgstr "Toimita"
 
-#: stables_shop/templates/stables_shop/index.html:74
+#: templates/stables_shop/index.html:72
+msgid "Are you sure?"
+msgstr "Oletko varma?"
+
+#: templates/stables_shop/index.html:72
+msgid "Cancel"
+msgstr "Peru"
+
+#: templates/stables_shop/index.html:81
 #, python-format
 msgid "<a href='%(orderurl)s'>Finished orders</a>."
 msgstr "<a href='%(orderurl)s'>Valmiit tilaukset</a>."
 
-#: stables_shop/templates/stables_shop/index.html:78
+#: templates/stables_shop/index.html:85
 msgid "Products"
 msgstr "Tuotteet"
 
-#: stables_shop/templates/stables_shop/index.html:83
+#: templates/stables_shop/index.html:90
 msgid "Active"
 msgstr "Aktiivinen"
 
-#: stables_shop/templates/stables_shop/index.html:84
-msgid "Name"
-msgstr "Nimi"
+#: templates/stables_shop/index.html:92
+msgid "Unit price"
+msgstr "Yksikköhinta"
 
-#: stables_shop/templates/stables_shop/index.html:85
-#: stables_shop/templates/stables_shop/index.html:94
+#: templates/stables_shop/index.html:93 templates/stables_shop/index.html:103
 msgid "Edit"
 msgstr "Muokkaa"
 
-#: stables_shop/templates/stables_shop/index.html:100
+#: templates/stables_shop/index.html:109 templates/stables_shop/index.html:146
 msgid "Add new ..."
 msgstr "Lisää uusi ..."
 
+#: templates/stables_shop/index.html:115
+msgid "Discounts"
+msgstr "Alennukset"
+
+#: templates/stables_shop/index.html:120
+msgid "Code"
+msgstr "Koodi"
+
+#: templates/stables_shop/index.html:121
+#| msgid "Active"
+msgid "Is active?"
+msgstr "Aktiivinen"
+
+#: views.py:109
+msgid "Payment method"
+msgstr "Maksutapa"
+
+#: views.py:276
+msgid "The whole product price including VAT (%s %%)."
+msgstr "Koko tuotteen hinta sisältäen ALVin (%s %%)."
+
+#: views.py:290
+msgid "The whole discount including VAT (%s %%)."
+msgstr "Koko alennuksen määrä sisältäen ALVin (%s %%)."
+
+#: views.py:326
+#, python-format
+msgid "User \"%s\" not found"
+msgstr "Ratsastajaa \"%s\" ei löytynyt."
+
+#: views.py:329
+#, python-format
+msgid "User \"%s\" is too ambiguous"
+msgstr "Liian epätarkka nimi: \"%s\""
+
+#: views.py:440
+msgid "Name of the shop shown in left upper corner"
+msgstr "Kaupan nimi, mikä näkyy vasemmassa yläkulmassa"
+
+#: views.py:441
+msgid "Address for the main page (e.g. your homepage)"
+msgstr "Kotisivujesi osoite, mihin kaupasta voi palata."
+
+#: views.py:443
+msgid "Text that is visible on shop info page"
+msgstr "Kaupan \"Tietoja\"-sivulle tuleva teksti"
+
+#: views.py:445
+msgid "Your bank account number"
+msgstr "Pankkitilisi numero"
+
+#: views.py:446
+msgid "Invoice receiver name"
+msgstr "Laskun vastaanottajan nimi"
+
+#: views.py:448
+msgid "Your Paytrail merchant id"
+msgstr ""
+
+#: views.py:449
+msgid "Your Paytrail merchant secret"
+msgstr ""
+
+#: views.py:463
+msgid "Both payment account number and payment receiver must be set"
+msgstr ""
+
+#: views.py:467
+msgid "Both merchant id and secret must be set"
+msgstr ""
+
+#~ msgid "Save"
+#~ msgstr "Tallenna"
