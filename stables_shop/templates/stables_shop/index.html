@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load stables_shop_tags %}
 
 {% block content %}
 <p>
@@ -88,6 +89,7 @@
             <th>{% trans "Id" %}</th>
             <th>{% trans "Active" %}</th>
             <th>{% trans "Name" %}</th>
+            <th>{% trans "Unit price" %}</th>
             <th>{% trans "Edit" %}</th>
         </tr>
     </thead>
@@ -97,6 +99,7 @@
         <td>{{ p.id }}</td>
         <td>{{ p.active }}</td>
         <td>{{ p.name }}</td>
+        <td>{{ p.unit_price|add_vat }}</td>
         <td><a href="{% url "product-edit" pk=p.id %}">{% trans "Edit" %}</a></td>
     </tr>
     {% endfor %}

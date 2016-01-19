@@ -64,12 +64,10 @@
         <input class="btn btn-default" type="submit" value="{% trans "Empty Shopping Cart" %}"
         onClick="$(this).parents('form').attr('action', '{% url "cart_delete" %}')"
         />
+        <a class="btn btn-default" href="{% url 'discount_cartdiscountcode_create' %}?next={{ request.path }}">{% trans "Insert discount code" %}</a>
         </p>
       <p class="btn-group">
         <a class="btn btn-primary" href="{% url 'checkout_selection' %}">{% trans "Proceed to checkout" %}</a>
-      </p>
-      <p class="btn-group">
-          <a class="btn btn-default" href="{% url 'discount_cartdiscountcode_create' %}">{% trans "Insert discount code" %}</a>
       </p>
       </form>
 

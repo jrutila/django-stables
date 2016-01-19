@@ -1,4 +1,7 @@
+from decimal import Decimal
+
 from django import forms
+from django.conf import settings
 from django.forms import HiddenInput
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.shortcuts import redirect
@@ -33,10 +36,10 @@ from shop.backends_pool import backends_pool
 from stables_shop.models import PartShortUrl
 
 class DefaultHelper(FormHelper):
-    label_class = "col-xs-2"
-    field_class = "col-xs-10"
+    #label_class = "col-xs-2"
+    #field_class = "col-xs-10"
     form_tag = False
-    form_class = "row"
+    #form_class = "row"
     disable_csrf = True
 
 def ret_name(self):
@@ -171,7 +174,10 @@ class ParticipationPayment(FormView): # DetailView):
 
     def get_initial(self):
         initial = super(ParticipationPayment, self).get_initial()
-        self.object = PartShortUrl.objects.get(hash=self.kwargs['hash']).participation
+        try:
+            self.object = PartShortUrl.objects.get(hash=self.kwargs['hash']).participation
+        except PartShortUrl.DoesNotExist:
+            raise Http404
         initial['participation_id'] = self.object.id
         return initial
 
@@ -267,14 +273,32 @@ class DefaultModelForm(forms.ModelForm):
         self.helper.disable_csrf = False
 
 class DefaultProductModelForm(DefaultModelForm):
-    unit_price = forms.DecimalField(decimal_places=3, help_text=_("The whole product price excluding VAT."))
+    unit_price = forms.DecimalField(decimal_places=2, help_text=_("The whole product price including VAT (%s %%).") % (settings.SHOP_VAT*100))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args,**kwargs)
+        if 'unit_price' in self.initial:
+            self.initial['unit_price'] = self.initial['unit_price']*(1+settings.SHOP_VAT)
+            self.initial['unit_price'] = self.initial['unit_price'].quantize(Decimal('0.00'))
+
+    def clean_unit_price(self):
+        pr = self.cleaned_data['unit_price']
+        pr = pr/(1+settings.SHOP_VAT)
+        return pr.quantize(Decimal('0.000'))
 
 class DefaultDiscountModelForm(DefaultModelForm):
+    amount = forms.DecimalField(decimal_places=2, help_text=_("The whole discount including VAT (%s %%).") % (settings.SHOP_VAT*100))
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args,**kwargs)
+        if 'amount' in self.initial:
+            self.initial['amount'] = self.initial['amount']*(1+settings.SHOP_VAT)
+            self.initial['amount'] = self.initial['amount'].quantize(Decimal('0.00'))
+
+    def clean_amount(self):
+        pr = self.cleaned_data['amount']
+        pr = pr/(1+settings.SHOP_VAT)
+        return pr.quantize(Decimal('0.000'))
 
 def _getAddressText(data):
     addr = AddressModel()

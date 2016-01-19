@@ -10,7 +10,10 @@
 {% endblock %}
 
 {% block body %}
-<h1>Valitse tuote</h1><span> tai syötä koodi:</span><input type="text" name="code" id="pay_code" /><button onclick="window.location.href = '/shopper/pay/'+$('#pay_code').val()">ok</button>
+<h1>Valitse tuote</h1>
+    <!--
+    <span> tai syötä koodi:</span><input type="text" name="code" id="pay_code" /><button onclick="window.location.href = '/shopper/pay/'+$('#pay_code').val()">ok</button>
+    -->
 
 <div class="list-group">
 {% for object in object_list|orderproducts %}
