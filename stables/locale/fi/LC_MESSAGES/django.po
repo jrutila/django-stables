@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-12-15 20:54+0200\n"
+"POT-Creation-Date: 2016-01-19 23:38+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -444,7 +444,7 @@ msgstr ""
 
 #: templates/stables/dashboard/_templates.html:88
 msgid "Other"
-msgstr ""
+msgstr "Muu"
 
 #: templates/stables/dashboard/_templates.html:107
 msgid "details"
@@ -452,11 +452,11 @@ msgstr "lisätiedot"
 
 #: templates/stables/dashboard/_templates.html:157
 msgid "Set"
-msgstr ""
+msgstr "Aseta"
 
 #: templates/stables/dashboard/_templates.html:163
 msgid "Send SMS"
-msgstr ""
+msgstr "Lähetä SMS"
 
 #: templates/stables/dashboard/_templates.html:164
 #: templates/stables/dashboard/_templates.html:182
@@ -631,7 +631,7 @@ msgid "Back"
 msgstr "Takaisin"
 
 #: templates/stables/horsereport/report.html:6
-#: templates/stables/user/index.html:37
+#: templates/stables/user/index.html:40
 msgid "Total"
 msgstr "Yhteensä"
 
@@ -683,35 +683,35 @@ msgstr "Vaihda salasana"
 msgid "Add"
 msgstr "Lisää"
 
-#: templates/stables/user/index.html:15
+#: templates/stables/user/index.html:18
 msgid "Next event"
 msgstr "Seuraava tapahtuma"
 
-#: templates/stables/user/index.html:22
+#: templates/stables/user/index.html:25
 msgid "Previous participations"
 msgstr "Edelliset tapahtumat"
 
-#: templates/stables/user/index.html:27
+#: templates/stables/user/index.html:30
 msgid "Saldo and tickets"
 msgstr "Saldo ja kortit"
 
-#: templates/stables/user/index.html:30
+#: templates/stables/user/index.html:33
 msgid "Orders"
 msgstr "Tilaukset"
 
-#: templates/stables/user/index.html:33
+#: templates/stables/user/index.html:36
 msgid "Id"
 msgstr ""
 
-#: templates/stables/user/index.html:34
+#: templates/stables/user/index.html:37
 msgid "Created"
 msgstr "Luotu"
 
-#: templates/stables/user/index.html:35
+#: templates/stables/user/index.html:38
 msgid "Status"
 msgstr "Tila"
 
-#: templates/stables/user/index.html:36
+#: templates/stables/user/index.html:39
 msgid "Product"
 msgstr "Tuote"
 
@@ -740,9 +740,17 @@ msgid "SMS"
 msgstr ""
 
 #: templates/stables/user/partials/_next.html:9
-#: templates/stables/user/partials/_prev.html:9
+#: templates/stables/user/partials/_prev.html:12
 msgid "More..."
 msgstr "Lisää..."
+
+#: templates/stables/user/partials/_participation_partial.html:13
+msgid "missing"
+msgstr ""
+
+#: templates/stables/user/partials/_prev.html:6
+msgid "Below are all participations with negative saldo"
+msgstr "Alapuolella vain negatiiviset tapahtumat"
 
 #: templates/stables/user/partials/_tickets.html:4
 msgid "Add tickets"
@@ -753,18 +761,23 @@ msgid "Edit tickets"
 msgstr "Muokkaa kortteja"
 
 #: templates/stables/user/partials/_tickets.html:13
+#, python-format
 msgid "%(name)s (F): %(amount)s pcs (first expires: %(expire_date)s)"
 msgstr "%(name)s (P): %(amount)s kpl (vanhentuu: %(expire_date)s)"
 
 #: templates/stables/user/partials/_tickets.html:15
+#, python-format
 msgid "%(name)s: %(amount)s pcs (first expires: %(expire_date)s)"
 msgstr "%(name)s: %(amount)s kpl (vanhentuu: %(expire_date)s)"
 
 #: templates/stables/user/partials/_tickets.html:24
+#, python-format
 msgid "%(name)s (F): %(amount)s pcs (expired: %(expire_date)s)"
-msgstr "Vanhentunut %(name)s (P): %(amount)s kpl (vanhentunut: %(expire_date)s)"
+msgstr ""
+"Vanhentunut %(name)s (P): %(amount)s kpl (vanhentunut: %(expire_date)s)"
 
 #: templates/stables/user/partials/_tickets.html:26
+#, python-format
 msgid "%(name)s: %(amount)s pcs (expired: %(expire_date)s)"
 msgstr "Vanhentunut %(name)s: %(amount)s kpl (vanhentunut: %(expire_date)s)"
 
@@ -788,11 +801,11 @@ msgstr "Lisää käyttäjä"
 msgid "Add rider"
 msgstr "Lisää ratsastaja"
 
-#: templates/stables/user/userprofile_list.html:82
+#: templates/stables/user/userprofile_list.html:84
 msgid "Show only riders with saldo"
 msgstr "Näytä vain negatiivisella olevat"
 
-#: templates/stables/user/userprofile_list.html:83
+#: templates/stables/user/userprofile_list.html:90
 msgid "Show only inactive riders"
 msgstr "Näytä vain passivoidut"
 
