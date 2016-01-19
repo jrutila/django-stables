@@ -1,8 +1,14 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load stables_shop_tags %}
+{% load sekizai_tags %}
 
 {% block content %}
+    {% addtoblock "js" %}
+        <script type="text/javascript">
+            $(".extrainfo").popover()
+        </script>
+    {% endaddtoblock %}
 <p>
 {% url "shop-in" as shopurl %}
 {% blocktrans %}You can visit your shop <a href='{{ shopurl }}'>here</a>.{% endblocktrans %}
@@ -17,6 +23,7 @@
             <th>{% trans "Target" %}</th>
             <th>{% trans "Product" %}</th>
             <th>{% trans "Total" %}</th>
+            <th>{% trans "Extra info" %}</th>
             <th>{% trans "Is paid" %}</th>
             <th>{% trans "Is shipped" %}</th>
             <th>{% trans "Transaction" %}</th>
@@ -55,6 +62,11 @@
                 {% endfor %}
             </td>
             <td>{{ o.order_total }}</td>
+            <td>
+                {% if o.extra_info.first %}
+                <i class="extrainfo fa fa-info-circle fa-2x" data-content="{{ o.extra_info.first.text }}"></i>
+                {% endif %}
+            </td>
             <td>{{ o.is_paid }}</td>
             <td>{{ o.is_shipped }}</td>
             <td>{{ o.orderpayment_set.all.0.transaction_id }}</td>
