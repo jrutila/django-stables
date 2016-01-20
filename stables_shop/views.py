@@ -287,7 +287,7 @@ class DefaultProductModelForm(DefaultModelForm):
         return pr.quantize(Decimal('0.000'))
 
 class DefaultDiscountModelForm(DefaultModelForm):
-    amount = forms.DecimalField(decimal_places=2, help_text=_("The whole discount including VAT (%s %%).") % (settings.SHOP_VAT*100))
+    amount = forms.DecimalField(decimal_places=2, help_text=_("Insert the discount amount with minus sign (e.g. -10). VAT (%s%%) is included if adding absolute discount.") % (settings.SHOP_VAT*100))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args,**kwargs)

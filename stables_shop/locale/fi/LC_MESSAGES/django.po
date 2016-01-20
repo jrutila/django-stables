@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-01-19 23:12+0200\n"
+"POT-Creation-Date: 2016-01-20 00:19+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,8 +25,8 @@ msgid ""
 "%(phone)s"
 msgstr ""
 
-#: addressmodel.py:20 templates/stables_shop/index.html:91
-#: templates/stables_shop/index.html:119
+#: addressmodel.py:20 templates/stables_shop/index.html:103
+#: templates/stables_shop/index.html:131
 msgid "Name"
 msgstr "Nimi"
 
@@ -98,113 +98,116 @@ msgstr "ALV"
 msgid "The whole product price excluding VAT."
 msgstr "Koko tuotteen hinta ilman ALVia."
 
-#: templates/stables_shop/index.html:8
+#: templates/stables_shop/index.html:14
 #, python-format
 msgid "You can visit your shop <a href='%(shopurl)s'>here</a>."
 msgstr "Voit mennä kauppaasi <a href='%(shopurl)s'>tästä</a>."
 
-#: templates/stables_shop/index.html:10
+#: templates/stables_shop/index.html:16
 msgid "Unfinished orders"
 msgstr "Keskeneräiset tilaukset"
 
-#: templates/stables_shop/index.html:14 templates/stables_shop/index.html:89
+#: templates/stables_shop/index.html:20 templates/stables_shop/index.html:101
 #: templates/stables_shop/order_list.html:8
 msgid "Id"
 msgstr ""
 
-#: templates/stables_shop/index.html:15
+#: templates/stables_shop/index.html:21
 #: templates/stables_shop/order_list.html:9
 msgid "Order date"
 msgstr "Tilauspvm"
 
-#: templates/stables_shop/index.html:16
+#: templates/stables_shop/index.html:22
 #: templates/stables_shop/order_list.html:10
 msgid "Status"
 msgstr "Tila"
 
-#: templates/stables_shop/index.html:17
+#: templates/stables_shop/index.html:23
 #: templates/stables_shop/order_list.html:11
 msgid "Target"
 msgstr "Kohde"
 
-#: templates/stables_shop/index.html:18
+#: templates/stables_shop/index.html:24
 #: templates/stables_shop/order_list.html:12
 msgid "Product"
 msgstr "Tuote"
 
-#: templates/stables_shop/index.html:19
+#: templates/stables_shop/index.html:25
 #: templates/stables_shop/order_list.html:14
 msgid "Total"
 msgstr "Summa"
 
-#: templates/stables_shop/index.html:20
+#: templates/stables_shop/index.html:26
+msgid "Extra info"
+msgstr ""
+
+#: templates/stables_shop/index.html:27
 msgid "Is paid"
 msgstr "Maksettu?"
 
-#: templates/stables_shop/index.html:21
+#: templates/stables_shop/index.html:28
 msgid "Is shipped"
 msgstr "Toimitettu?"
 
-#: templates/stables_shop/index.html:22
+#: templates/stables_shop/index.html:29
 #: templates/stables_shop/order_list.html:13
 msgid "Transaction"
 msgstr "Tapahtuma"
 
-#: templates/stables_shop/index.html:23
+#: templates/stables_shop/index.html:30
 msgid "Actions"
 msgstr "Toiminnot"
 
-#: templates/stables_shop/index.html:67
+#: templates/stables_shop/index.html:79
 msgid "Paid"
 msgstr "Maksettu"
 
-#: templates/stables_shop/index.html:70
+#: templates/stables_shop/index.html:82
 msgid "Ship"
 msgstr "Toimita"
 
-#: templates/stables_shop/index.html:72
+#: templates/stables_shop/index.html:84
 msgid "Are you sure?"
 msgstr "Oletko varma?"
 
-#: templates/stables_shop/index.html:72
+#: templates/stables_shop/index.html:84
 msgid "Cancel"
 msgstr "Peru"
 
-#: templates/stables_shop/index.html:81
+#: templates/stables_shop/index.html:93
 #, python-format
 msgid "<a href='%(orderurl)s'>Finished orders</a>."
 msgstr "<a href='%(orderurl)s'>Valmiit tilaukset</a>."
 
-#: templates/stables_shop/index.html:85
+#: templates/stables_shop/index.html:97
 msgid "Products"
 msgstr "Tuotteet"
 
-#: templates/stables_shop/index.html:90
+#: templates/stables_shop/index.html:102
 msgid "Active"
 msgstr "Aktiivinen"
 
-#: templates/stables_shop/index.html:92
+#: templates/stables_shop/index.html:104
 msgid "Unit price"
 msgstr "Yksikköhinta"
 
-#: templates/stables_shop/index.html:93 templates/stables_shop/index.html:103
+#: templates/stables_shop/index.html:105 templates/stables_shop/index.html:115
 msgid "Edit"
 msgstr "Muokkaa"
 
-#: templates/stables_shop/index.html:109 templates/stables_shop/index.html:146
+#: templates/stables_shop/index.html:121 templates/stables_shop/index.html:158
 msgid "Add new ..."
 msgstr "Lisää uusi ..."
 
-#: templates/stables_shop/index.html:115
+#: templates/stables_shop/index.html:127
 msgid "Discounts"
 msgstr "Alennukset"
 
-#: templates/stables_shop/index.html:120
+#: templates/stables_shop/index.html:132
 msgid "Code"
 msgstr "Koodi"
 
-#: templates/stables_shop/index.html:121
-#| msgid "Active"
+#: templates/stables_shop/index.html:133
 msgid "Is active?"
 msgstr "Aktiivinen"
 
@@ -213,12 +216,18 @@ msgid "Payment method"
 msgstr "Maksutapa"
 
 #: views.py:276
+#, python-format
 msgid "The whole product price including VAT (%s %%)."
 msgstr "Koko tuotteen hinta sisältäen ALVin (%s %%)."
 
 #: views.py:290
-msgid "The whole discount including VAT (%s %%)."
-msgstr "Koko alennuksen määrä sisältäen ALVin (%s %%)."
+#, python-format
+msgid ""
+"Insert the discount amount with minus sign (e.g. -10). VAT (%s%%) is "
+"included if adding absolute discount."
+msgstr ""
+"Syötä alennuksen määrä miinusmerkillä (esim. -10). ALV (%s%%) sisältyy "
+"alennuksen määrään."
 
 #: views.py:326
 #, python-format
@@ -265,6 +274,9 @@ msgstr ""
 #: views.py:467
 msgid "Both merchant id and secret must be set"
 msgstr ""
+
+#~ msgid "The whole discount including VAT (%s %%)."
+#~ msgstr "Koko alennuksen määrä sisältäen ALVin (%s %%)."
 
 #~ msgid "Save"
 #~ msgstr "Tallenna"
