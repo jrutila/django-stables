@@ -264,7 +264,12 @@ if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
     #EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
     #EMAIL_FILE_PATH = '/tmp/app-messages'
-
+if ON_PAAS:
+    EMAIL_HOST = 'smtp.sendgrid.net'
+    EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+    EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
 
 LOGGING = {
     'version': 1,
