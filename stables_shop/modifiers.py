@@ -1,6 +1,6 @@
 from django.conf import settings
 
-from shop.cart.cart_modifiers_base import BaseCartModifier
+from shop.modifiers.base import BaseCartModifier
 from django.utils.translation import ugettext_lazy as _
 from decimal import *
 

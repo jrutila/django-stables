@@ -5,7 +5,7 @@ from django.db import models
 from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.db import connection
@@ -51,7 +51,7 @@ class Ticket(models.Model):
     type = models.ForeignKey(TicketType, verbose_name=_("Ticket type"))
     owner_type = models.ForeignKey(ContentType)
     owner_id = models.PositiveIntegerField()
-    owner = generic.GenericForeignKey('owner_type', 'owner_id')
+    owner = GenericForeignKey('owner_type', 'owner_id')
     transaction = models.ForeignKey("Transaction", null=True, blank=True, related_name="ticket_set")
     expires = models.DateTimeField(_("Expires"), null=True, blank=True)
     value = CurrencyField(_("Value"), null=True, blank=True, help_text=_("Sell value of one ticket. Can be used when calculating user revenue."))

@@ -1,7 +1,7 @@
 import datetime
 from decimal import Decimal
 
-from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -27,7 +27,7 @@ class TicketType(models.Model):
 
 class CustomerInfoManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().prefetch_related("user", "user__user")
+        return super(CustomerInfoManager,self).get_queryset().prefetch_related("user", "user__user")
 
 class CustomerInfo(models.Model):
     objects = CustomerInfoManager()
@@ -70,7 +70,7 @@ class Transaction(models.Model):
     created_on = models.DateTimeField(default = datetime.datetime.now)
     content_type = models.ForeignKey(ContentType, null=True, blank=True)
     object_id = models.PositiveIntegerField(null=True, blank=True)
-    source = generic.GenericForeignKey('content_type', 'object_id')
+    source = GenericForeignKey('content_type', 'object_id')
     method = models.CharField(max_length=35, null=True, blank=True)
 
     objects = TransactionManager()

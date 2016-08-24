@@ -6,8 +6,8 @@ from django.db import models
 from django.db.models import DurationField
 
 from discount.default_discounts.models import CartItemAbsoluteDiscount, CartItemPercentDiscount, PercentDiscount
-from shop.models import Product
-from shop.models_bases import BaseProduct
+#from shop.models import Product
+from shop.models.product import BaseProduct
 from stables.models.course import Course, Enroll
 from stables.models.financial import TicketType, Ticket
 from django.core.exceptions import ValidationError
@@ -22,6 +22,7 @@ from django.core.urlresolvers import reverse
 from stables_shop.backends import ProductActivator
 from stables_shop.markov_passwords import MarkovChain, finnish
 from stables_shop.templatetags.stables_shop_tags import add_vat
+from .base import Product
 
 
 class LongString(SettingsModel):

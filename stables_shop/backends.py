@@ -5,12 +5,10 @@ from django.conf.urls import patterns, url
 from django.db import models
 from datetime import date
 from django.core.urlresolvers import reverse
-from shop.models import Product
+from .base import Product
 from shop.models.defaults.order import Order
-from shop.models.defaults.orderitem import OrderItem
-from shop.shipping.backends.flat_rate import FlatRateShipping
-from shop.payment.api import PaymentAPI
-from shop.util.decorators import on_method, order_required
+from shop.models.defaults.order_item import OrderItem
+from shop.shipping.base import ShippingProvider
 from stables_shop import paytrail
 
 class ProductActivator(models.Model):
@@ -30,7 +28,7 @@ class ProductActivator(models.Model):
     order_item = models.ForeignKey(OrderItem)
     status = models.IntegerField(choices=STATUS_CODES, default=INITIATED)
 
-class DigitalShipping(FlatRateShipping):
+class DigitalShipping(ShippingProvider):
     backend_name = 'digital'
     verbose_name = _('Digital')
     url_namespace = 'digital'
@@ -86,7 +84,6 @@ class PayTrailBackend(object):
                                )
         return urlpatterns
 
-    @on_method(order_required)
     def paytrail_payment_view(self, request):
         order = self.shop.get_order(request)
         amount = self.shop.get_order_total(order)
@@ -130,5 +127,5 @@ class PayTrailBackend(object):
         method = request.GET.get('METHOD')
         order_number = self._check_authcode(request)
         order = Order.objects.get(pk=order_number)
-        PaymentAPI().confirm_payment(order, order.order_total, order.id, method)
+        #PaymentAPI().confirm_payment(order, order.order_total, order.id, method)
         return HttpResponse("ok")

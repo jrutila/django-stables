@@ -10,8 +10,6 @@ from django.utils import timezone
 
 from discount.models import DiscountBase
 from stables.models.financial import pay_participation
-from shop.util.order import add_order_to_request
-from shop.views.checkout import CheckoutSelectionView
 from django.views.generic.base import TemplateView
 from django.views.generic import UpdateView, DetailView, View
 from django.views.generic import CreateView
@@ -66,7 +64,7 @@ class FinnishPaymentForm(forms.ModelForm):
         obj = super(forms.ModelForm, self).save()
         return obj
 
-class NoShippingAddressCheckoutSelectionView(CheckoutSelectionView):
+class NoShippingAddressCheckoutSelectionView():
     def get_shipping_form_class(self):
         return NoShippingForm
 

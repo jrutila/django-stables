@@ -19,7 +19,7 @@ from django.core.urlresolvers import reverse
 
 from django.contrib.auth.decorators import permission_required, login_required
 from django.utils.decorators import method_decorator
-from stables_shop.models import TicketProductActivator
+#from stables_shop.models import TicketProductActivator
 
 
 class UserEditorMixin(object):

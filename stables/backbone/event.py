@@ -4,7 +4,6 @@ from django.conf.urls import url
 from django.contrib.contenttypes.models import ContentType
 from django.db.models.signals import post_save
 from django.utils import timezone
-from django_comments.models import Comment
 from schedule.models import Event, Calendar, Occurrence
 from stables.models.accident import Accident
 from stables.models.common import Transaction, _count_saldo
@@ -178,8 +177,6 @@ class EventResource(Resource):
             accidents = dict([ (a.rider.pk, a) for a in Accident.objects.filter(at__gte=start, at__lte=end)])
             warnings = Participation.objects.generate_warnings(start, end)
             comments = {}
-            #for c in Comment.objects.filter(object_pk__in=[m.pk for m in metadatas.values()], content_type=ContentType.objects.get_for_model(EventMetaData)):
-            #comments[int(c.object_pk)] = c
             courses = (c for (o, c, p) in parts)
             enrolls = list(Enroll.objects.filter(course__in=courses))
 
@@ -329,6 +326,5 @@ post_save.connect(update_event_resource, sender=Participation)
 post_save.connect(update_event_resource, sender=Occurrence)
 post_save.connect(update_event_resource, sender=InstructorParticipation)
 post_save.connect(update_event_resource, sender=Transaction)
-post_save.connect(update_event_resource, sender=Comment)
 post_save.connect(update_event_resource, sender=Accident)
 post_save.connect(update_event_resource, sender=Event)
