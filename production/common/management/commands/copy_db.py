@@ -2,7 +2,7 @@ from io import StringIO
 from django.contrib.contenttypes.models import ContentType
 from django.core.management import BaseCommand
 from django.db import connections
-from customers.models import Client
+from tenant.models import Client
 
 __author__ = 'jorutila'
 
