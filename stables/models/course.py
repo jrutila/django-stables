@@ -32,7 +32,7 @@ class Course(models.Model):
         permissions = (
             ('view_participations', "Can see detailed participations"),
         )
-    def __str__(self):
+    def __unicode__(self):
         try:
             ev = next(e for e in self.events.all() if e.rule != None)
             if ev:
