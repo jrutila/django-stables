@@ -1,8 +1,7 @@
 from django.contrib import admin
-from stables_shop.models import TicketProduct, EnrollProduct, EnrollProductActivator, PartShortUrl, \
-    ProductAbsoluteDiscount, ProductPercentDiscount, WholePercentDiscount
-from stables_shop.models import TicketProductActivator
-
+from .models.product import TicketProduct, EnrollProduct
+from .models.activator import EnrollProductActivator, PartShortUrl, TicketProductActivator
+from .models.discount import ProductAbsoluteDiscount, ProductPercentDiscount, WholePercentDiscount
 
 class PartShortUrlAdmin(admin.ModelAdmin):
     raw_id_fields = ('participation',)

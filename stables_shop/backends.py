@@ -5,11 +5,14 @@ from django.conf.urls import patterns, url
 from django.db import models
 from datetime import date
 from django.core.urlresolvers import reverse
-from .base import Product
-from shop.models.defaults.order import Order
-from shop.models.defaults.order_item import OrderItem
+from shop import deferred
+from shop.models.order import BaseOrder, BaseOrderItem
+from shop.models.product import BaseProduct
+from stables_shop.models import Order, OrderItem
+
+from .models.product import Product
 from shop.shipping.base import ShippingProvider
-from stables_shop import paytrail
+from . import paytrail
 
 class ProductActivator(models.Model):
     INITIATED = 10
@@ -23,6 +26,9 @@ class ProductActivator(models.Model):
             (FAILED, _('Failed')),
             (CANCELED, _('Canceled')),
             )
+    #product = deferred.ForeignKey(BaseProduct)
+    #order = deferred.ForeignKey(BaseOrder, related_name="activators")
+    #order_item = deferred.ForeignKey(BaseOrderItem)
     product = models.ForeignKey(Product)
     order = models.ForeignKey(Order, related_name="activators")
     order_item = models.ForeignKey(OrderItem)
