@@ -18,8 +18,8 @@
 <script type='text/javascript' src="{% static 'backbone.do/backbone.do.js' %}"></script>
 {%  endaddtoblock %}
 {% addtoblock "js" %}
-<script type='text/javascript' src="{% static 'moment/moment.js' %}"></script>
-<script type='text/javascript' src="{% static 'moment/locale/fi.js' %}"></script>
+<script type='text/javascript' src="{% static 'momentjs/moment.js' %}"></script>
+<script type='text/javascript' src="{% static 'momentjs/lang/fi.js' %}"></script>
 {%  endaddtoblock %}
 {% addtoblock "js" %}
 <script type='text/javascript' src="{% static 'stables/js/plugins/tooltipTextarea.js' %}"></script>
@@ -39,7 +39,7 @@
 
 {% addtoblock "js" %}
 <script type='text/javascript'>
-    moment.locale('fi');
+    moment.lang('fi');
 
     var horseLimits = new DayLimits([
         {% for h in horses %}
