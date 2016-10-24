@@ -35,6 +35,9 @@ class Command(BaseCommand):
             dest='skip',
             default=False,
             help='Skip the db tables till')
+        parser.add_argument('--tenant-only',
+            dest='tenant_only',
+            default=False)
         parser.add_argument('--tenant',
             dest='tenant',
             default=False,
@@ -128,6 +131,10 @@ class Command(BaseCommand):
                     t.domain_url = options["domain"] % t.schema_name
                 t.save()
                 self.stdout.write("Created client "+tenant['domain_url'])
+
+            # If user only wanted to create the tenant
+            if options["tenant-only"]:
+              return
 
             connections["old"].set_schema(tenant["schema_name"])
             connections["default"].set_schema(tenant["schema_name"])
