@@ -18,9 +18,9 @@ def evToList(events):
             if hasattr(e, a) and getattr(e, a):
                 r[a] = getattr(e, a)
                 if isinstance(r[a], Rule):
-                    r[a] = str(r[a].name[0].lower())
+                    r[a] = unicode(r[a].name[0].lower())
                 if a == 'title':
-                    r[a] = str(r[a])
+                    r[a] = unicode(r[a])
         ret.append(r)
     return ret
     

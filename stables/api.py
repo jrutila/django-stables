@@ -40,8 +40,8 @@ class TimetableView(views.APIView):
     permission_classes = (AllowAny,)
 
     def get(self, request, format=None):
-        start = datetime.strptime(request.query_params.get('start', str(date.today())), "%Y-%m-%d").date()
-        end = datetime.strptime(request.query_params.get('end', str(start)), "%Y-%m-%d").date()
+        start = datetime.strptime(request.query_params.get('start', unicode(date.today())), "%Y-%m-%d").date()
+        end = datetime.strptime(request.query_params.get('end', unicode(start)), "%Y-%m-%d").date()
 
         dates = {}
         d = start
@@ -57,7 +57,7 @@ class TimetableView(views.APIView):
             for s in xslots:
                 occ = s[0]
                 slots[key(occ)] = s
-            dates[str(d)] = []
+            dates[unicode(d)] = []
             for e in events:
                 if e.course.api_hide:
                     continue
@@ -73,7 +73,7 @@ class TimetableView(views.APIView):
                         if o.original_end != o.end:
                             eh['original_end'] = o.original_end
                         eh['cancelled'] = o.cancelled
-                        eh['instructor'] = [ str(i.instructor) for i in instructors if i.event_id == e.id and i.start == o.start and i.end == o.end ]
+                        eh['instructor'] = [ unicode(i.instructor) for i in instructors if i.event_id == e.id and i.start == o.start and i.end == o.end ]
                         if eh['instructor']:
                             eh['instructor'] = eh['instructor'][0]
                         else:
@@ -82,7 +82,7 @@ class TimetableView(views.APIView):
                             ko = key(o)
                             eh['free_amount'] = slots[ko][1].max_participants - len([ p for p in slots[ko][2] if p.state != CANCELED ])
                             eh['free_slots'] = slots[ko][1].max_participants > len([ p for p in slots[ko][2] if p.state != CANCELED ])
-                        dates[str(d)].append(eh)
+                        dates[unicode(d)].append(eh)
 
             d += timedelta(days=1)
         ret = { 'start': start, 'end': end, 'dates': dates }

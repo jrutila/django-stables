@@ -40,7 +40,7 @@ class ViewEvent:
             self.title = occ.event.title
             self.event_id = occ.event.id
             self.cancelled = occ.cancelled
-            self.id = str(occ.event.id) + "-" + timezone.utc.normalize(occ.start.astimezone(timezone.utc)).isoformat()
+            self.id = unicode(occ.event.id) + "-" + timezone.utc.normalize(occ.start.astimezone(timezone.utc)).isoformat()
         if instr:
             self.instructor_id = instr.id
         if parts and not self.cancelled:

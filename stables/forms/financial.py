@@ -117,8 +117,8 @@ class TransactionsForm(forms.Form):
     def _print_td(self, field, output):
         output.append('<td>')
         if self._errors and field in self._errors:
-            output.append(str(self._errors[field]))
-        output.append('%s' % str(self[field]))
+            output.append(unicode(self._errors[field]))
+        output.append('%s' % unicode(self[field]))
         output.append('</td>')
 
 from django.contrib.contenttypes.models import ContentType

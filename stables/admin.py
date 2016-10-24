@@ -262,7 +262,7 @@ class EnrollAdmin(admin.ModelAdmin):
 
 
 class AccidentAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'at', 'horse')
+    list_display = ('__unicode__', 'at', 'horse')
 
 
 # admin.site.register(Horse, HorseAdmin)

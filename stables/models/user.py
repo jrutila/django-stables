@@ -33,7 +33,7 @@ class UserManager(models.Manager):
 class RiderLevel(models.Model):
     class Meta:
         app_label = 'stables'
-    def __str__(self):
+    def __unicode__(self):
         return self.name
     name = models.CharField(max_length=30)
     includes = models.ManyToManyField('self', null=True, blank=True, symmetrical=False)
@@ -41,7 +41,7 @@ class RiderLevel(models.Model):
 class UserProfile(models.Model):
     class Meta:
         app_label = 'stables'
-    def __str__(self):
+    def __unicode__(self):
         return self.user.first_name + ' ' + self.user.last_name
     objects = UserManager()
     user = models.OneToOneField("auth.User")
@@ -88,9 +88,9 @@ class UserProfile(models.Model):
 class RiderInfo(models.Model):
     class Meta:
         app_label = 'stables'
-    def __str__(self):
+    def __unicode__(self):
         try:
-            return str(self.user)
+            return unicode(self.user)
         except UserProfile.DoesNotExist:
             return 'N/A'
     levels = models.ManyToManyField(RiderLevel, related_name='+', blank=True)
@@ -100,8 +100,8 @@ class RiderInfo(models.Model):
 class InstructorInfo(models.Model):
     class Meta:
         app_label = 'stables'
-    def __str__(self):
-        return str(self.user)
+    def __unicode__(self):
+        return unicode(self.user)
 
 class CustomerForm(forms.ModelForm):
     class Meta:

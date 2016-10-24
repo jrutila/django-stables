@@ -6,7 +6,7 @@ class Horse(models.Model):
     class Meta:
         app_label = 'stables'
         ordering = ['name']
-    def __str__(self):
+    def __unicode__(self):
         return self.name
     name = models.CharField(_('name'), max_length=500)
     last_usage_date = models.DateField(_('last usage date'), null=True, blank=True)

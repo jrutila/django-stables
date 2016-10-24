@@ -62,7 +62,7 @@ class FinanceTestPay(django.test.TestCase):
             ticket = None
             if t.ticket_set.count():
                 ticket = t.ticket_set.all()[0]
-            ret.append((str(t.amount.quantize(TWO)), ticket))
+            ret.append((unicode(t.amount.quantize(TWO)), ticket))
         return ret
 
     def check(self, tr):
@@ -75,9 +75,9 @@ class FinanceTestPay(django.test.TestCase):
     def saldo(self, *args):
         sld = self.part.get_saldo()
         assert_equals(args, (
-            str(sld[0].quantize(TWO)) if sld[0] != None else None,
+            unicode(sld[0].quantize(TWO)) if sld[0] != None else None,
             sld[1],
-            str(sld[2].quantize(TWO)) if sld[2] != None else None ))
+            unicode(sld[2].quantize(TWO)) if sld[2] != None else None ))
 
     @property
     def ticket(self):

@@ -160,7 +160,7 @@ class Participation(models.Model):
     class Meta:
         app_label = 'stables'
         unique_together = ('participant', 'event', 'start', 'end')
-    def __str__(self):
+    def __unicode__(self):
         date_format = u'%s' % ugettext("DATE_FORMAT")
         time_format = u'%s' % ugettext("TIME_FORMAT")
         occ = self.get_occurrence()
@@ -305,7 +305,7 @@ class InstructorParticipationManager(models.Manager):
 class InstructorParticipation(models.Model):
     class Meta:
       app_label = 'stables'
-    def __str__(self):
+    def __unicode__(self):
       return ugettext('%(firstname)s %(lastname)s') % { 'firstname': self.instructor.user.first_name, 'lastname': self.instructor.user.last_name }
     instructor = models.ForeignKey(UserProfile)
     event = models.ForeignKey(Event)

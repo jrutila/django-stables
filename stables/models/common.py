@@ -33,9 +33,9 @@ class CustomerInfo(models.Model):
     objects = CustomerInfoManager()
     class Meta:
         app_label = 'stables'
-    def __str__(self):
+    def __unicode__(self):
         try:
-            return str(self.user)
+            return unicode(self.user)
         except:
             return self.address
     address = models.CharField(max_length=500)
@@ -58,11 +58,11 @@ class Transaction(models.Model):
         permissions = (
             ('can_view_saldo', "Can see transactions and saldo"),
         )
-    def __str__(self):
-        name = str(self.amount)
+    def __unicode__(self):
+        name = unicode(self.amount)
         if self.ticket_set.count():
-          name = '(%s)' % str(self.ticket_set.all()[0].type)
-        name = name + ': ' + str(self.source)
+          name = '(%s)' % unicode(self.ticket_set.all()[0].type)
+        name = name + ': ' + unicode(self.source)
         return name
     active = models.BooleanField(default=True)
     customer = models.ForeignKey(CustomerInfo)

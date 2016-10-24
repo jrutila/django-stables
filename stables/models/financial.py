@@ -40,8 +40,8 @@ class TicketManager(models.Manager):
 class Ticket(models.Model):
     class Meta:
         app_label = 'stables'
-    def __str__(self):
-        s = str(self.type) + ' (' + str(self.owner) + ')'
+    def __unicode__(self):
+        s = unicode(self.type) + ' (' + unicode(self.owner) + ')'
         if isinstance(self.owner, CustomerInfo):
             s = s + " F "
         if self.transaction:
@@ -204,8 +204,8 @@ from django.utils import timezone
 class ParticipationTransactionActivator(TransactionActivator):
     class Meta:
         app_label = 'stables'
-    def __str__(self):
-        return str(self.participation) + ': ' + str(self.fee)
+    def __unicode__(self):
+        return unicode(self.participation) + ': ' + unicode(self.fee)
     participation = models.ForeignKey(Participation)
     activate_before_hours = models.IntegerField()
     fee = CurrencyField()

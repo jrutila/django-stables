@@ -88,7 +88,7 @@ class UserProfileForm(forms.ModelForm):
       except UserProfile.DoesNotExist:
           return data
       if user:
-          raise ValidationError(mark_safe(_("Existing user %s! Change first and last names") % ("<a href='%s'>%s</a>" % (user.get_absolute_url(), str(user)))))
+          raise ValidationError(mark_safe(_("Existing user %s! Change first and last names") % ("<a href='%s'>%s</a>" % (user.get_absolute_url(), unicode(user)))))
       return data
 
   def save(self, force_insert=False, force_update=False, commit=True):

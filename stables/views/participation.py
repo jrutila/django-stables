@@ -37,7 +37,7 @@ def get_participation(request, **kwargs):
 
 def cancel_ctx(request, **kwargs):
     part = get_participation(request, **kwargs)
-    return RequestContext(request, { 'msg': u"Oletko varma, että haluat peruuttaa tapahtuman "+str(part), 'return_url': '/' })
+    return RequestContext(request, { 'msg': u"Oletko varma, että haluat peruuttaa tapahtuman "+unicode(part), 'return_url': '/' })
 
 class CancelView(View):
     @confirm_required('stables/confirm/confirm.html', cancel_ctx)

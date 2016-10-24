@@ -30,7 +30,7 @@ class ViewParticipation:
             else:
                 saldo = part.get_saldo()
             self.id = part.id
-            self.rider_name = str(part.participant)
+            self.rider_name = unicode(part.participant)
             self.rider_phone = part.participant.phone_number
             self.rider_url = part.participant.get_absolute_url()
             self.rider_id = part.participant.id
@@ -47,25 +47,25 @@ class ViewParticipation:
                 self.warning = part.warning
 
             if (saldo[1]):
-                self.finance_hint = str(saldo[1])
+                self.finance_hint = unicode(saldo[1])
             elif saldo[2] and saldo[2] > Decimal('0.00'):
                 try:
                     method = part.get_pay_transaction().method or _('Cash')
                     method = method.title()
                 except IndexError:
                     method = _('Cash')
-                self.finance_hint = method + ' ' + str(saldo[2])
+                self.finance_hint = method + ' ' + unicode(saldo[2])
             elif saldo[2] == Decimal('0.00'):
-                self.finance_hint = str(saldo[2])
+                self.finance_hint = unicode(saldo[2])
             else:
-                self.finance_hint = '--'
+                self.finance_hint = u'--'
 
             if (saldo[0] == Decimal('0.00')):
                 self.finance = "ok"
             elif (saldo[0] != None and saldo[0] < Decimal('0.00')):
-                self.finance = str(saldo[0])
+                self.finance = unicode(saldo[0])
                 self.alert_level = 'info'
-                self.finance_hint = '--'
+                self.finance_hint = u'--'
             else:
                 self.finance = '--'
                 self.alert_level = 'info'

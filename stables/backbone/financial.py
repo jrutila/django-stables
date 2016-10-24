@@ -30,22 +30,22 @@ class ViewFinance:
                 if (not ticket) or (ticket.type != u.type):
                     self.tickets[u.type.id] = u.type.name
             self.participation_url = part.get_absolute_url()
-            self.finance_hint = str(value)
+            self.finance_hint = unicode(value)
             if saldo and saldo < Decimal('0.00'):
-                self.finance_hint = str(saldo)
+                self.finance_hint = unicode(saldo)
             else:
                 try:
                     method = part.get_pay_transaction().method or _('Cash')
                     method = method.title()
                 except IndexError:
                     method = _('Cash')
-                self.finance_hint = method + " " + str(value)
+                self.finance_hint = method + " " + unicode(value)
 
             if ticket:
                 if value:
                     self.amount = value
                 self.method = ticket.type.id
-                self.finance_hint = str(ticket)
+                self.finance_hint = unicode(ticket)
             else:
                 if value == None or saldo < Decimal('0.00'):
                     self.amount = value

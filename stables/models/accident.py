@@ -21,7 +21,7 @@ class LocalizedText():
                 d[l[0]] = ""
         self.texts = d
 
-    def __str__(self):
+    def __unicode__(self):
         lang = django.utils.translation.get_language()
         return self.texts.get(lang, self.texts.get(lang.split('-')[0]))
 
@@ -61,7 +61,7 @@ class I18NCharField(models.CharField):
         if not value:
             return value
         if isinstance(value, LocalizedText):
-            return str(value.texts)
+            return unicode(value.texts)
         return value
 
     def formfield(self, **kwargs):
@@ -75,8 +75,8 @@ class AccidentType(models.Model):
     class Meta:
         app_label = "stables"
 
-    def __str__(self):
-        return str(self.name)
+    def __unicode__(self):
+        return unicode(self.name)
 
     name = I18NCharField(max_length=20)
 
@@ -89,8 +89,8 @@ class Accident(models.Model):
             ('view_accidents', "Can see detailed accident reports"),
         )
 
-    def __str__(self):
-        return str(self.rider)+" "+str(self.type)
+    def __unicode__(self):
+        return unicode(self.rider)+" "+unicode(self.type)
 
     def get_absolute_url(self):
         return reverse('edit_accident', args=(self.pk,))

@@ -312,13 +312,13 @@ class ModifyParticipationForm(forms.Form):
     super(ModifyParticipationForm, self).__init__(*args, **kwargs)
 
     for participant in participants:
-      key = str(self.PARTICIPATE_KEY_PREFIX+'%s') % participant.user.username
+      key = unicode(self.PARTICIPATE_KEY_PREFIX+'%s') % participant.user.username
       self.usermap[participant.user.username] = participant
       items = []
       states = course.get_possible_states(participant, occurrence)
       for s in PARTICIPATION_STATES:
         if s[0] != -1:
-          items.append({'value': s[0], 'text': ('(*) %s' % str(s[1])) if s[0] in states else s[1] , 'allowed': s[0] in states })
+          items.append({'value': s[0], 'text': ('(*) %s' % unicode(s[1])) if s[0] in states else s[1] , 'allowed': s[0] in states })
 
       # Put allowed items on top
       items.sort(key=lambda x: x['allowed'], reverse=True)
@@ -376,7 +376,7 @@ class HorseParticipationForm(forms.Form):
     del kwargs['horses']
     super(HorseParticipationForm, self).__init__(*args, **kwargs)
     for p in participations:
-      self.fields['rider_id_'+str(p.participant.id)] = MyModelChoiceField(queryset=horses, label=str(p.participant), initial=p.horse, required=False)
+      self.fields['rider_id_'+unicode(p.participant.id)] = MyModelChoiceField(queryset=horses, label=unicode(p.participant), initial=p.horse, required=False)
 
 from django.contrib.admin import widgets
 

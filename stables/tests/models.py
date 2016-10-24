@@ -451,12 +451,12 @@ class CourseEnrollTest(TestCase):
         (users) = self.runHelper(table)
         for (i, u) in enumerate(users):
             result = self.course.get_possible_states(u)
-            self.assertEqual(set(result), set(table[i][1]), "user%d: %s %s" % (i, str(result), str(table[i][1])) )
+            self.assertEqual(set(result), set(table[i][1]), "user%d: %s %s" % (i, unicode(result), unicode(table[i][1])) )
 
     def runHelper(self, table):
         users = []
         for (i, row) in enumerate(table):
-            us = setupRider('user'+str(i)).get_profile()
+            us = setupRider('user'+unicode(i)).get_profile()
             users.append(us)
             row.append(us)
         if len(table[0]) > 4:
@@ -621,7 +621,7 @@ class CourseEnrollStateTest(TestCase):
         occ = self.course.get_occurrences()[-1]
         users = []
         for (i, row) in enumerate(table):
-            us = setupRider('user'+str(i)).get_profile()
+            us = setupRider('user'+unicode(i)).get_profile()
             users.append(us)
             row.append(us)
         if len(table[0]) > 4:
@@ -650,7 +650,7 @@ class CourseEnrollStateTest(TestCase):
         (occ, users) = self.runHelper(table)
         for (i, u) in enumerate(users):
             result = Participation.objects.get_participation(u, occ).get_possible_states()
-            self.assertEqual(set(result), set(table[i][2]), "user%d: %s %s" % (i, str(result), str(table[i][2])) )
+            self.assertEqual(set(result), set(table[i][2]), "user%d: %s %s" % (i, unicode(result), unicode(table[i][2])) )
 
     def testNextParticipations(self):
         pr = self.user.get_profile()

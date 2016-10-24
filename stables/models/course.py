@@ -142,8 +142,8 @@ class EnrollManager(models.Manager):
 class Enroll(models.Model):
     class Meta:
         app_label = 'stables'
-    def __str__(self):
-        return str(self.course) + ": " + str(self.participant)
+    def __unicode__(self):
+        return unicode(self.course) + ": " + unicode(self.participant)
     def short(self):
         return ugettext('%(name)s %(state)s') % {
             'name': self.participant,
