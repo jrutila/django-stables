@@ -20,6 +20,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import permission_required, login_required
 from django.utils.decorators import method_decorator
 #from stables_shop.models import TicketProductActivator
+from stables_shop.models.activator import TicketProductActivator
 
 
 class UserEditorMixin(object):
@@ -74,7 +75,7 @@ class PlainViewUser(DetailView):
     model = UserProfile
 
     def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
+        ctx = super(PlainViewUser, self).get_context_data(**kwargs)
         pmore = int(self.request.GET.get('pmore', 5))
         ctx["pmore"] = pmore
         return ctx
@@ -92,7 +93,7 @@ class PlainViewUser(DetailView):
         if user.rider:
             nxt = Participation.objects.get_next_participation(user, limit=tmore)
             user.next = nxt
-            tcks = TicketProductActivator.objects.filter(rider=user.rider).order_by("-order__created").prefetch_related("order", "order__items")
+            tcks = TicketProductActivator.objects.filter(rider=user.rider).order_by("-order__created_at").prefetch_related("order", "order__items", "order__customer")
             ordrs = set()
             ordrs_add = ordrs.add
             o = [ t.order for t in tcks if not (t.order in ordrs or ordrs_add(t.order)) ]

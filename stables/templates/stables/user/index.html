@@ -35,6 +35,7 @@
     <thead>
     <th>{% trans "Id" %}</th>
     <th>{% trans "Created" %}</th>
+    <th>{% trans "Orderer" %}</th>
     <th>{% trans "Status" %}</th>
     <th>{% trans "Product" %}</th>
     <th>{% trans "Total" %}</th>
@@ -43,14 +44,15 @@
     {% for o in object.orders %}
         <tr>
         <td>{{ o.id }}</td>
-        <td>{{ o.created }}</td>
-        <td>{{ o.get_status_display }}</td>
+        <td>{{ o.created_at }}</td>
+        <td>{{ o.customer.get_full_name }}</td>
+        <td>{{ o.status_name }}</td>
         <td>
             {% for i in o.items.all %}
             {{ i.product_name }}{% if i.quantity > 1 %} ({{ i.quantity }} kpl){% endif %}<br/>
             {% endfor %}
         </td>
-        <td>{{ o.order_total }}&euro;</td>
+        <td>{{ o.total }}</td>
         </tr>
     {% endfor %}
     </tbody>
