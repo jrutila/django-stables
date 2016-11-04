@@ -3,12 +3,14 @@ from decimal import Decimal
 from django import forms
 from django.conf import settings
 from django.forms import HiddenInput
+from django.forms.utils import ErrorList
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.shortcuts import redirect
 import django_settings
 from django.utils import timezone
 
 from discount.models import DiscountBase
+from shop.models.address import ShippingAddressModel
 from stables.models.financial import pay_participation
 from django.views.generic.base import TemplateView
 from django.views.generic import UpdateView, DetailView, View
@@ -16,12 +18,12 @@ from django.views.generic import CreateView
 from django.views.generic import FormView
 from django.views.generic import ListView
 from django.views.generic import RedirectView
-from shop.models import Order, AddressModel
-from shop.models import Product
+from stables_shop.models import Order
+from stables_shop.models.activator import PartShortUrl
+from stables_shop.models.product import Product
 from stables.models.participations import Participation
 from stables.models.user import UserProfile
 from stables_shop.backends import DigitalShipping
-from django.forms.util import ErrorList
 from django.utils.translation import ugettext_lazy as _
 from django.core.urlresolvers import reverse
 from crispy_forms.helper import FormHelper
@@ -30,8 +32,6 @@ from crispy_forms.layout import ButtonHolder
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from . import paytrail
-from shop.backends_pool import backends_pool
-from stables_shop.models import PartShortUrl
 
 class DefaultHelper(FormHelper):
     #label_class = "col-xs-2"
@@ -43,11 +43,11 @@ class DefaultHelper(FormHelper):
 def ret_name(self):
     return self.name
 
-funcType = type(AddressModel.as_text)
+funcType = type(ShippingAddressModel.as_text)
 
 class NoShippingForm(forms.ModelForm):
     class Meta:
-        model = AddressModel
+        model = ShippingAddressModel
         fields = ['name', 'phone_number' ]
 
     def save(self):
@@ -57,7 +57,7 @@ class NoShippingForm(forms.ModelForm):
 
 class FinnishPaymentForm(forms.ModelForm):
     class Meta:
-        model = AddressModel
+        model = ShippingAddressModel
         fields = ['name', 'phone_number' ]
 
     def save(self):
@@ -242,13 +242,13 @@ class HomePageView(ShopEditorMixin, ShopSettingsSetMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(HomePageView, self).get_context_data(**kwargs)
-        orders = Order.objects.exclude(status=Order.CANCELED).exclude(status=Order.SHIPPED).order_by('-status', 'id')\
+        orders = Order.objects.exclude(status='canceled').exclude(status='shipped').order_by('-status', 'id')\
             .prefetch_related('orderpayment_set', 'items')
         orders = list(orders)
         for o, val in enumerate(orders):
             orders[o].ship_help = val.shipping_address_text.split('\n') if val.shipping_address_text else []
         context['orders'] = orders
-        context['products'] = Product.objects.all().order_by('-active', 'name')
+        context['products'] = Product.objects.all().order_by('-active', 'product_name')
         context['discounts'] = DiscountBase.objects.exclude(valid_until__lt=timezone.now())
         context['newproducts'] = products()
         context['newdiscounts'] = discounts()
@@ -274,7 +274,7 @@ class DefaultProductModelForm(DefaultModelForm):
     unit_price = forms.DecimalField(decimal_places=2, help_text=_("The whole product price including VAT (%s %%).") % (settings.SHOP_VAT*100))
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args,**kwargs)
+        super(DefaultDiscountModelForm, self).__init__(*args,**kwargs)
         if 'unit_price' in self.initial:
             self.initial['unit_price'] = self.initial['unit_price']*(1+settings.SHOP_VAT)
             self.initial['unit_price'] = self.initial['unit_price'].quantize(Decimal('0.00'))
@@ -288,7 +288,7 @@ class DefaultDiscountModelForm(DefaultModelForm):
     amount = forms.DecimalField(decimal_places=2, help_text=_("Insert the discount amount with minus sign (e.g. -10). VAT (%s%%) is included if adding absolute discount.") % (settings.SHOP_VAT*100))
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args,**kwargs)
+        super(DefaultDiscountModelForm, self).__init__(*args,**kwargs)
         if 'amount' in self.initial:
             self.initial['amount'] = self.initial['amount']*(1+settings.SHOP_VAT)
             self.initial['amount'] = self.initial['amount'].quantize(Decimal('0.00'))
@@ -299,7 +299,7 @@ class DefaultDiscountModelForm(DefaultModelForm):
         return pr.quantize(Decimal('0.000'))
 
 def _getAddressText(data):
-    addr = AddressModel()
+    addr = ShippingAddressModel()
     addr.name = data['name']
     addr.phone_number = data['phone_number']
     return addr.as_text()
@@ -391,7 +391,7 @@ class FinishedOrderList(ShopEditorMixin, ListView):
     template_name = "stables_shop/order_list.html"
     context_object_name = 'order_list'
 
-    queryset = Order.objects.all().order_by('-id')
+    queryset = Order.objects.filter(status='shipped').order_by('-id').prefetch_related('items', 'orderpayment_set')
 
 class PayForm(DefaultForm):
     order = forms.ModelChoiceField(queryset=Order.objects.all())
@@ -403,7 +403,7 @@ class OrderCancelMixin(object):
     def dispatch(self, request, *args, **kwargs):
         if (request.POST.get("cancel") != None):
             o = Order.objects.get(pk=request.POST.get("order"))
-            o.status = Order.CANCELED
+            o.status = 'canceled'
             o.save()
             return HttpResponseRedirect(reverse('shop-home'))
         return super(OrderCancelMixin, self).dispatch(request, *args, **kwargs)

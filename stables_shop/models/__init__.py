@@ -35,6 +35,14 @@ class Order(BaseOrder):
     shipping_address_text = models.TextField(_("Shipping Address"), blank=True, null=True,
                                              help_text=_("Shipping address at the moment of purchase."))
 
+    TRANSITION_TARGETS = {
+        'new': _("New order without content"),
+        'created': _("Order freshly created"),
+        'payment_confirmed': _("Payment confirmed"),
+        'canceled': _("Order canceled"),
+        'shipped': _("Order shipped"),
+    }
+
     class Meta:
         verbose_name = pgettext_lazy('order_models', "Order")
         verbose_name_plural = pgettext_lazy('order_models', "Orders")

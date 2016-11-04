@@ -63,11 +63,11 @@ class DigitalShipping(ShippingProvider):
                     activator.order = order
                     activator.save()
                     activator.activate()
-        order.status = Order.SHIPPED
+        order.status = "shipped"
         order.save()
 
 def is_shipped(self):
-    return self.status == Order.SHIPPED
+    return self.status == "shipped"
     #act_count = self.activators.count()
     #return act_count >= 0 and self.activators.filter(status=ProductActivator.ACTIVATED).count() == act_count
 

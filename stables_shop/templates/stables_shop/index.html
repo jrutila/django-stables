@@ -110,7 +110,7 @@
     <tr>
         <td>{{ p.id }}</td>
         <td>{{ p.active }}</td>
-        <td>{{ p.name }}</td>
+        <td>{{ p.product_name }}</td>
         <td>{{ p.unit_price|add_vat }}</td>
         <td><a href="{% url "product-edit" pk=p.id %}">{% trans "Edit" %}</a></td>
     </tr>

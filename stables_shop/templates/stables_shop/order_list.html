@@ -16,11 +16,10 @@
     </thead>
     <tbody>
     {% for o in order_list %}
-    {% if o.is_shipped and o.is_paid %}
     <tr>
         <td>{{ o.id }}</td>
-        <td>{{ o.created }}</td>
-        <td>{{ o.get_status_display }}</td>
+        <td>{{ o.created_at }}</td>
+        <td>{{ o.status_name }}</td>
         <td>{{ o.shipping_address_text }}</td>
         <td>
             {% for i in o.items.all %}
@@ -28,9 +27,8 @@
             {% endfor %}
         </td>
         <td>{{ o.orderpayment_set.all.0.transaction_id }}</td>
-        <td>{{ o.order_total }}</td>
+        <td>{{ o.total }}</td>
     </tr>
-    {% endif %}
     {% endfor %}
     </tbody>
 </table>
