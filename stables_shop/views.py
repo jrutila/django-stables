@@ -274,7 +274,7 @@ class DefaultProductModelForm(DefaultModelForm):
     unit_price = forms.DecimalField(decimal_places=2, help_text=_("The whole product price including VAT (%s %%).") % (settings.SHOP_VAT*100))
 
     def __init__(self, *args, **kwargs):
-        super(DefaultDiscountModelForm, self).__init__(*args,**kwargs)
+        super(DefaultProductModelForm, self).__init__(*args,**kwargs)
         if 'unit_price' in self.initial:
             self.initial['unit_price'] = self.initial['unit_price']*(1+settings.SHOP_VAT)
             self.initial['unit_price'] = self.initial['unit_price'].quantize(Decimal('0.00'))
