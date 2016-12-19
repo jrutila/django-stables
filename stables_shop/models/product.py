@@ -12,6 +12,16 @@ class Product(BaseProduct):
     product_name = models.TextField(max_length=255)
     unit_price = models.DecimalField(decimal_places=3, max_digits=7, help_text=_("The whole product price excluding VAT."))
     slug = models.SlugField(verbose_name=_("Slug"))
+    caption = models.TextField(max_length=255)
+
+    def __unicode__(self):
+        return self.product_name
+
+    def get_absolute_url(self):
+        return "ANKKA"
+
+    def get_price(self, request):
+        return self.unit_price
 
     objects = BaseProductManager()
     class Meta:

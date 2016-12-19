@@ -30,7 +30,7 @@ def add_vat(value):
 
 @register.filter
 def orderproducts(products):
-    return sorted(products, key=lambda p: p.name.lower())
+    return sorted(products, key=lambda p: p.product_name.lower())
 
 @register.simple_tag(takes_context=True)
 def notify_link(context):

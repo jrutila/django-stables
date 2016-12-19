@@ -20,6 +20,7 @@ class Customer(BaseCustomer):
 class CartItem(BaseCartItem):
     """Default materialized model for CartItem"""
     quantity = IntegerField(validators=[MinValueValidator(0)])
+    line_total = models.DecimalField(decimal_places=3, max_digits=7)
 
 class Cart(BaseCart):
     """
