@@ -486,3 +486,7 @@ class SettingsView(ShopEditorMixin, FormView):
     def form_valid(self, form):
         form.save()
         return super(SettingsView, self).form_valid(form)
+
+class ProductListView(ListView):
+    template_name = 'stables_shop/product-list.html'
+    model = Product

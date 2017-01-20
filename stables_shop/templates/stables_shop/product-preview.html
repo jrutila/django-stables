@@ -1,0 +1,19 @@
+{# This template is shared between Django and AngularJS #}
+{% load djng_tags i18n %}
+{% load stables_shop_tags %}
+{% angularjs ng %}
+
+<div class="shop-list-item list-group-item col-md-6"{% if ng %} ng-repeat="product in catalog.products"{% endif %}>
+    <h4 class="list-group-item-heading">{{ product.product_name }}</h4>
+    <button
+            type="submit"
+            class="pull-right btn btn-primary btn-lg buy-button"
+            shop-add-to-cart="/shop/cart"
+            ng-click="addToCart()"
+    >Osta</button>
+    <p class="list-group-item-text">
+        {{ product.unit_price|add_vat }}<br/>
+        {{ product.long_description }}
+    </p>
+</div>
+{% endangularjs %}

@@ -1,0 +1,25 @@
+{% extends "stables_shop/base.html" %}
+{% load stables_shop_tags %}
+
+{% load i18n static sekizai_tags sass_tags %}
+{% block body %}
+{% addtoblock "css" %}<link href="{% sass_src 'shop/css/product-list.scss' %}" rel="stylesheet" type="text/css" />{% endaddtoblock %}
+
+{% addtoblock "js" %}<script src="{% static 'bower_components/angular-inview/angular-inview.js' %}"></script>{% endaddtoblock %}
+{% addtoblock "shop-ng-requires" %}angular-inview{% endaddtoblock %}
+
+{% addtoblock "js" %}<script src="{% static 'shop/js/utils.js' %}" type="text/javascript"></script>{% endaddtoblock %}
+{% addtoblock "shop-ng-requires" %}django.shop.utils{% endaddtoblock %}
+
+{% addtoblock "js" %}<script src="{% static 'shop/js/catalog.js' %}" type="text/javascript"></script>{% endaddtoblock %}
+{% addtoblock "shop-ng-requires" %}django.shop.catalog{% endaddtoblock %}
+
+<shop-catalog-list>
+    <div class="row" ng-if="catalog.count===undefined">
+        {% for product in object_list %}
+            {% include "stables_shop/product-preview.html" with ng=0 %}
+        {% endfor %}
+    </div>
+</shop-catalog-list>
+
+{% endblock %}
